@@ -16,6 +16,33 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+### cv-resume (Interactive CV/Resume)
+- **Type**: react-vite, preview at `/`
+- **Directory**: `artifacts/cv-resume/`
+- **Description**: A GitHub-inspired black & white interactive CV/resume site.
+- **Features**:
+  - Animated particle background on hero
+  - Typewriter effect for role titles
+  - Animated stat counters
+  - Draggable skill badges with physics-based drop behavior (level resets when dropped)
+  - Interactive language bar with draggable dividers
+  - Animated contribution graph (reveals cell-by-cell on scroll)
+  - Scroll-reveal animations on all sections
+  - Accordion experience timeline
+  - Project cards with hover effects
+  - Dark/light mode toggle
+  - Sticky navbar with active section tracking
+
+### mockup-sandbox (Canvas / Design Sandbox)
+- **Type**: design, preview at `/__mockup`
+- **Directory**: `artifacts/mockup-sandbox/`
+
+### api-server (API Server)
+- **Type**: api, preview at `/api`
+- **Directory**: `artifacts/api-server/`
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

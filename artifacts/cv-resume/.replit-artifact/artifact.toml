@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Interactive CV/Resume"
+version = "1.0.0"
+id = "artifacts/cv-resume"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19151
+
+[services.development]
+run = "pnpm --filter @workspace/cv-resume run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cv-resume", "run", "build" ]
+publicDir = "artifacts/cv-resume/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19151"
+BASE_PATH = "/"
