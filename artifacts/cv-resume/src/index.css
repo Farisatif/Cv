@@ -236,3 +236,90 @@
     transform-origin: 50% 50%;
   }
 }
+
+/* ===== PRINT STYLES (CV Download) ===== */
+@media print {
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  nav,
+  canvas,
+  .print\:hidden,
+  [class*="animate-"],
+  footer {
+    display: none !important;
+  }
+
+  .grid-pattern {
+    display: none !important;
+  }
+
+  .section-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .border {
+    border-color: #ddd !important;
+  }
+
+  .bg-card {
+    background: white !important;
+  }
+
+  .text-muted-foreground {
+    color: #555 !important;
+  }
+
+  .text-foreground {
+    color: black !important;
+  }
+
+  h1, h2, h3 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  section {
+    page-break-inside: avoid;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  .max-w-5xl {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #skills,
+  #languages-bar,
+  #comments,
+  #contact .border {
+    page-break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+}

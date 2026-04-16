@@ -5,13 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface VisitorCount {
-  count: number;
-}
 
 export interface Comment {
   id: number;
@@ -19,9 +12,4 @@ export interface Comment {
   message: string;
   likes: number;
   createdAt: string;
-}
-
-export interface CreateCommentBody {
-  name: string;
-  message: string;
 }

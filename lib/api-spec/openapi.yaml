@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: visitors
+    description: Visitor count operations
+  - name: comments
+    description: Visitor comments operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /visitors:
+    get:
+      operationId: getVisitorCount
+      tags: [visitors]
+      summary: Get visitor count
+      description: Returns total number of unique visitors
+      responses:
+        "200":
+          description: Visitor count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitorCount"
+    post:
+      operationId: trackVisit
+      tags: [visitors]
+      summary: Track a visit
+      description: Increments visitor count and returns new total
+      responses:
+        "200":
+          description: Updated visitor count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitorCount"
+
+  /comments:
+    get:
+      operationId: listComments
+      tags: [comments]
+      summary: List all comments
+      description: Returns all approved visitor comments
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createComment
+      tags: [comments]
+      summary: Post a comment
+      description: Submit a new visitor comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          description: Invalid input
+
+  /comments/{id}/like:
+    post:
+      operationId: likeComment
+      tags: [comments]
+      summary: Like a comment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "404":
+          description: Comment not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +122,41 @@ components:
       required:
         - status
 
+    VisitorCount:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+        - count
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        message:
+          type: string
+        likes:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - message
+        - likes
+        - createdAt
+
+    CreateCommentBody:
+      type: object
+      properties:
+        name:
+          type: string
+        message:
+          type: string
+      required:
+        - name
+        - message

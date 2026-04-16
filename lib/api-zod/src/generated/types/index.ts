@@ -6,4 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./comment";
+export * from "./createCommentBody";
 export * from "./healthStatus";
+export * from "./visitorCount";

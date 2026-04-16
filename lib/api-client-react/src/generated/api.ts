@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  Comment,
+  CreateCommentBody,
+  HealthStatus,
+  VisitorCount,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,408 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns total number of unique visitors
+ * @summary Get visitor count
+ */
+export const getGetVisitorCountUrl = () => {
+  return `/api/visitors`;
+};
+
+export const getVisitorCount = async (
+  options?: RequestInit,
+): Promise<VisitorCount> => {
+  return customFetch<VisitorCount>(getGetVisitorCountUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetVisitorCountQueryKey = () => {
+  return [`/api/visitors`] as const;
+};
+
+export const getGetVisitorCountQueryOptions = <
+  TData = Awaited<ReturnType<typeof getVisitorCount>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getVisitorCount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetVisitorCountQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getVisitorCount>>> = ({
+    signal,
+  }) => getVisitorCount({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getVisitorCount>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetVisitorCountQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getVisitorCount>>
+>;
+export type GetVisitorCountQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get visitor count
+ */
+
+export function useGetVisitorCount<
+  TData = Awaited<ReturnType<typeof getVisitorCount>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getVisitorCount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetVisitorCountQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Increments visitor count and returns new total
+ * @summary Track a visit
+ */
+export const getTrackVisitUrl = () => {
+  return `/api/visitors`;
+};
+
+export const trackVisit = async (
+  options?: RequestInit,
+): Promise<VisitorCount> => {
+  return customFetch<VisitorCount>(getTrackVisitUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getTrackVisitMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof trackVisit>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof trackVisit>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["trackVisit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof trackVisit>>,
+    void
+  > = () => {
+    return trackVisit(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TrackVisitMutationResult = NonNullable<
+  Awaited<ReturnType<typeof trackVisit>>
+>;
+
+export type TrackVisitMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Track a visit
+ */
+export const useTrackVisit = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof trackVisit>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof trackVisit>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getTrackVisitMutationOptions(options));
+};
+
+/**
+ * Returns all approved visitor comments
+ * @summary List all comments
+ */
+export const getListCommentsUrl = () => {
+  return `/api/comments`;
+};
+
+export const listComments = async (
+  options?: RequestInit,
+): Promise<Comment[]> => {
+  return customFetch<Comment[]>(getListCommentsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListCommentsQueryKey = () => {
+  return [`/api/comments`] as const;
+};
+
+export const getListCommentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listComments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listComments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListCommentsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listComments>>> = ({
+    signal,
+  }) => listComments({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listComments>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListCommentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listComments>>
+>;
+export type ListCommentsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all comments
+ */
+
+export function useListComments<
+  TData = Awaited<ReturnType<typeof listComments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listComments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListCommentsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Submit a new visitor comment
+ * @summary Post a comment
+ */
+export const getCreateCommentUrl = () => {
+  return `/api/comments`;
+};
+
+export const createComment = async (
+  createCommentBody: CreateCommentBody,
+  options?: RequestInit,
+): Promise<Comment> => {
+  return customFetch<Comment>(getCreateCommentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCommentBody),
+  });
+};
+
+export const getCreateCommentMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createComment>>,
+    TError,
+    { data: BodyType<CreateCommentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createComment>>,
+  TError,
+  { data: BodyType<CreateCommentBody> },
+  TContext
+> => {
+  const mutationKey = ["createComment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createComment>>,
+    { data: BodyType<CreateCommentBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createComment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCommentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createComment>>
+>;
+export type CreateCommentMutationBody = BodyType<CreateCommentBody>;
+export type CreateCommentMutationError = ErrorType<void>;
+
+/**
+ * @summary Post a comment
+ */
+export const useCreateComment = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createComment>>,
+    TError,
+    { data: BodyType<CreateCommentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createComment>>,
+  TError,
+  { data: BodyType<CreateCommentBody> },
+  TContext
+> => {
+  return useMutation(getCreateCommentMutationOptions(options));
+};
+
+/**
+ * @summary Like a comment
+ */
+export const getLikeCommentUrl = (id: number) => {
+  return `/api/comments/${id}/like`;
+};
+
+export const likeComment = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Comment> => {
+  return customFetch<Comment>(getLikeCommentUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getLikeCommentMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof likeComment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof likeComment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["likeComment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof likeComment>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return likeComment(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LikeCommentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof likeComment>>
+>;
+
+export type LikeCommentMutationError = ErrorType<void>;
+
+/**
+ * @summary Like a comment
+ */
+export const useLikeComment = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof likeComment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof likeComment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getLikeCommentMutationOptions(options));
+};

@@ -25,8 +25,20 @@ export default function ContactSection() {
           <polyline points="22,6 12,13 2,6"/>
         </svg>
       ),
-      action: copyEmail,
-      actionLabel: copied ? "Copied!" : "Copy",
+      href: `mailto:${personal.email}`,
+      actionLabel: copied ? "Copied!" : "Send email",
+      onAction: copyEmail,
+    },
+    {
+      label: "WhatsApp",
+      value: personal.phone,
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+      ),
+      href: `https://wa.me/${personal.whatsapp}`,
+      actionLabel: "Open WhatsApp",
     },
     {
       label: "GitHub",
@@ -37,6 +49,7 @@ export default function ContactSection() {
         </svg>
       ),
       href: `https://${personal.github}`,
+      actionLabel: "Visit GitHub",
     },
     {
       label: "LinkedIn",
@@ -49,18 +62,7 @@ export default function ContactSection() {
         </svg>
       ),
       href: `https://${personal.linkedin}`,
-    },
-    {
-      label: "Website",
-      value: personal.website,
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
-      ),
-      href: `https://${personal.website}`,
+      actionLabel: "Visit LinkedIn",
     },
   ];
 
@@ -75,13 +77,16 @@ export default function ContactSection() {
             <h2 className="text-lg font-bold tracking-tight">Let's work together</h2>
           </div>
           <p className="text-sm text-muted-foreground max-w-xl">
-            I'm currently open to full-time roles and interesting consulting projects. If you have something exciting in mind, I'd love to hear about it.
+            I'm currently open to full-time roles and interesting consulting projects. Reach me directly — I respond fast.
           </p>
         </div>
 
         <div className="divide-y divide-border">
           {contactLinks.map((link) => (
-            <div key={link.label} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-muted/40 transition-colors group">
+            <div
+              key={link.label}
+              className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-muted/40 transition-colors group"
+            >
               <div className="flex items-center gap-3">
                 <div className="text-muted-foreground group-hover:text-foreground transition-colors">
                   {link.icon}
@@ -91,33 +96,32 @@ export default function ContactSection() {
                   <div className="text-sm font-mono font-medium">{link.value}</div>
                 </div>
               </div>
-              <div>
-                {link.action ? (
+              <div className="flex items-center gap-2">
+                {link.onAction && (
                   <button
-                    onClick={link.action}
+                    onClick={link.onAction}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-200 ${
                       copied
                         ? "border-foreground/40 bg-foreground text-background"
                         : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                     }`}
                   >
-                    {link.actionLabel}
+                    {copied ? "Copied!" : "Copy"}
                   </button>
-                ) : (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-md text-xs font-medium border border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-all duration-200 flex items-center gap-1"
-                  >
-                    Open
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
-                  </a>
                 )}
+                <a
+                  href={link.href}
+                  target={link.href.startsWith("mailto") ? undefined : "_blank"}
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium border border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-all duration-200 flex items-center gap-1.5 active:scale-95"
+                >
+                  {link.actionLabel}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
               </div>
             </div>
           ))}

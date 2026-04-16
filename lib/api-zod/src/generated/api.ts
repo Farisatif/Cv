@@ -14,3 +14,56 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns total number of unique visitors
+ * @summary Get visitor count
+ */
+export const GetVisitorCountResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
+ * Increments visitor count and returns new total
+ * @summary Track a visit
+ */
+export const TrackVisitResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
+ * Returns all approved visitor comments
+ * @summary List all comments
+ */
+export const ListCommentsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  message: zod.string(),
+  likes: zod.number(),
+  createdAt: zod.string(),
+});
+export const ListCommentsResponse = zod.array(ListCommentsResponseItem);
+
+/**
+ * Submit a new visitor comment
+ * @summary Post a comment
+ */
+export const CreateCommentBody = zod.object({
+  name: zod.string(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Like a comment
+ */
+export const LikeCommentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const LikeCommentResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  message: zod.string(),
+  likes: zod.number(),
+  createdAt: zod.string(),
+});
