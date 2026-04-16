@@ -1,22 +1,23 @@
 {
   "personal": {
-    "name": "Alex Morgan",
+    "name": "Fares Ahmed",
     "email": "farisatif7780@gmail.com",
     "phone": "+967778088098",
     "whatsapp": "967778088098",
-    "github": "github.com/alexmorgan",
-    "linkedin": "linkedin.com/in/alexmorgan",
-    "website": "alexmorgan.dev",
+    "github": "github.com/Farisatif7780",
+    "linkedin": "https://www.linkedin",
+        "website": "https://www.linkedin.com/in/fares-atef-01a02a404?utm_source=share_via&utm_content=profile&utm_medium=member_android",
     "stats": {
       "commits": 2847,
-      "repos": 63,
+      "repos": 32,
       "followers": 1204,
       "stars": 4891,
-      "since": 2013
+      "since": 2019
+      
     },
     "en": {
-      "title": "Full-Stack Engineer",
-      "location": "San Francisco, CA",
+      "title": "Developer and Technology Engineer",
+      "location": "Sana'a My name is Al-Dairi , Yemen",
       "bio": "I build scalable systems and elegant user experiences. Passionate about open source, distributed systems, and pushing what's possible on the web. Currently focused on developer tooling and infrastructure at scale.",
       "taglines": [
         "Full-Stack Engineer",
@@ -27,8 +28,8 @@
       ]
     },
     "ar": {
-      "title": "مهندس متكامل",
-      "location": "سان فرانسيسكو، كاليفورنيا",
+      "title": "مطور ومهندس تقنيه",
+      "location": "صنعاء الدائري ، اليمن",
       "bio": "أبني أنظمة قابلة للتوسع وتجارب مستخدم رائعة. شغوف بالبرمجيات مفتوحة المصدر والأنظمة الموزعة ودفع حدود ما هو ممكن على الويب. أركز حاليًا على أدوات المطورين والبنية التحتية على نطاق واسع.",
       "taglines": [
         "مهندس متكامل",
@@ -41,30 +42,39 @@
   },
 
   "skills": [
-    { "id": "react",      "name": "React",        "level": 95, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
-    { "id": "typescript", "name": "TypeScript",   "level": 92, "category_en": "Language",  "category_ar": "لغة البرمجة" },
-    { "id": "nodejs",     "name": "Node.js",      "level": 88, "category_en": "Backend",   "category_ar": "الخادم" },
-    { "id": "python",     "name": "Python",       "level": 85, "category_en": "Language",  "category_ar": "لغة البرمجة" },
-    { "id": "graphql",    "name": "GraphQL",      "level": 80, "category_en": "API",       "category_ar": "واجهة برمجية" },
-    { "id": "postgres",   "name": "PostgreSQL",   "level": 83, "category_en": "Database",  "category_ar": "قاعدة البيانات" },
-    { "id": "docker",     "name": "Docker",       "level": 78, "category_en": "DevOps",    "category_ar": "العمليات" },
-    { "id": "kubernetes", "name": "Kubernetes",   "level": 70, "category_en": "DevOps",    "category_ar": "العمليات" },
-    { "id": "rust",       "name": "Rust",         "level": 60, "category_en": "Language",  "category_ar": "لغة البرمجة" },
-    { "id": "go",         "name": "Go",           "level": 65, "category_en": "Language",  "category_ar": "لغة البرمجة" },
-    { "id": "redis",      "name": "Redis",        "level": 75, "category_en": "Database",  "category_ar": "قاعدة البيانات" },
-    { "id": "aws",        "name": "AWS",          "level": 80, "category_en": "Cloud",     "category_ar": "السحابة" },
-    { "id": "nextjs",     "name": "Next.js",      "level": 90, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
-    { "id": "tailwind",   "name": "Tailwind CSS", "level": 93, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
-    { "id": "git",        "name": "Git",          "level": 96, "category_en": "Tool",      "category_ar": "أداة" },
-    { "id": "linux",      "name": "Linux",        "level": 87, "category_en": "Tool",      "category_ar": "أداة" }
+    { "id": "c", "name": "C", "level": 45, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "cpp", "name": "C++", "level": 45, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "html", "name": "HTML", "level": 60, "category_en": "Frontend", "category_ar": "الواجهة الأمامية" },
+    { "id": "javascript", "name": "JavaScript", "level": 60, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "css", "name": "CSS", "level": 58, "category_en": "Frontend", "category_ar": "الواجهة الأمامية" },
+    { "id": "react", "name": "React", "level": 50, "category_en": "Frontend", "category_ar": "الواجهة الأمامية" },
+    { "id": "nextjs", "name": "Next.js", "level": 48, "category_en": "Frontend", "category_ar": "الواجهة الأمامية" },
+    { "id": "typescript", "name": "TypeScript", "level": 45, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "sql-server", "name": "SQL Server", "level": 40, "category_en": "Database", "category_ar": "قاعدة البيانات" },
+    { "id": "mysql", "name": "MySQL", "level": 42, "category_en": "Database", "category_ar": "قاعدة البيانات" },
+    { "id": "json", "name": "JSON", "level": 55, "category_en": "Data Format", "category_ar": "صيغة بيانات" },
+    { "id": "xml", "name": "XML", "level": 55, "category_en": "Data Format", "category_ar": "صيغة بيانات" },
+    { "id": "java", "name": "Java", "level": 52, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "java-web-application", "name": "Java Web Application", "level": 40, "category_en": "Backend", "category_ar": "الخوادم" },
+    { "id": "figma", "name": "Figma", "level": 50, "category_en": "Design", "category_ar": "التصميم" },
+    { "id": "flutter", "name": "Flutter", "level": 35, "category_en": "Mobile", "category_ar": "تطبيقات الجوال" },
+    { "id": "javafx", "name": "JavaFX", "level": 38, "category_en": "Desktop", "category_ar": "سطح المكتب" },
+    { "id": "api", "name": "API", "level": 45, "category_en": "API", "category_ar": "واجهة برمجية" },
+    { "id": "csharp", "name": "C#", "level": 35, "category_en": "Language", "category_ar": "لغة البرمجة" },
+    { "id": "networks", "name": "Networks", "level": 40, "category_en": "Computer Science", "category_ar": "علوم الحاسوب" },
+    { "id": "linux", "name": "Linux", "level": 55, "category_en": "Tool", "category_ar": "أداة" },
+    { "id": "python", "name": "Python", "level": 50, "category_en": "Language", "category_ar": "لغة البرمجة" }
   ],
 
   "languages": [
-    { "name": "TypeScript", "percent": 42 },
-    { "name": "Python",     "percent": 22 },
-    { "name": "Rust",       "percent": 14 },
-    { "name": "Go",         "percent": 12 },
-    { "name": "Other",      "percent": 10 }
+    { "name": "JavaScript", "percent": 16 },
+    { "name": "Java", "percent": 14 },
+    { "name": "Python", "percent": 13 },
+    { "name": "TypeScript", "percent": 12 },
+    { "name": "C++", "percent": 14 },
+    { "name": "C", "percent": 15 },
+    { "name": "C#", "percent": 10 },
+    { "name": "Other", "percent": 6 }
   ],
 
   "experience": [
@@ -93,11 +103,11 @@
       }
     },
     {
-      "company": "Stripe",
-      "period": "2019 – 2022",
+      "company": "Kitsys",
+      "period": "2025 – 2026",
       "en": {
         "role": "Software Engineer II",
-        "location": "San Francisco, CA",
+        "location": "Sana'a My name is Al-Dairi , Yemen",
         "description": "Worked on the Payments infrastructure team, building reliable payment processing systems that handle billions of dollars annually.",
         "highlights": [
           "Designed idempotency key system reducing duplicate payments by 99.7%",
@@ -107,7 +117,7 @@
       },
       "ar": {
         "role": "مهندس برمجيات II",
-        "location": "سان فرانسيسكو، كاليفورنيا",
+        "location": "صنعاء الدائري ، اليمن",
         "description": "عملت في فريق بنية المدفوعات لبناء أنظمة معالجة دفع موثوقة تتعامل مع مليارات الدولارات سنويًا.",
         "highlights": [
           "صمّمت نظام مفاتيح الاستيدمة الذي خفّض المدفوعات المكررة بنسبة 99.7٪",
@@ -118,25 +128,25 @@
     },
     {
       "company": "GitHub",
-      "period": "2017 – 2019",
+      "period": "2020 – 2026",
       "en": {
         "role": "Software Engineer",
-        "location": "San Francisco, CA",
+        "location": "Sana'a My name is Al-Dairi , Yemen",
         "description": "Core contributor to GitHub Actions and the developer experience platform.",
         "highlights": [
           "Built the initial GitHub Actions execution engine",
           "Improved PR diff rendering performance by 5x",
-          "Shipped GitHub Sponsors payment integration"
+          "I launched my first developments on the Rebilt platform in middle school."
         ]
       },
       "ar": {
         "role": "مهندس برمجيات",
-        "location": "سان فرانسيسكو، كاليفورنيا",
+        "location": "اليمن ، صنعاء الدائري",
         "description": "مساهم أساسي في GitHub Actions ومنصة تجربة المطورين.",
         "highlights": [
           "بنيت محرك تنفيذ GitHub Actions الأولي",
           "حسّنت أداء عرض فروق PR بمقدار 5 أضعاف",
-          "أطلقت تكامل مدفوعات GitHub Sponsors"
+          "أطلقت أولى مشاريعي التطويرية على منصة Rebilt في المرحلة الإعدادية."
         ]
       }
     }
@@ -144,68 +154,69 @@
 
   "projects": [
     {
-      "name": "turborepo-analyzer",
-      "stars": 2341,
-      "forks": 187,
+      "name": "Persol",
+      "stars": 0,
+      "forks": 1,
+      "language": "JavaScript",
+      "tags_en": ["Online store", "Open Source"  ],
+      "tags_ar": ["متجر الكتروني","مفتوح المصدر"],
+      "url": "https://github.com/Farisatif/Persol",
+    
+      "en": { "description": "A simple website that offers users a remote shopping experience and showcases unique products and international brands of sunglasses, eyeglasses, and more" },
+      "ar": { "description":"موقع موقع الكتروني بسيط يعرض للمستخدم تجربة الشراء عن بعد وتجربة المنتجات الفريده من نوعها والماركات العالميه من النظارات الشمسية والطبيه وغيرها"}
+    },
+    {
+      "name": "SoundBlast",
+      "stars": 0,
+      "forks": 2,
       "language": "TypeScript",
-      "tags_en": ["CLI", "Build Tools", "Open Source"],
-      "tags_ar": ["أداة سطر أوامر", "أدوات البناء", "مفتوح المصدر"],
-      "url": "github.com/alexmorgan/turborepo-analyzer",
-      "en": { "description": "CLI tool for visualizing and optimizing Turborepo build graphs. Helps teams identify bottlenecks and reduce CI times by 40%+." },
-      "ar": { "description": "أداة سطر أوامر لتصور وتحسين مخططات بناء Turborepo. تساعد الفرق على تحديد الاختناقات وتقليل أوقات CI بنسبة 40٪ وأكثر." }
+      "tags_en": ["Music", "Platform", "Artists"],
+        "tags_ar": ["موسيقى","منصة","فنانين"],
+      "url": "https://github.com/Farisatif/Sound-",
+      "en": { "description": "As the world’s largest music and audio platform, SoundBlast lets people discover and enjoy the greatest selection of music from the most diverse creator community on earth. The platform has become renowned for its unique content and features, including the ability to unearth breakthrough tracks, raw demos, podcasts and more. This is made possible by an open platform that directly connects creators and their fans across the globe. Music and audio creators use SoundBlast to share their content with a global audience, as well as receive detailed stats and feedback from the SoundBlast community" },
+      "ar": { "description": "باعتبارها أكبر منصة للموسيقى والصوت في العالم، تتيح SoundBlast للمستخدمين اكتشاف والاستمتاع بأروع تشكيلة موسيقية من أكثر مجتمع إبداعي تنوعًا على وجه الأرض. وقد اشتهرت المنصة بمحتواها وميزاتها الفريدة، بما في ذلك القدرة على اكتشاف مقطوعات موسيقية مميزة، وعروض تجريبية، وملفات بودكاست، وغيرها الكثير. كل هذا بفضل منصة مفتوحة تربط المبدعين ومعجبيهم مباشرةً في جميع أنحاء العالم. يستخدم مبدعو الموسيقى والصوت SoundBlast لمشاركة محتواهم مع جمهور عالمي، بالإضافة إلى تلقي إحصائيات مفصلة وتعليقات من مجتمع SoundBlast." }
     },
     {
-      "name": "edge-kv",
-      "stars": 1876,
-      "forks": 143,
-      "language": "Rust",
-      "tags_en": ["Edge", "Distributed", "CRDT"],
-      "tags_ar": ["الحافة", "موزع", "CRDT"],
-      "url": "github.com/alexmorgan/edge-kv",
-      "en": { "description": "Zero-latency key-value store designed for edge computing environments. Supports CRDT-based conflict resolution for distributed writes." },
-      "ar": { "description": "مخزن مفاتيح وقيم عديم الكمون مصمم لبيئات الحوسبة الطرفية. يدعم حل التعارضات القائم على CRDT للكتابات الموزعة." }
-    },
-    {
-      "name": "react-signals",
+      "name": "Navigator Website",
       "stars": 3201,
       "forks": 254,
       "language": "TypeScript",
-      "tags_en": ["React", "State Management", "Performance"],
-      "tags_ar": ["React", "إدارة الحالة", "الأداء"],
-      "url": "github.com/alexmorgan/react-signals",
-      "en": { "description": "Fine-grained reactivity system for React inspired by SolidJS signals. Zero overhead subscription model with automatic dependency tracking." },
-      "ar": { "description": "نظام تفاعل دقيق الحبة لـ React مستوحى من إشارات SolidJS. نموذج اشتراك بلا تكلفة إضافية مع تتبع تلقائي للتبعيات." }
+      "tags_en": ["psychology", "State Management", "Performance"],
+      "tags_ar": ["علم النفس", "إدارة الحالة", "الأداء"],
+      "url": "https://github.com/Farisatif/navigator-website",
+      "en": { "description": "Your guide remotely, it offers opportunities to get to know yourself better, as it is one of the most important sites in our time, including tests to determine the paths of high school graduates, which is concerned with giving them the opportunity to define a goal for their future. Although the Navigator Website is among thousands of sites, it is distinguished by its complete transparency and clear method." },
+      "ar": { "description": "دليلك عن بعد ، يتيح لك الفرص للتعرف على نفسك اكثر بأعتبارها من اهم المواقع في وقتنا الحالي ، التي تشمل اختبارات لتحديد مسير طلاب الخريجين من الثانويه ، والذي يهتم بأعطائهم الفرصه لتحديد هدف لمستقبلهم ، وبما ان Navigator Website من بين الالف المواقع الا انه يتميز بشفافيته التامه وطريقه الواضح" }
     },
     {
-      "name": "sqlpilot",
-      "stars": 892,
-      "forks": 67,
-      "language": "Python",
-      "tags_en": ["AI", "Database", "DevTools"],
-      "tags_ar": ["الذكاء الاصطناعي", "قاعدة البيانات", "أدوات التطوير"],
-      "url": "github.com/alexmorgan/sqlpilot",
-      "en": { "description": "AI-powered SQL query optimizer that analyzes execution plans and suggests index improvements. Integrates with PostgreSQL and MySQL." },
-      "ar": { "description": "محسّن استعلامات SQL بالذكاء الاصطناعي يحلل خطط التنفيذ ويقترح تحسينات للفهارس. يتكامل مع PostgreSQL و MySQL." }
+      "name": "Zeref Bot",
+      "stars": 0,
+      "forks": 0,
+      "language": "Nextjs",
+      "tags_en": ["AI", "Database", "Whatsapp"],
+      "tags_ar": ["الذكاء الاصطناعي", "قاعدة البيانات", "واتساب"],
+      "url": "https://github.com/Farisatif/Zeref-Bot" ,
+      "en": { "description": "Artificial intelligence and an auto-reply bot for WhatsApp, for entertainment and to reply to messages, both privately and in groups, equipped with great features and more than 200 commands that can be used or enjoyed while passing the time. " },
+      "ar": { "description": "ذكاء اضطناعي وبوت رد تلقائي في الوتسآب ، للترفيه ولرد على الرسائل ، في الخاص وفي المجموعات ، ومزود بخدمات جميله واكثر من 200 امر يمكن الاستفاده او تضيعة الوقت بمتعه " }
     }
   ],
 
   "education": [
     {
-      "school": "MIT",
-      "period": "2013 – 2017",
+      "school": "djla",
+      "period": "2011 – 2021",
       "gpa": "3.9",
       "en": {
         "degree": "B.S. Computer Science",
         "highlights": [
-          "Thesis: Distributed consensus in Byzantine environments",
-          "ACM ICPC Regional Finalist"
+          "Effective communication skills developed in institutions and institutes",
+          "Executive Manager"
         ]
       },
       "ar": {
-        "degree": "بكالوريوس علوم الحاسب",
+        "degree": "بكالوريوس علوم الحاسوب",
         "highlights": [
-          "الأطروحة: الإجماع الموزع في البيئات البيزنطية",
-          "متأهل إقليمي في ACM ICPC"
+          "مهارات التواصل الفعال المقام في دورات في المؤسسات والمعاهد",
+          "اداري تنفيذي"
         ]
       }
     }
