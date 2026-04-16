@@ -5,8 +5,8 @@
     "phone": "+967778088098",
     "whatsapp": "967778088098",
     "github": "github.com/Farisatif7780",
-    "linkedin": "https://www.linkedin",
-        "website": "https://www.linkedin.com/in/fares-atef-01a02a404?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+    "linkedin": "www.linkedin.com/in/fares-atef-01a02a404?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+        "website": "www.linkedin.com/in/fares-atef-01a02a404?utm_source=share_via&utm_content=profile&utm_medium=member_android",
     "stats": {
       "commits": 2847,
       "repos": 32,
@@ -160,7 +160,7 @@
       "language": "JavaScript",
       "tags_en": ["Online store", "Open Source"  ],
       "tags_ar": ["متجر الكتروني","مفتوح المصدر"],
-      "url": "https://github.com/Farisatif/Persol",
+      "url": "github.com/Farisatif/Persol",
     
       "en": { "description": "A simple website that offers users a remote shopping experience and showcases unique products and international brands of sunglasses, eyeglasses, and more" },
       "ar": { "description":"موقع موقع الكتروني بسيط يعرض للمستخدم تجربة الشراء عن بعد وتجربة المنتجات الفريده من نوعها والماركات العالميه من النظارات الشمسية والطبيه وغيرها"}
@@ -172,7 +172,7 @@
       "language": "TypeScript",
       "tags_en": ["Music", "Platform", "Artists"],
         "tags_ar": ["موسيقى","منصة","فنانين"],
-      "url": "https://github.com/Farisatif/Sound-",
+      "url": "github.com/Farisatif/Sound-",
       "en": { "description": "As the world’s largest music and audio platform, SoundBlast lets people discover and enjoy the greatest selection of music from the most diverse creator community on earth. The platform has become renowned for its unique content and features, including the ability to unearth breakthrough tracks, raw demos, podcasts and more. This is made possible by an open platform that directly connects creators and their fans across the globe. Music and audio creators use SoundBlast to share their content with a global audience, as well as receive detailed stats and feedback from the SoundBlast community" },
       "ar": { "description": "باعتبارها أكبر منصة للموسيقى والصوت في العالم، تتيح SoundBlast للمستخدمين اكتشاف والاستمتاع بأروع تشكيلة موسيقية من أكثر مجتمع إبداعي تنوعًا على وجه الأرض. وقد اشتهرت المنصة بمحتواها وميزاتها الفريدة، بما في ذلك القدرة على اكتشاف مقطوعات موسيقية مميزة، وعروض تجريبية، وملفات بودكاست، وغيرها الكثير. كل هذا بفضل منصة مفتوحة تربط المبدعين ومعجبيهم مباشرةً في جميع أنحاء العالم. يستخدم مبدعو الموسيقى والصوت SoundBlast لمشاركة محتواهم مع جمهور عالمي، بالإضافة إلى تلقي إحصائيات مفصلة وتعليقات من مجتمع SoundBlast." }
     },
@@ -183,7 +183,7 @@
       "language": "TypeScript",
       "tags_en": ["psychology", "State Management", "Performance"],
       "tags_ar": ["علم النفس", "إدارة الحالة", "الأداء"],
-      "url": "https://github.com/Farisatif/navigator-website",
+      "url": "github.com/Farisatif/navigator-website",
       "en": { "description": "Your guide remotely, it offers opportunities to get to know yourself better, as it is one of the most important sites in our time, including tests to determine the paths of high school graduates, which is concerned with giving them the opportunity to define a goal for their future. Although the Navigator Website is among thousands of sites, it is distinguished by its complete transparency and clear method." },
       "ar": { "description": "دليلك عن بعد ، يتيح لك الفرص للتعرف على نفسك اكثر بأعتبارها من اهم المواقع في وقتنا الحالي ، التي تشمل اختبارات لتحديد مسير طلاب الخريجين من الثانويه ، والذي يهتم بأعطائهم الفرصه لتحديد هدف لمستقبلهم ، وبما ان Navigator Website من بين الالف المواقع الا انه يتميز بشفافيته التامه وطريقه الواضح" }
     },
@@ -194,7 +194,7 @@
       "language": "Nextjs",
       "tags_en": ["AI", "Database", "Whatsapp"],
       "tags_ar": ["الذكاء الاصطناعي", "قاعدة البيانات", "واتساب"],
-      "url": "https://github.com/Farisatif/Zeref-Bot" ,
+      "url": "github.com/Farisatif/Zeref-Bot" ,
       "en": { "description": "Artificial intelligence and an auto-reply bot for WhatsApp, for entertainment and to reply to messages, both privately and in groups, equipped with great features and more than 200 commands that can be used or enjoyed while passing the time. " },
       "ar": { "description": "ذكاء اضطناعي وبوت رد تلقائي في الوتسآب ، للترفيه ولرد على الرسائل ، في الخاص وفي المجموعات ، ومزود بخدمات جميله واكثر من 200 امر يمكن الاستفاده او تضيعة الوقت بمتعه " }
     }
