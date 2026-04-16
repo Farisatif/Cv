@@ -1,0 +1,213 @@
+{
+  "personal": {
+    "name": "Alex Morgan",
+    "email": "farisatif7780@gmail.com",
+    "phone": "+967778088098",
+    "whatsapp": "967778088098",
+    "github": "github.com/alexmorgan",
+    "linkedin": "linkedin.com/in/alexmorgan",
+    "website": "alexmorgan.dev",
+    "stats": {
+      "commits": 2847,
+      "repos": 63,
+      "followers": 1204,
+      "stars": 4891,
+      "since": 2013
+    },
+    "en": {
+      "title": "Full-Stack Engineer",
+      "location": "San Francisco, CA",
+      "bio": "I build scalable systems and elegant user experiences. Passionate about open source, distributed systems, and pushing what's possible on the web. Currently focused on developer tooling and infrastructure at scale.",
+      "taglines": [
+        "Full-Stack Engineer",
+        "Open Source Contributor",
+        "System Architect",
+        "Problem Solver",
+        "Tech Enthusiast"
+      ]
+    },
+    "ar": {
+      "title": "مهندس متكامل",
+      "location": "سان فرانسيسكو، كاليفورنيا",
+      "bio": "أبني أنظمة قابلة للتوسع وتجارب مستخدم رائعة. شغوف بالبرمجيات مفتوحة المصدر والأنظمة الموزعة ودفع حدود ما هو ممكن على الويب. أركز حاليًا على أدوات المطورين والبنية التحتية على نطاق واسع.",
+      "taglines": [
+        "مهندس متكامل",
+        "مساهم في المصدر المفتوح",
+        "مهندس أنظمة",
+        "حلّال مشكلات",
+        "متحمس للتقنية"
+      ]
+    }
+  },
+
+  "skills": [
+    { "id": "react",      "name": "React",        "level": 95, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
+    { "id": "typescript", "name": "TypeScript",   "level": 92, "category_en": "Language",  "category_ar": "لغة البرمجة" },
+    { "id": "nodejs",     "name": "Node.js",      "level": 88, "category_en": "Backend",   "category_ar": "الخادم" },
+    { "id": "python",     "name": "Python",       "level": 85, "category_en": "Language",  "category_ar": "لغة البرمجة" },
+    { "id": "graphql",    "name": "GraphQL",      "level": 80, "category_en": "API",       "category_ar": "واجهة برمجية" },
+    { "id": "postgres",   "name": "PostgreSQL",   "level": 83, "category_en": "Database",  "category_ar": "قاعدة البيانات" },
+    { "id": "docker",     "name": "Docker",       "level": 78, "category_en": "DevOps",    "category_ar": "العمليات" },
+    { "id": "kubernetes", "name": "Kubernetes",   "level": 70, "category_en": "DevOps",    "category_ar": "العمليات" },
+    { "id": "rust",       "name": "Rust",         "level": 60, "category_en": "Language",  "category_ar": "لغة البرمجة" },
+    { "id": "go",         "name": "Go",           "level": 65, "category_en": "Language",  "category_ar": "لغة البرمجة" },
+    { "id": "redis",      "name": "Redis",        "level": 75, "category_en": "Database",  "category_ar": "قاعدة البيانات" },
+    { "id": "aws",        "name": "AWS",          "level": 80, "category_en": "Cloud",     "category_ar": "السحابة" },
+    { "id": "nextjs",     "name": "Next.js",      "level": 90, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
+    { "id": "tailwind",   "name": "Tailwind CSS", "level": 93, "category_en": "Frontend",  "category_ar": "الواجهة الأمامية" },
+    { "id": "git",        "name": "Git",          "level": 96, "category_en": "Tool",      "category_ar": "أداة" },
+    { "id": "linux",      "name": "Linux",        "level": 87, "category_en": "Tool",      "category_ar": "أداة" }
+  ],
+
+  "languages": [
+    { "name": "TypeScript", "percent": 42 },
+    { "name": "Python",     "percent": 22 },
+    { "name": "Rust",       "percent": 14 },
+    { "name": "Go",         "percent": 12 },
+    { "name": "Other",      "percent": 10 }
+  ],
+
+  "experience": [
+    {
+      "company": "Vercel",
+      "period": "2022 – Present",
+      "en": {
+        "role": "Senior Software Engineer",
+        "location": "Remote",
+        "description": "Leading the Edge Runtime team, building infrastructure that serves 10B+ requests/month across 100+ regions. Architected the new Edge Middleware system adopted by 50k+ projects.",
+        "highlights": [
+          "Reduced cold start latency by 73% through WASM optimization",
+          "Built distributed tracing system handling 1M+ spans/sec",
+          "Led migration of 200+ internal services to Edge-native architecture"
+        ]
+      },
+      "ar": {
+        "role": "مهندس برمجيات أول",
+        "location": "عن بُعد",
+        "description": "قيادة فريق Edge Runtime وبناء بنية تحتية تخدم أكثر من 10 مليارات طلب شهريًا عبر أكثر من 100 منطقة. صمّمت نظام Edge Middleware الجديد الذي اعتمده أكثر من 50 ألف مشروع.",
+        "highlights": [
+          "خفضت زمن الاستجابة الأولي بنسبة 73٪ من خلال تحسين WASM",
+          "بنيت نظام التتبع الموزع الذي يعالج أكثر من مليون span في الثانية",
+          "قدت ترحيل أكثر من 200 خدمة داخلية إلى بنية Edge-native"
+        ]
+      }
+    },
+    {
+      "company": "Stripe",
+      "period": "2019 – 2022",
+      "en": {
+        "role": "Software Engineer II",
+        "location": "San Francisco, CA",
+        "description": "Worked on the Payments infrastructure team, building reliable payment processing systems that handle billions of dollars annually.",
+        "highlights": [
+          "Designed idempotency key system reducing duplicate payments by 99.7%",
+          "Implemented real-time fraud detection reducing chargebacks by 40%",
+          "Mentored 6 junior engineers through structured growth programs"
+        ]
+      },
+      "ar": {
+        "role": "مهندس برمجيات II",
+        "location": "سان فرانسيسكو، كاليفورنيا",
+        "description": "عملت في فريق بنية المدفوعات لبناء أنظمة معالجة دفع موثوقة تتعامل مع مليارات الدولارات سنويًا.",
+        "highlights": [
+          "صمّمت نظام مفاتيح الاستيدمة الذي خفّض المدفوعات المكررة بنسبة 99.7٪",
+          "طوّرت كشف الاحتيال في الوقت الفعلي مما قلّص النزاعات بنسبة 40٪",
+          "أشرفت على 6 مهندسين مبتدئين من خلال برامج نمو منظمة"
+        ]
+      }
+    },
+    {
+      "company": "GitHub",
+      "period": "2017 – 2019",
+      "en": {
+        "role": "Software Engineer",
+        "location": "San Francisco, CA",
+        "description": "Core contributor to GitHub Actions and the developer experience platform.",
+        "highlights": [
+          "Built the initial GitHub Actions execution engine",
+          "Improved PR diff rendering performance by 5x",
+          "Shipped GitHub Sponsors payment integration"
+        ]
+      },
+      "ar": {
+        "role": "مهندس برمجيات",
+        "location": "سان فرانسيسكو، كاليفورنيا",
+        "description": "مساهم أساسي في GitHub Actions ومنصة تجربة المطورين.",
+        "highlights": [
+          "بنيت محرك تنفيذ GitHub Actions الأولي",
+          "حسّنت أداء عرض فروق PR بمقدار 5 أضعاف",
+          "أطلقت تكامل مدفوعات GitHub Sponsors"
+        ]
+      }
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "turborepo-analyzer",
+      "stars": 2341,
+      "forks": 187,
+      "language": "TypeScript",
+      "tags_en": ["CLI", "Build Tools", "Open Source"],
+      "tags_ar": ["أداة سطر أوامر", "أدوات البناء", "مفتوح المصدر"],
+      "url": "github.com/alexmorgan/turborepo-analyzer",
+      "en": { "description": "CLI tool for visualizing and optimizing Turborepo build graphs. Helps teams identify bottlenecks and reduce CI times by 40%+." },
+      "ar": { "description": "أداة سطر أوامر لتصور وتحسين مخططات بناء Turborepo. تساعد الفرق على تحديد الاختناقات وتقليل أوقات CI بنسبة 40٪ وأكثر." }
+    },
+    {
+      "name": "edge-kv",
+      "stars": 1876,
+      "forks": 143,
+      "language": "Rust",
+      "tags_en": ["Edge", "Distributed", "CRDT"],
+      "tags_ar": ["الحافة", "موزع", "CRDT"],
+      "url": "github.com/alexmorgan/edge-kv",
+      "en": { "description": "Zero-latency key-value store designed for edge computing environments. Supports CRDT-based conflict resolution for distributed writes." },
+      "ar": { "description": "مخزن مفاتيح وقيم عديم الكمون مصمم لبيئات الحوسبة الطرفية. يدعم حل التعارضات القائم على CRDT للكتابات الموزعة." }
+    },
+    {
+      "name": "react-signals",
+      "stars": 3201,
+      "forks": 254,
+      "language": "TypeScript",
+      "tags_en": ["React", "State Management", "Performance"],
+      "tags_ar": ["React", "إدارة الحالة", "الأداء"],
+      "url": "github.com/alexmorgan/react-signals",
+      "en": { "description": "Fine-grained reactivity system for React inspired by SolidJS signals. Zero overhead subscription model with automatic dependency tracking." },
+      "ar": { "description": "نظام تفاعل دقيق الحبة لـ React مستوحى من إشارات SolidJS. نموذج اشتراك بلا تكلفة إضافية مع تتبع تلقائي للتبعيات." }
+    },
+    {
+      "name": "sqlpilot",
+      "stars": 892,
+      "forks": 67,
+      "language": "Python",
+      "tags_en": ["AI", "Database", "DevTools"],
+      "tags_ar": ["الذكاء الاصطناعي", "قاعدة البيانات", "أدوات التطوير"],
+      "url": "github.com/alexmorgan/sqlpilot",
+      "en": { "description": "AI-powered SQL query optimizer that analyzes execution plans and suggests index improvements. Integrates with PostgreSQL and MySQL." },
+      "ar": { "description": "محسّن استعلامات SQL بالذكاء الاصطناعي يحلل خطط التنفيذ ويقترح تحسينات للفهارس. يتكامل مع PostgreSQL و MySQL." }
+    }
+  ],
+
+  "education": [
+    {
+      "school": "MIT",
+      "period": "2013 – 2017",
+      "gpa": "3.9",
+      "en": {
+        "degree": "B.S. Computer Science",
+        "highlights": [
+          "Thesis: Distributed consensus in Byzantine environments",
+          "ACM ICPC Regional Finalist"
+        ]
+      },
+      "ar": {
+        "degree": "بكالوريوس علوم الحاسب",
+        "highlights": [
+          "الأطروحة: الإجماع الموزع في البيئات البيزنطية",
+          "متأهل إقليمي في ACM ICPC"
+        ]
+      }
+    }
+  ]
+}

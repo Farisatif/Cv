@@ -1,13 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 import { useListComments, useCreateComment, useLikeComment, getListCommentsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-function timeAgo(dateStr: string) {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diff < 60) return `${diff}s ago`;
+function timeAgo(dateStr: string, lang: "en" | "ar") {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (lang === "ar") {
+    if (diff < 60)  return `منذ ${diff} ثانية`;
+    if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`;
+    if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} ساعة`;
+    return `منذ ${Math.floor(diff / 86400)} يوم`;
+  }
+  if (diff < 60)   return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
@@ -18,60 +24,51 @@ function CommentCard({
   index,
   onLike,
   liked,
+  lang,
 }: {
   comment: { id: number; name: string; message: string; likes: number; createdAt: string };
   index: number;
   onLike: (id: number) => void;
   liked: boolean;
+  lang: "en" | "ar";
 }) {
+  const { isRTL } = useLanguage();
   const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), index * 80);
     return () => clearTimeout(timer);
   }, [index]);
 
-  const initials = comment.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = comment.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <div
-      ref={ref}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
         transition: "opacity 0.4s ease, transform 0.4s ease",
       }}
-      className="group border border-border rounded-xl bg-card p-4 hover:border-foreground/25 transition-colors"
+      className="group border border-border rounded-xl bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all"
     >
-      <div className="flex items-start gap-3">
-        {/* Avatar */}
+      <div className={`flex items-start gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
         <div className="w-8 h-8 rounded-full bg-foreground/10 border border-border flex items-center justify-center text-xs font-bold font-mono flex-shrink-0 mt-0.5">
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="flex items-center gap-2">
+        <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
+          <div className={`flex items-center justify-between gap-2 mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
               <span className="text-sm font-semibold">{comment.name}</span>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {timeAgo(comment.createdAt)}
-              </span>
+              <span className="text-[10px] text-muted-foreground font-mono">{timeAgo(comment.createdAt, lang)}</span>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">{comment.message}</p>
-          <div className="mt-2.5 flex items-center gap-2">
+          <div className={`mt-2.5 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
             <button
               onClick={() => onLike(comment.id)}
               disabled={liked}
               className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-200 ${
-                liked
-                  ? "text-foreground bg-foreground/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                liked ? "text-foreground bg-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
               <svg
@@ -97,6 +94,8 @@ function CommentCard({
 
 export default function CommentsSection() {
   const sectionRef = useScrollReveal();
+  const { lang, isRTL } = useLanguage();
+  const t = translations[lang];
   const queryClient = useQueryClient();
   const { data: comments, isLoading } = useListComments();
   const createComment = useCreateComment();
@@ -111,10 +110,7 @@ export default function CommentsSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !message.trim()) {
-      setError("Please fill in both fields.");
-      return;
-    }
+    if (!name.trim() || !message.trim()) { setError(t.guestbook.fillBoth); return; }
     setError("");
     setSubmitting(true);
     try {
@@ -125,7 +121,7 @@ export default function CommentsSection() {
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
     } catch {
-      setError("Failed to post comment. Please try again.");
+      setError(t.guestbook.failed);
     } finally {
       setSubmitting(false);
     }
@@ -137,69 +133,71 @@ export default function CommentsSection() {
       await likeComment.mutateAsync({ id });
       setLikedIds((prev) => new Set([...prev, id]));
       queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey() });
-    } catch {
-      // silently ignore
-    }
+    } catch {}
   };
 
   return (
     <section
       id="comments"
       ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-16 max-w-5xl mx-auto px-6"
+      className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6"
     >
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-6 h-6 rounded border border-border flex items-center justify-center">
+      <div className={`mb-8 ${isRTL ? "text-right" : ""}`}>
+        <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">Guestbook</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t.guestbook.title}</h2>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Leave a message — say hi, share feedback, or just wave.
-        </p>
+        <p className="text-muted-foreground text-sm">{t.guestbook.subtitle}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Comment form */}
-        <div className="lg:col-span-2">
-          <div className="border border-border rounded-xl bg-card p-5 sticky top-20">
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+      <div className={`grid grid-cols-1 lg:grid-cols-5 gap-6 ${isRTL ? "lg:grid-flow-dense" : ""}`}>
+        {/* Form */}
+        <div className={`lg:col-span-2 ${isRTL ? "lg:col-start-4" : ""}`}>
+          <div className="border border-border rounded-xl bg-card p-5 sticky top-20 shadow-sm">
+            <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
-              Write a message
+              {t.guestbook.writeMessage}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">Name</label>
+                <label className={`text-xs text-muted-foreground mb-1.5 block ${isRTL ? "text-right" : ""}`}>
+                  {t.guestbook.name}
+                </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t.guestbook.namePlaceholder}
                   maxLength={50}
+                  dir={isRTL ? "rtl" : "ltr"}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all"
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">Message</label>
+                <label className={`text-xs text-muted-foreground mb-1.5 block ${isRTL ? "text-right" : ""}`}>
+                  {t.guestbook.message}
+                </label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Say something nice..."
+                  placeholder={t.guestbook.messagePlaceholder}
                   maxLength={300}
                   rows={4}
+                  dir={isRTL ? "rtl" : "ltr"}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all resize-none"
                 />
-                <div className="text-right text-[10px] text-muted-foreground mt-0.5">{message.length}/300</div>
+                <div className={`text-[10px] text-muted-foreground mt-0.5 ${isRTL ? "text-left" : "text-right"}`}>
+                  {message.length}/300
+                </div>
               </div>
-              {error && (
-                <p className="text-xs text-red-500 dark:text-red-400">{error}</p>
-              )}
+              {error && <p className="text-xs text-red-500">{error}</p>}
               <button
                 type="submit"
                 disabled={submitting}
@@ -214,17 +212,17 @@ export default function CommentsSection() {
                     <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                     </svg>
-                    Posting...
+                    {t.guestbook.posting}
                   </span>
                 ) : submitted ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    Message sent!
+                    {t.guestbook.sent}
                   </span>
                 ) : (
-                  "Post message"
+                  t.guestbook.post
                 )}
               </button>
             </form>
@@ -232,7 +230,7 @@ export default function CommentsSection() {
         </div>
 
         {/* Comments list */}
-        <div className="lg:col-span-3 space-y-3">
+        <div className={`lg:col-span-3 space-y-3 ${isRTL ? "lg:col-start-1" : ""}`}>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -249,13 +247,13 @@ export default function CommentsSection() {
               ))}
             </div>
           ) : !comments || comments.length === 0 ? (
-            <div className="border border-border rounded-xl bg-card p-8 text-center">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+            <div className="border border-border rounded-xl bg-card p-10 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>
-              <p className="text-sm text-muted-foreground">No messages yet — be the first!</p>
+              <p className="text-sm text-muted-foreground">{t.guestbook.noMessages}</p>
             </div>
           ) : (
             comments.map((comment, i) => (
@@ -265,6 +263,7 @@ export default function CommentsSection() {
                 index={i}
                 onLike={handleLike}
                 liked={likedIds.has(comment.id)}
+                lang={lang}
               />
             ))
           )}

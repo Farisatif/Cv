@@ -21,19 +21,31 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### cv-resume (Interactive CV/Resume)
 - **Type**: react-vite, preview at `/`
 - **Directory**: `artifacts/cv-resume/`
-- **Description**: A GitHub-inspired black & white interactive CV/resume site.
+- **Description**: A GitHub-inspired black & white interactive CV/resume site with bilingual EN/AR support.
+- **Data**: All CV content lives in `src/data/resume.json` — edit this to update any information.
+  - Bilingual structure: `en` and `ar` sub-objects for each translatable field.
+  - Skills have `category_en` and `category_ar`.
+  - Projects have `tags_en`, `tags_ar`, and `en`/`ar` descriptions.
+- **Translations**: UI strings in `src/data/translations.ts` (both languages).
+- **Language context**: `src/context/LanguageContext.tsx` — RTL/LTR support, persisted to localStorage.
+- **PDF download**: `src/lib/downloadPDF.ts` — html2canvas + jspdf.
 - **Features**:
+  - Bilingual EN/AR with RTL layout support (toggle in navbar)
+  - PDF download via html2canvas + jspdf
+  - Scrollable skills badge frame with overflow scroll
   - Animated particle background on hero
-  - Typewriter effect for role titles
+  - Typewriter effect for role titles (bilingual)
   - Animated stat counters
-  - Draggable skill badges with physics-based drop behavior (level resets when dropped)
+  - Draggable skill badges with physics-based drop behavior
   - Interactive language bar with draggable dividers
   - Animated contribution graph (reveals cell-by-cell on scroll)
   - Scroll-reveal animations on all sections
   - Accordion experience timeline
   - Project cards with hover effects
-  - Dark/light mode toggle
+  - System dark/light mode detection with manual override (persisted)
   - Sticky navbar with active section tracking
+  - Guestbook backed by PostgreSQL (comments + likes)
+  - Live visitor counter (session-deduplicated)
 
 ### mockup-sandbox (Canvas / Design Sandbox)
 - **Type**: design, preview at `/__mockup`
