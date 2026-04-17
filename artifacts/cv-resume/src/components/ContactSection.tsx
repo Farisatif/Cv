@@ -28,7 +28,7 @@ export default function ContactSection() {
         </svg>
       ),
       href: `mailto:${resumeJSON.personal.email}`,
-      actionLabel: copied ? t.contact.copied : t.contact.sendEmail,
+      actionLabel: t.contact.sendEmail,
       onAction: copyEmail,
     },
     {
@@ -69,7 +69,12 @@ export default function ContactSection() {
   ];
 
   return (
-    <section id="contact" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6" dir={isRTL ? "rtl" : "ltr"}>
+    <section
+      id="contact"
+      ref={sectionRef as React.RefObject<HTMLElement>}
+      className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         {/* Header */}
         <div className={`px-6 py-5 border-b border-border bg-muted/20 ${isRTL ? "text-right" : ""}`}>
@@ -79,7 +84,7 @@ export default function ContactSection() {
             </svg>
             <h2 className="text-lg font-bold tracking-tight">{t.contact.title}</h2>
           </div>
-          <p className="text-sm text-muted-foreground max-w-xl">{t.contact.subtitle}</p>
+          <p className={`text-sm text-muted-foreground break-words ${isRTL ? "text-right" : ""}`}>{t.contact.subtitle}</p>
         </div>
 
         {/* Contact rows */}
@@ -87,17 +92,23 @@ export default function ContactSection() {
           {contactLinks.map((link) => (
             <div
               key={link.label}
-              className={`px-6 py-4 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors group ${isRTL ? "flex-row-reverse" : ""}`}
+              className={`px-6 py-4 flex items-center gap-4 hover:bg-muted/30 transition-colors group ${isRTL ? "flex-row-reverse" : ""}`}
             >
-              <div className={`flex items-center gap-3 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+              {/* Icon + text — grows to fill available space */}
+              <div className={`flex items-center gap-3 flex-1 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
                 <div className="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                   {link.icon}
                 </div>
-                <div className={`min-w-0 ${isRTL ? "text-right" : ""}`}>
+                <div className={`min-w-0 flex-1 ${isRTL ? "text-right" : ""}`}>
                   <div className="text-xs text-muted-foreground">{link.label}</div>
-                  <div className="text-sm font-mono font-medium truncate max-w-[180px] sm:max-w-xs" dir="ltr">{link.value}</div>
+                  {/* Values like emails/URLs are always LTR; we render them in a separate ltr block */}
+                  <div className="text-sm font-mono font-medium truncate" dir="ltr" style={{ textAlign: isRTL ? "right" : "left" }}>
+                    {link.value}
+                  </div>
                 </div>
               </div>
+
+              {/* Action buttons — never shrink */}
               <div className={`flex items-center gap-2 flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
                 {link.onAction && (
                   <button

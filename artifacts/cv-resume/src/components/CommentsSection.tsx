@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
@@ -55,19 +55,21 @@ function CommentCard({
         <div className="w-8 h-8 rounded-full bg-foreground/10 border border-border flex items-center justify-center text-xs font-bold font-mono flex-shrink-0 mt-0.5">
           {initials}
         </div>
-        <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
+        <div className="flex-1 min-w-0">
           <div className={`flex items-center justify-between gap-2 mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-            <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <span className="text-sm font-semibold">{comment.name}</span>
-              <span className="text-[10px] text-muted-foreground font-mono">{timeAgo(comment.createdAt, lang)}</span>
+            <div className={`flex items-center gap-2 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+              <span className="text-sm font-semibold truncate">{comment.name}</span>
+              <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">{timeAgo(comment.createdAt, lang)}</span>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">{comment.message}</p>
+          <p className={`text-sm text-muted-foreground leading-relaxed break-words ${isRTL ? "text-right" : ""}`}>
+            {comment.message}
+          </p>
           <div className={`mt-2.5 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
             <button
               onClick={() => onLike(comment.id)}
               disabled={liked}
-              className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-200 ${
+              className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-200 ${isRTL ? "flex-row-reverse" : ""} ${
                 liked ? "text-foreground bg-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -141,6 +143,7 @@ export default function CommentsSection() {
       id="comments"
       ref={sectionRef as React.RefObject<HTMLElement>}
       className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6"
+      dir={isRTL ? "rtl" : "ltr"}
     >
       <div className={`mb-8 ${isRTL ? "text-right" : ""}`}>
         <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -154,9 +157,9 @@ export default function CommentsSection() {
         <p className="text-muted-foreground text-sm">{t.guestbook.subtitle}</p>
       </div>
 
-      <div className={`grid grid-cols-1 lg:grid-cols-5 gap-6 ${isRTL ? "lg:grid-flow-dense" : ""}`}>
-        {/* Form */}
-        <div className={`lg:col-span-2 ${isRTL ? "lg:col-start-4" : ""}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Form — always first in DOM; CSS order reverses it in RTL */}
+        <div className="lg:col-span-2" style={{ order: isRTL ? 2 : 1 }}>
           <div className="border border-border rounded-xl bg-card p-5 sticky top-20 shadow-sm">
             <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -176,7 +179,7 @@ export default function CommentsSection() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder={t.guestbook.namePlaceholder}
                   maxLength={50}
-                  dir={isRTL ? "rtl" : "ltr"}
+                  dir="auto"
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all"
                 />
               </div>
@@ -190,14 +193,14 @@ export default function CommentsSection() {
                   placeholder={t.guestbook.messagePlaceholder}
                   maxLength={300}
                   rows={4}
-                  dir={isRTL ? "rtl" : "ltr"}
+                  dir="auto"
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all resize-none"
                 />
                 <div className={`text-[10px] text-muted-foreground mt-0.5 ${isRTL ? "text-left" : "text-right"}`}>
                   {message.length}/300
                 </div>
               </div>
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              {error && <p className={`text-xs text-red-500 ${isRTL ? "text-right" : ""}`}>{error}</p>}
               <button
                 type="submit"
                 disabled={submitting}
@@ -230,7 +233,7 @@ export default function CommentsSection() {
         </div>
 
         {/* Comments list */}
-        <div className={`lg:col-span-3 space-y-3 ${isRTL ? "lg:col-start-1" : ""}`}>
+        <div className="lg:col-span-3 space-y-3" style={{ order: isRTL ? 1 : 2 }}>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
