@@ -291,8 +291,12 @@ export default function HeroSection() {
               {/* Profile header */}
               <div className="p-5 border-b border-border bg-muted/30">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-foreground/15 to-foreground/5 border-2 border-border flex items-center justify-center text-2xl font-bold font-mono">
-                    {personal.name.charAt(0)}
+                  <div className="w-14 h-14 rounded-full border-2 border-border overflow-hidden flex-shrink-0">
+                    <img
+                      src="/Fares.jpg"
+                      alt={personal.name}
+                      className="w-full h-full object-cover object-top"
+                    />
                   </div>
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">{personal.name}</div>

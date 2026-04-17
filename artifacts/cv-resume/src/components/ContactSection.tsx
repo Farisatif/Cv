@@ -69,7 +69,7 @@ export default function ContactSection() {
   ];
 
   return (
-    <section id="contact" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6">
+    <section id="contact" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6" dir={isRTL ? "rtl" : "ltr"}>
       <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         {/* Header */}
         <div className={`px-6 py-5 border-b border-border bg-muted/20 ${isRTL ? "text-right" : ""}`}>
@@ -95,7 +95,7 @@ export default function ContactSection() {
                 </div>
                 <div className={`min-w-0 ${isRTL ? "text-right" : ""}`}>
                   <div className="text-xs text-muted-foreground">{link.label}</div>
-                  <div className="text-sm font-mono font-medium truncate max-w-[200px] sm:max-w-xs">{link.value}</div>
+                  <div className="text-sm font-mono font-medium truncate max-w-[180px] sm:max-w-xs" dir="ltr">{link.value}</div>
                 </div>
               </div>
               <div className={`flex items-center gap-2 flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>

@@ -74,8 +74,8 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
-          <div className="w-7 h-7 rounded-full bg-foreground flex items-center justify-center text-background text-xs font-bold font-mono group-hover:scale-110 transition-transform">
-            {resumeJSON.personal.name.charAt(0)}
+          <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:scale-110 transition-transform flex-shrink-0">
+            <img src="/Fares.jpg" alt={resumeJSON.personal.name} className="w-full h-full object-cover object-top" />
           </div>
           <span className="text-sm font-semibold hidden sm:block">
             {resumeJSON.personal.name.split(" ")[0]}
