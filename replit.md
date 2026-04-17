@@ -32,20 +32,26 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Features**:
   - Bilingual EN/AR with RTL layout support (toggle in navbar)
   - PDF download via html2canvas + jspdf
-  - Scrollable skills badge frame with overflow scroll
+  - Skills badges freely accessible (no scroll restriction)
   - Animated particle background on hero
   - Typewriter effect for role titles (bilingual)
   - Animated stat counters
   - Draggable skill badges with physics-based drop behavior
   - Interactive language bar with draggable dividers
-  - Animated contribution graph (reveals cell-by-cell on scroll)
+  - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated)
+  - Real GitHub stats (followers, repos, stars) in contribution section
+  - Green-shaded contribution cells (GitHub-style colors)
   - Scroll-reveal animations on all sections
   - Accordion experience timeline
   - Project cards with hover effects
-  - System dark/light mode detection with manual override (persisted)
+  - System dark/light mode — pure white light / true black dark
   - Sticky navbar with active section tracking
   - Guestbook backed by PostgreSQL (comments + likes)
   - Live visitor counter (session-deduplicated)
+  - Admin panel at `/cv-resume/admin` with password "Zoom100*"
+    - Add/edit/delete: skills, experience, projects, education, personal info
+    - Changes stored to localStorage; accessible via ⚙ gear icon in footer
+  - Arabic/RTL formatting fixes: images, SVGs, and numbers stay LTR inside RTL layout
 
 ### mockup-sandbox (Canvas / Design Sandbox)
 - **Type**: design, preview at `/__mockup`

@@ -12,6 +12,8 @@ import EducationSection from "@/components/EducationSection";
 import ContactSection from "@/components/ContactSection";
 import CommentsSection from "@/components/CommentsSection";
 import Footer from "@/components/Footer";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminPanel from "@/pages/AdminPanel";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +33,30 @@ function CVApp() {
   const [manualOverride, setManualOverride] = useState(
     () => localStorage.getItem("cv-dark") !== null
   );
+  const [adminView, setAdminView] = useState<"cv" | "login" | "panel">(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path.includes("admin")) {
+        return sessionStorage.getItem("cv-admin") === "1" ? "panel" : "login";
+      }
+    }
+    return "cv";
+  });
+
+  useEffect(() => {
+    const handleNav = () => {
+      const path = window.location.pathname;
+      if (path.includes("admin")) {
+        setAdminView(
+          sessionStorage.getItem("cv-admin") === "1" ? "panel" : "login"
+        );
+      } else {
+        setAdminView("cv");
+      }
+    };
+    window.addEventListener("popstate", handleNav);
+    return () => window.removeEventListener("popstate", handleNav);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -55,6 +81,27 @@ function CVApp() {
     setDarkMode(next);
     localStorage.setItem("cv-dark", String(next));
   };
+
+  if (adminView === "login") {
+    return (
+      <AdminLogin
+        onLogin={() => {
+          setAdminView("panel");
+        }}
+      />
+    );
+  }
+
+  if (adminView === "panel") {
+    return (
+      <AdminPanel
+        onLogout={() => {
+          window.history.pushState({}, "", "/cv-resume/");
+          setAdminView("cv");
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">

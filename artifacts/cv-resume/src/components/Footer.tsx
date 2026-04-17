@@ -37,6 +37,18 @@ export default function Footer() {
           >
             {t.footer.backToTop}
           </a>
+          <a
+            href="/cv-resume/admin"
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, "", "/cv-resume/admin");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+            className="hover:text-foreground transition-colors opacity-40 hover:opacity-100"
+            title="Admin"
+          >
+            ⚙
+          </a>
         </div>
       </div>
     </footer>

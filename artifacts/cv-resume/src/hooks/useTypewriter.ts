@@ -25,6 +25,7 @@ export function useTypewriter(words: string[], speed = 80, deleteSpeed = 40, pau
         return () => clearTimeout(timer);
       } else {
         setIsPaused(true);
+        return;
       }
     } else {
       if (displayText.length > 0) {
@@ -35,6 +36,7 @@ export function useTypewriter(words: string[], speed = 80, deleteSpeed = 40, pau
       } else {
         setIsDeleting(false);
         setWordIndex((i) => i + 1);
+        return;
       }
     }
   }, [displayText, wordIndex, isDeleting, isPaused, words, speed, deleteSpeed, pause]);
