@@ -40,7 +40,13 @@ function CommentCard({
     return () => clearTimeout(timer);
   }, [index]);
 
-  const initials = comment.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  // For Arabic/non-Latin names, use only the first character to avoid overflow in the small circle
+  const isArabicChar = (ch: string) => /[\u0600-\u06FF]/.test(ch);
+  const firstChars = comment.name.trim().split(/\s+/).map((w) => w[0] ?? "").filter(Boolean);
+  const rawInitials = firstChars.join("").toUpperCase().slice(0, 2);
+  const initials = firstChars.length > 0 && isArabicChar(firstChars[0])
+    ? firstChars[0]
+    : rawInitials;
 
   return (
     <div
@@ -52,8 +58,10 @@ function CommentCard({
       className="group border border-border rounded-xl bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all"
     >
       <div className={`flex items-start gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <div className="w-8 h-8 rounded-full bg-foreground/10 border border-border flex items-center justify-center text-xs font-bold font-mono flex-shrink-0 mt-0.5">
-          {initials}
+        <div className="w-9 h-9 rounded-full bg-foreground/10 border border-border flex items-center justify-center overflow-hidden flex-shrink-0 mt-0.5">
+          <span className={`font-bold font-mono leading-none select-none ${isArabicChar(initials[0] ?? "") ? "text-sm" : "text-xs"}`}>
+            {initials}
+          </span>
         </div>
         <div className="flex-1 min-w-0">
           <div className={`flex items-center justify-between gap-2 mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>

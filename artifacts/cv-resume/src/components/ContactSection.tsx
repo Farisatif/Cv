@@ -95,14 +95,14 @@ export default function ContactSection() {
               className={`px-6 py-4 flex items-center gap-4 hover:bg-muted/30 transition-colors group ${isRTL ? "flex-row-reverse" : ""}`}
             >
               {/* Icon + text — grows to fill available space */}
-              <div className={`flex items-center gap-3 flex-1 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+              <div className={`flex items-center gap-3 flex-1 min-w-0 overflow-hidden ${isRTL ? "flex-row-reverse" : ""}`}>
                 <div className="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                   {link.icon}
                 </div>
-                <div className={`min-w-0 flex-1 ${isRTL ? "text-right" : ""}`}>
+                <div className={`min-w-0 flex-1 overflow-hidden ${isRTL ? "text-right" : ""}`}>
                   <div className="text-xs text-muted-foreground">{link.label}</div>
-                  {/* Values like emails/URLs are always LTR; we render them in a separate ltr block */}
-                  <div className="text-sm font-mono font-medium truncate" dir="ltr" style={{ textAlign: isRTL ? "right" : "left" }}>
+                  {/* Values like emails/URLs are always LTR and always left-aligned so truncation clips the end correctly */}
+                  <div className="text-sm font-mono font-medium truncate overflow-hidden" dir="ltr" style={{ textAlign: "left" }}>
                     {link.value}
                   </div>
                 </div>
