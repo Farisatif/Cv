@@ -4,13 +4,22 @@ import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-const LANGUAGE_SHADES = [
-  "bg-foreground",
-  "bg-foreground/75",
-  "bg-foreground/55",
-  "bg-foreground/38",
-  "bg-foreground/22",
+const LANGUAGE_COLORS = [
+  { bar: "bg-emerald-500",  border: "border-emerald-500"  },
+  { bar: "bg-blue-500",     border: "border-blue-500"     },
+  { bar: "bg-violet-500",   border: "border-violet-500"   },
+  { bar: "bg-amber-500",    border: "border-amber-500"    },
+  { bar: "bg-rose-500",     border: "border-rose-500"     },
+  { bar: "bg-cyan-500",     border: "border-cyan-500"     },
+  { bar: "bg-orange-500",   border: "border-orange-500"   },
+  { bar: "bg-pink-500",     border: "border-pink-500"     },
+  { bar: "bg-teal-500",     border: "border-teal-500"     },
+  { bar: "bg-indigo-500",   border: "border-indigo-500"   },
 ];
+
+function getLangColor(i: number) {
+  return LANGUAGE_COLORS[i % LANGUAGE_COLORS.length];
+}
 
 export default function LanguagesSection() {
   const sectionRef = useScrollReveal();
@@ -51,7 +60,8 @@ export default function LanguagesSection() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
       const containerWidth = containerRef.current.offsetWidth;
-      const dx = e.clientX - dragStartRef.current.x;
+      const rawDx = e.clientX - dragStartRef.current.x;
+      const dx = isRTL ? -rawDx : rawDx;
       const deltaPercent = (dx / containerWidth) * 100;
       const newWidth = Math.max(5, Math.min(80, dragStartRef.current.startWidth + deltaPercent));
       const diff = newWidth - dragStartRef.current.startWidth;
@@ -72,12 +82,17 @@ export default function LanguagesSection() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, widths]);
+  }, [dragging, widths, isRTL]);
 
   const resetWidths = () => setWidths(resumeJSON.languages.map((l) => l.percent));
 
   return (
-    <section id="languages-bar" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-12 max-w-5xl mx-auto px-4 sm:px-6">
+    <section
+      id="languages-bar"
+      ref={sectionRef as React.RefObject<HTMLElement>}
+      className="section-reveal py-12 max-w-5xl mx-auto px-4 sm:px-6"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <div className={`px-6 py-4 border-b border-border flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -100,31 +115,45 @@ export default function LanguagesSection() {
         </div>
 
         <div className="px-6 py-5">
-          <p className={`text-xs text-muted-foreground mb-4 ${isRTL ? "text-right" : ""}`}>
-            {t.languages.subtitle}
-          </p>
+          {/* Hint */}
+          <div className={`flex items-center gap-1.5 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground flex-shrink-0">
+              <path d="M5 9l4-4 4 4M5 15l4 4 4-4"/>
+            </svg>
+            <p className={`text-xs text-muted-foreground ${isRTL ? "text-right" : ""}`}>
+              {t.languages.subtitle}
+            </p>
+          </div>
 
           {/* Language bar */}
           <div
             ref={containerRef}
-            className="relative flex h-3.5 rounded-full overflow-hidden mb-5 cursor-col-resize select-none border border-border/50"
+            className="relative flex h-5 rounded-full overflow-hidden mb-5 select-none border border-border/50 cursor-col-resize"
           >
-            {resumeJSON.languages.map((lang, i) => (
+            {resumeJSON.languages.map((language, i) => (
               <div
-                key={lang.name}
-                className={`relative h-full ${LANGUAGE_SHADES[i]}`}
+                key={language.name}
+                className={`relative h-full ${getLangColor(i).bar} transition-opacity`}
                 style={{
                   width: `${started ? widths[i] : 0}%`,
                   transition: started && dragging === null ? "width 0.5s cubic-bezier(0.25, 1, 0.5, 1)" : "none",
+                  opacity: dragging === i || dragging === null ? 1 : 0.85,
                 }}
               >
                 {i < resumeJSON.languages.length - 1 && (
                   <div
                     onMouseDown={(e) => handleDividerMouseDown(e, i)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 z-10 cursor-col-resize flex items-center justify-center"
-                    style={{ transform: "translateX(50%)" }}
+                    className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-3 z-10 cursor-col-resize flex items-center justify-center group`}
+                    style={{ transform: isRTL ? "translateX(-50%)" : "translateX(50%)" }}
                   >
-                    <div className={`w-0.5 h-full bg-background/80 ${dragging === i ? "opacity-100" : "opacity-60 hover:opacity-100"}`} />
+                    <div className={`w-0.5 h-full bg-background transition-all ${
+                      dragging === i
+                        ? "opacity-100 scale-x-150"
+                        : "opacity-80 group-hover:opacity-100 group-hover:scale-x-150"
+                    }`} />
+                    <div className={`absolute w-4 h-4 rounded-full bg-background border-2 ${getLangColor(i).border} shadow-md transition-transform ${
+                      dragging === i ? "scale-100" : "scale-0 group-hover:scale-100"
+                    }`} />
                   </div>
                 )}
               </div>
@@ -134,10 +163,10 @@ export default function LanguagesSection() {
 
           {/* Legend */}
           <div className={`flex flex-wrap gap-x-5 gap-y-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-            {resumeJSON.languages.map((lang, i) => (
-              <div key={lang.name} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-                <span className={`w-2.5 h-2.5 rounded-sm ${LANGUAGE_SHADES[i]}`} />
-                <span className="text-xs text-foreground font-medium">{lang.name}</span>
+            {resumeJSON.languages.map((language, i) => (
+              <div key={language.name} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                <span className={`w-3 h-3 rounded-sm ${getLangColor(i).bar}`} />
+                <span className="text-xs text-foreground font-medium">{language.name}</span>
                 <span className="text-xs text-muted-foreground font-mono">{widths[i].toFixed(1)}%</span>
               </div>
             ))}

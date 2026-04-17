@@ -6,10 +6,46 @@ import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const SKILL_LEVELS = [
-  { label_en: "Learning",     label_ar: "متعلم",   min: 0,  max: 39,  color: "bg-foreground/15" },
-  { label_en: "Intermediate", label_ar: "متوسط",   min: 40, max: 64,  color: "bg-foreground/30" },
-  { label_en: "Advanced",     label_ar: "متقدم",   min: 65, max: 84,  color: "bg-foreground/60" },
-  { label_en: "Expert",       label_ar: "خبير",    min: 85, max: 100, color: "bg-foreground" },
+  {
+    label_en: "Learning",
+    label_ar: "متعلم",
+    min: 0,
+    max: 39,
+    bar: "bg-slate-400",
+    glow: "",
+    dot: "bg-slate-400",
+    text: "text-slate-500 dark:text-slate-400",
+  },
+  {
+    label_en: "Intermediate",
+    label_ar: "متوسط",
+    min: 40,
+    max: 64,
+    bar: "bg-blue-400",
+    glow: "shadow-[0_0_6px_0px_rgba(96,165,250,0.6)]",
+    dot: "bg-blue-400",
+    text: "text-blue-500 dark:text-blue-400",
+  },
+  {
+    label_en: "Advanced",
+    label_ar: "متقدم",
+    min: 65,
+    max: 84,
+    bar: "bg-violet-500",
+    glow: "shadow-[0_0_8px_0px_rgba(139,92,246,0.65)]",
+    dot: "bg-violet-500",
+    text: "text-violet-600 dark:text-violet-400",
+  },
+  {
+    label_en: "Expert",
+    label_ar: "خبير",
+    min: 85,
+    max: 100,
+    bar: "bg-emerald-500",
+    glow: "shadow-[0_0_10px_0px_rgba(16,185,129,0.7)]",
+    dot: "bg-emerald-500",
+    text: "text-emerald-600 dark:text-emerald-400",
+  },
 ];
 
 function getLevelInfo(level: number) {
@@ -22,10 +58,20 @@ function SkillBadge({ skill, index }: { skill: SkillItem; index: number }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [dropped, setDropped] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState(skill.level);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [showLevel, setShowLevel] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
   const levelInfo = getLevelInfo(currentLevel);
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setMounted(true);
+      setCurrentLevel(skill.level);
+    }, index * 60 + 120);
+    return () => clearTimeout(delay);
+  }, [index, skill.level]);
 
   const snapBack = useCallback(() => {
     setDragging(false);
@@ -103,30 +149,43 @@ function SkillBadge({ skill, index }: { skill: SkillItem; index: number }) {
     <div
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      className={`skill-badge relative inline-flex flex-col items-start gap-1.5 px-3 py-2.5 rounded-lg border transition-all select-none ${
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`skill-badge relative inline-flex flex-col items-start gap-2 px-3 py-2.5 rounded-lg border transition-all select-none ${
         dragging
-          ? "border-foreground/50 shadow-2xl z-50 bg-card"
+          ? `border-foreground/50 shadow-2xl z-50 bg-card ${levelInfo.glow}`
           : dropped
           ? "border-foreground/20 bg-muted/50 scale-95"
-          : "border-border bg-card hover:border-foreground/30 hover:shadow-md"
+          : hovered
+          ? `border-foreground/30 shadow-lg bg-card ${levelInfo.glow}`
+          : "border-border bg-card"
       }`}
       style={{
-        transform: `translate(${position.x}px, ${position.y}px)${dragging ? " scale(1.05) rotate(2deg)" : dropped ? " scale(0.95)" : ""}`,
+        transform: `translate(${position.x}px, ${position.y}px)${dragging ? " scale(1.06) rotate(2deg)" : dropped ? " scale(0.95)" : ""}`,
         transition: dragging ? "box-shadow 0.1s" : "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, border-color 0.2s",
         zIndex: dragging ? 9999 : undefined,
-        animationDelay: `${index * 60}ms`,
+        opacity: mounted ? 1 : 0,
       }}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-foreground font-mono">{skill.name}</span>
-        <span className="text-[10px] text-muted-foreground">{skill.category}</span>
+      <div className="flex items-center justify-between w-full gap-2">
+        <span className="text-xs font-semibold text-foreground font-mono">{skill.name}</span>
+        <span className={`text-[10px] font-mono font-medium ${levelInfo.text}`}>{currentLevel}%</span>
       </div>
-      <div className="h-1 rounded-full bg-muted overflow-hidden" style={{ width: "90px" }}>
-        <div className={`h-full rounded-full transition-all duration-700 ${levelInfo.color}`} style={{ width: `${currentLevel}%` }} />
+
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden" style={{ width: "100px" }}>
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${levelInfo.bar}`}
+          style={{ width: `${currentLevel}%` }}
+        />
       </div>
+
+      <span className={`text-[9px] font-medium uppercase tracking-wide ${levelInfo.text}`}>
+        {skill.category}
+      </span>
+
       {showLevel && (
         <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap font-mono animate-bounce">
-          {currentLevel}%
+          -{skill.level - currentLevel}%
         </div>
       )}
     </div>
@@ -150,7 +209,12 @@ export default function SkillsSection() {
   }, [lang]);
 
   return (
-    <section id="skills" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6" dir={isRTL ? "rtl" : "ltr"}>
+    <section
+      id="skills"
+      ref={sectionRef as React.RefObject<HTMLElement>}
+      className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
         <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">
@@ -180,8 +244,8 @@ export default function SkillsSection() {
         ))}
       </div>
 
-      {/* Scrollable skill badges frame */}
-      <div className="scroll-frame border border-border/50 rounded-xl p-4 bg-card/30">
+      {/* Skill badges frame */}
+      <div className="border border-border/60 rounded-xl p-5 bg-card/40 backdrop-blur-sm shadow-sm">
         <div className="flex flex-wrap gap-3 relative min-h-24">
           {filtered.map((skill, i) => (
             <SkillBadge key={skill.id} skill={skill} index={i} />
@@ -190,23 +254,16 @@ export default function SkillsSection() {
       </div>
 
       {/* Legend */}
-      <div className={`mt-6 flex flex-wrap items-center gap-4 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-foreground" />
-          {t.skills.expert}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-foreground/60" />
-          {t.skills.advanced}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-foreground/30" />
-          {t.skills.intermediate}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-foreground/15" />
-          {t.skills.learning}
-        </span>
+      <div className={`mt-5 flex flex-wrap items-center gap-5 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
+        {SKILL_LEVELS.slice().reverse().map((lvl) => (
+          <span key={lvl.label_en} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <span className={`w-2.5 h-2.5 rounded-full ${lvl.dot}`} />
+            <span>{lang === "ar" ? lvl.label_ar : lvl.label_en}</span>
+            <span className="font-mono opacity-60">
+              {lvl.min === 85 ? "85%+" : `${lvl.min}–${lvl.max}%`}
+            </span>
+          </span>
+        ))}
       </div>
     </section>
   );

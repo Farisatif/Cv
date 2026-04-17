@@ -110,10 +110,10 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
 
         {/* Right Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Language toggle */}
+          {/* Language toggle — always visible */}
           <button
             onClick={() => setLang(lang === "en" ? "ar" : "en")}
-            className="hidden sm:flex h-8 px-2.5 rounded-md items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 font-mono border border-border/50"
+            className="flex h-8 px-2.5 rounded-md items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 font-mono border border-border/50"
             aria-label="Toggle language"
           >
             {lang === "en" ? "عربي" : "EN"}
@@ -199,16 +199,10 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
                 </li>
               ))}
             </ul>
-            <div className="border-t border-border pt-2 pb-1 flex items-center gap-2">
-              <button
-                onClick={() => { setMenuOpen(false); setLang(lang === "en" ? "ar" : "en"); }}
-                className="flex-1 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
-              >
-                {lang === "en" ? "عربي" : "English"}
-              </button>
+            <div className="border-t border-border pt-2 pb-1">
               <button
                 onClick={() => { setMenuOpen(false); handleDownloadPDF(); }}
-                className="flex-1 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
+                className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
               >
                 {t.nav.downloadCV}
               </button>

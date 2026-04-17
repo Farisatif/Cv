@@ -10,10 +10,10 @@ const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو
 
 function getShade(count: number): string {
   if (count === 0)  return "bg-muted";
-  if (count <= 2)   return "bg-emerald-300/60 dark:bg-emerald-900/70";
-  if (count <= 5)   return "bg-emerald-400/70 dark:bg-emerald-700/80";
-  if (count <= 8)   return "bg-emerald-500/80 dark:bg-emerald-500/90";
-  return "bg-emerald-600 dark:bg-emerald-400";
+  if (count <= 2)   return "bg-emerald-400/60 dark:bg-emerald-800";
+  if (count <= 5)   return "bg-emerald-500/70 dark:bg-emerald-600";
+  if (count <= 8)   return "bg-emerald-600/85 dark:bg-emerald-500";
+  return "bg-emerald-700 dark:bg-emerald-400";
 }
 
 export default function ContributionGraph() {
@@ -26,6 +26,8 @@ export default function ContributionGraph() {
   const [graphData, setGraphData] = useState<number[][]>(contributionData);
   const [ghStats, setGhStats] = useState<{ followers: number; public_repos: number; stars: number } | null>(null);
   const [loadingGH, setLoadingGH] = useState(true);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [tooltip, setTooltip] = useState<{ x: number; y: number; count: number; visible: boolean }>({
     x: 0, y: 0, count: 0, visible: false,
@@ -86,6 +88,14 @@ export default function ContributionGraph() {
     return () => observer.disconnect();
   }, [graphData]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handleScroll = () => setCanScrollLeft(el.scrollLeft > 10);
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const totalContributions = graphData.flat().reduce((a, b) => a + b, 0);
 
   const tooltipText = (count: number) => {
@@ -94,7 +104,11 @@ export default function ContributionGraph() {
   };
 
   return (
-    <section ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-10 max-w-5xl mx-auto px-4 sm:px-6">
+    <section
+      ref={sectionRef as React.RefObject<HTMLElement>}
+      className="section-reveal py-10 max-w-5xl mx-auto px-4 sm:px-6"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         {/* Header */}
         <div className={`px-6 py-4 border-b border-border flex items-center justify-between gap-4 flex-wrap ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -129,69 +143,85 @@ export default function ContributionGraph() {
           </div>
           <div className={`flex flex-col ${isRTL ? "items-end" : "items-start"}`}>
             <span className="text-sm font-semibold">
-              {totalContributions.toLocaleString()} {t.contributions.subtitle}
+              {totalContributions.toLocaleString(lang === "ar" ? "ar-SA" : "en-US")} {t.contributions.subtitle}
             </span>
             <span className="text-xs text-muted-foreground font-mono">{t.contributions.title}</span>
           </div>
         </div>
 
-        <div className="px-4 py-5 overflow-x-auto">
-          <div ref={graphRef} className={`flex gap-2 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
-            {/* Day labels */}
-            <div className={`flex flex-col gap-[3px] pt-5 flex-shrink-0 ${isRTL ? "pl-1" : "pr-1"}`}>
-              {t.contributions.days.map((day, i) => (
-                <div key={i} className="h-[10px] text-[9px] text-muted-foreground leading-none flex items-center" style={{ marginBottom: i === 0 ? "15px" : "3px" }}>
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Graph */}
-            <div className="flex flex-col gap-1 flex-1">
-              {/* Month labels */}
-              <div className={`flex gap-[3px] ${isRTL ? "flex-row-reverse" : ""}`}>
-                {graphData.map((_, w) => {
-                  const monthIndex = Math.floor((w / graphData.length) * 12);
-                  const showMonth = w % Math.floor(graphData.length / 12) === 0;
-                  return (
-                    <div key={w} className="w-[10px] text-[8px] text-muted-foreground whitespace-nowrap" style={{ marginRight: isRTL ? 0 : "3px", marginLeft: isRTL ? "3px" : 0 }}>
-                      {showMonth ? MONTHS[monthIndex] : ""}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Cells */}
-              <div className={`flex gap-[3px] ${isRTL ? "flex-row-reverse" : ""}`}>
-                {graphData.map((week, w) => (
-                  <div key={w} className="flex flex-col gap-[3px]">
-                    {week.map((count, d) => (
-                      <div
-                        key={d}
-                        className={`contribution-cell w-[10px] h-[10px] rounded-[2px] cursor-pointer ${
-                          revealed[w]?.[d] ? getShade(count) : "bg-transparent"
-                        }`}
-                        style={{ transition: revealed[w]?.[d] ? "all 0.3s ease" : "none" }}
-                        onMouseEnter={(e) => {
-                          const rect = (e.target as HTMLElement).getBoundingClientRect();
-                          setTooltip({ x: rect.left, y: rect.top, count, visible: true });
-                        }}
-                        onMouseLeave={() => setTooltip((prev) => ({ ...prev, visible: false }))}
-                      />
-                    ))}
+        {/* Scrollable graph — always LTR internally so scroll direction is consistent */}
+        <div className="relative">
+          {/* Fade hint when scrollable */}
+          {canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-card to-transparent z-10 pointer-events-none rounded-bl-xl" />
+          )}
+          <div
+            ref={scrollRef}
+            className="px-4 py-5 overflow-x-auto"
+            dir="ltr"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            <div ref={graphRef} className="flex gap-2" style={{ minWidth: "max-content" }}>
+              {/* Day labels */}
+              <div className="flex flex-col gap-[3px] pt-5 flex-shrink-0 pr-1">
+                {t.contributions.days.map((day, i) => (
+                  <div
+                    key={i}
+                    className="h-[10px] text-[9px] text-muted-foreground leading-none flex items-center"
+                    style={{ marginBottom: i === 0 ? "15px" : "3px" }}
+                  >
+                    {day}
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
 
-          {/* Legend */}
-          <div className={`flex items-center gap-1.5 mt-3 ${isRTL ? "justify-start flex-row-reverse" : "justify-end"}`}>
-            <span className="text-[10px] text-muted-foreground">{t.contributions.less}</span>
-            {[0, 2, 5, 8, 12].map((n) => (
-              <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${getShade(n)}`} />
-            ))}
-            <span className="text-[10px] text-muted-foreground">{t.contributions.more}</span>
+              {/* Graph columns */}
+              <div className="flex flex-col gap-1 flex-1">
+                {/* Month labels */}
+                <div className="flex gap-[3px]">
+                  {graphData.map((_, w) => {
+                    const monthIndex = Math.floor((w / graphData.length) * 12);
+                    const showMonth = w % Math.floor(graphData.length / 12) === 0;
+                    return (
+                      <div key={w} className="w-[10px] text-[8px] text-muted-foreground whitespace-nowrap mr-[3px]">
+                        {showMonth ? MONTHS[monthIndex] : ""}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Cells */}
+                <div className="flex gap-[3px]">
+                  {graphData.map((week, w) => (
+                    <div key={w} className="flex flex-col gap-[3px]">
+                      {week.map((count, d) => (
+                        <div
+                          key={d}
+                          className={`contribution-cell w-[10px] h-[10px] rounded-[2px] cursor-pointer ${
+                            revealed[w]?.[d] ? getShade(count) : "bg-transparent"
+                          }`}
+                          style={{ transition: revealed[w]?.[d] ? "all 0.3s ease" : "none" }}
+                          onMouseEnter={(e) => {
+                            const rect = (e.target as HTMLElement).getBoundingClientRect();
+                            setTooltip({ x: rect.left, y: rect.top, count, visible: true });
+                          }}
+                          onMouseLeave={() => setTooltip((prev) => ({ ...prev, visible: false }))}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-1.5 mt-3 justify-end">
+              <span className="text-[10px] text-muted-foreground">{t.contributions.less}</span>
+              {[0, 2, 5, 8, 12].map((n) => (
+                <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${getShade(n)}`} />
+              ))}
+              <span className="text-[10px] text-muted-foreground">{t.contributions.more}</span>
+            </div>
           </div>
         </div>
       </div>
