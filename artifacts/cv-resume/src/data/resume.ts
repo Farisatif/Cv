@@ -27,40 +27,40 @@ function generateContributionData() {
 
 export const contributionData = generateContributionData();
 
-export function getPersonal(lang: Lang) {
+export function getPersonal(lang: Lang, data: ResumeData = rawData) {
   return {
-    ...rawData.personal,
-    title: rawData.personal[lang].title,
-    location: rawData.personal[lang].location,
-    bio: rawData.personal[lang].bio,
-    taglines: rawData.personal[lang].taglines,
+    ...data.personal,
+    title: data.personal[lang].title,
+    location: data.personal[lang].location,
+    bio: data.personal[lang].bio,
+    taglines: data.personal[lang].taglines,
   };
 }
 
-export function getSkills(lang: Lang) {
-  return rawData.skills.map((s) => ({
+export function getSkills(lang: Lang, data: ResumeData = rawData) {
+  return data.skills.map((s) => ({
     ...s,
     category: lang === "ar" ? s.category_ar : s.category_en,
   }));
 }
 
-export function getExperience(lang: Lang) {
-  return rawData.experience.map((e) => ({
+export function getExperience(lang: Lang, data: ResumeData = rawData) {
+  return data.experience.map((e) => ({
     ...e,
     ...e[lang],
   }));
 }
 
-export function getProjects(lang: Lang) {
-  return rawData.projects.map((p) => ({
+export function getProjects(lang: Lang, data: ResumeData = rawData) {
+  return data.projects.map((p) => ({
     ...p,
     description: p[lang].description,
     tags: lang === "ar" ? p.tags_ar : p.tags_en,
   }));
 }
 
-export function getEducation(lang: Lang) {
-  return rawData.education.map((e) => ({
+export function getEducation(lang: Lang, data: ResumeData = rawData) {
+  return data.education.map((e) => ({
     ...e,
     degree: e[lang].degree,
     highlights: e[lang].highlights,

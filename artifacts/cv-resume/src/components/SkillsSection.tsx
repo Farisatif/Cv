@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getSkills } from "@/data/resume";
 import { useLanguage } from "@/context/LanguageContext";
+import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
@@ -135,8 +136,9 @@ function SkillBadge({ skill, index }: { skill: SkillItem; index: number }) {
 export default function SkillsSection() {
   const sectionRef = useScrollReveal();
   const { lang, isRTL } = useLanguage();
+  const { data: resumeData } = useResumeData();
   const t = translations[lang];
-  const skills = getSkills(lang);
+  const skills = getSkills(lang, resumeData);
   const [filter, setFilter] = useState("All");
 
   const allLabel = t.skills.all;
@@ -148,7 +150,7 @@ export default function SkillsSection() {
   }, [lang]);
 
   return (
-    <section id="skills" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6">
+    <section id="skills" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6" dir={isRTL ? "rtl" : "ltr"}>
       <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
         <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">

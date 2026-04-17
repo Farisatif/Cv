@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ResumeDataProvider } from "@/context/ResumeDataContext";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SkillsSection from "@/components/SkillsSection";
@@ -128,7 +129,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <CVApp />
+        <ResumeDataProvider>
+          <CVApp />
+        </ResumeDataProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

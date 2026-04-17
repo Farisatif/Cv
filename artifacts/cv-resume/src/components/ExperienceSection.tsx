@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { getExperience } from "@/data/resume";
 import { useLanguage } from "@/context/LanguageContext";
+import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function ExperienceSection() {
   const sectionRef = useScrollReveal();
   const { lang, isRTL } = useLanguage();
+  const { data: resumeData } = useResumeData();
   const t = translations[lang];
-  const experience = getExperience(lang);
+  const experience = getExperience(lang, resumeData);
   const [expanded, setExpanded] = useState<number | null>(0);
 
   return (
-    <section id="experience" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6">
+    <section id="experience" ref={sectionRef as React.RefObject<HTMLElement>} className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6" dir={isRTL ? "rtl" : "ltr"}>
       <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
         <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">
@@ -74,7 +76,7 @@ export default function ExperienceSection() {
                       style={{ maxHeight: isOpen ? "600px" : "0px" }}
                     >
                       <div className={`px-5 pb-5 border-t border-border pt-4 ${isRTL ? "text-right" : ""}`}>
-                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed break-words">
                           {exp.description}
                         </p>
                         <ul className="space-y-2">

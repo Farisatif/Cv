@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTypewriter } from "@/hooks/useTypewriter";
-import { getPersonal, resumeJSON } from "@/data/resume";
+import { getPersonal } from "@/data/resume";
 import { useLanguage } from "@/context/LanguageContext";
+import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
 import { downloadPDF } from "@/lib/downloadPDF";
 import { useGetVisitorCount, useTrackVisit, getGetVisitorCountQueryKey } from "@workspace/api-client-react";
@@ -77,8 +78,9 @@ function VisitorBadge({ label }: { label: string }) {
 
 export default function HeroSection() {
   const { lang, isRTL } = useLanguage();
+  const { data: resumeData } = useResumeData();
   const t = translations[lang];
-  const personal = getPersonal(lang);
+  const personal = getPersonal(lang, resumeData);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -173,8 +175,8 @@ export default function HeroSection() {
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none print:hidden" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80 pointer-events-none print:hidden" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-28 sm:py-32 w-full print:py-6">
-        <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-28 sm:py-32 w-full print:py-6" dir={isRTL ? "rtl" : "ltr"}>
+        <div className={`flex flex-col gap-10 lg:gap-16 ${isRTL ? "lg:flex-row-reverse" : "lg:flex-row"} items-start`}>
 
           {/* Left content */}
           <div className="flex-1 min-w-0">
@@ -203,7 +205,7 @@ export default function HeroSection() {
             </div>
 
             {/* Bio */}
-            <p className={`text-muted-foreground leading-relaxed max-w-lg mb-8 text-[15px] ${isRTL ? "text-right" : ""}`}>
+            <p className="text-muted-foreground leading-relaxed max-w-lg mb-8 text-[15px] break-words">
               {personal.bio}
             </p>
 
@@ -253,17 +255,17 @@ export default function HeroSection() {
               {[
                 {
                   label: "GitHub",
-                  href: `https://${resumeJSON.personal.github}`,
+                  href: `https://${resumeData.personal.github}`,
                   icon: <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>,
                 },
                 {
                   label: "LinkedIn",
-                  href: `https://${resumeJSON.personal.linkedin}`,
+                  href: `https://${resumeData.personal.linkedin}`,
                   icon: <><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></>,
                 },
                 {
                   label: "WhatsApp",
-                  href: `https://wa.me/${resumeJSON.personal.whatsapp}`,
+                  href: `https://wa.me/${resumeData.personal.whatsapp}`,
                   icon: <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>,
                 },
               ].map(({ label, href, icon }) => (
@@ -294,7 +296,7 @@ export default function HeroSection() {
                   </div>
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">{personal.name}</div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">{resumeJSON.personal.github}</div>
+                    <div className="text-xs text-muted-foreground font-mono truncate">{resumeData.personal.github}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -308,15 +310,15 @@ export default function HeroSection() {
 
               {/* Stats grid */}
               <div className="grid grid-cols-2 divide-x divide-y divide-border">
-                <div className="p-4"><StatCard value={resumeJSON.personal.stats.commits}   label={t.stats.commits} /></div>
-                <div className="p-4"><StatCard value={resumeJSON.personal.stats.repos}     label={t.stats.repos} /></div>
-                <div className="p-4"><StatCard value={resumeJSON.personal.stats.followers} label={t.stats.followers} /></div>
-                <div className="p-4"><StatCard value={resumeJSON.personal.stats.stars}     label={t.stats.stars} /></div>
+                <div className="p-4"><StatCard value={resumeData.personal.stats.commits}   label={t.stats.commits} /></div>
+                <div className="p-4"><StatCard value={resumeData.personal.stats.repos}     label={t.stats.repos} /></div>
+                <div className="p-4"><StatCard value={resumeData.personal.stats.followers} label={t.stats.followers} /></div>
+                <div className="p-4"><StatCard value={resumeData.personal.stats.stars}     label={t.stats.stars} /></div>
               </div>
 
               <div className="p-3 border-t border-border bg-muted/20">
                 <div className="text-[11px] text-muted-foreground text-center font-mono">
-                  {t.hero.since} {resumeJSON.personal.stats.since} · {new Date().getFullYear() - resumeJSON.personal.stats.since} {t.hero.yearsCoding}
+                  {t.hero.since} {resumeData.personal.stats.since} · {new Date().getFullYear() - resumeData.personal.stats.since} {t.hero.yearsCoding}
                 </div>
               </div>
             </div>

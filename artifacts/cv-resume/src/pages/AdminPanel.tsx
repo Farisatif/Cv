@@ -1,22 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useResumeData } from "@/context/ResumeDataContext";
 import resumeRaw from "@/data/resume.json";
 
 type Lang = "en" | "ar";
-
-const STORAGE_KEY = "cv-admin-data";
-
-function loadData() {
-  try {
-    const s = localStorage.getItem(STORAGE_KEY);
-    if (s) return JSON.parse(s);
-  } catch {}
-  return null;
-}
-
-function saveData(data: typeof resumeRaw) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -66,7 +53,7 @@ function Field({
 
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const { isRTL } = useLanguage();
-  const [data, setData] = useState<typeof resumeRaw>(() => loadData() ?? resumeRaw);
+  const { data, setData, saveData, resetData } = useResumeData();
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"personal" | "skills" | "experience" | "projects" | "education">("personal");
   const lang: Lang = isRTL ? "ar" : "en";
@@ -79,8 +66,7 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
   const handleReset = () => {
     if (confirm(isRTL ? "هل أنت متأكد من إعادة الضبط؟" : "Reset all data to defaults?")) {
-      localStorage.removeItem(STORAGE_KEY);
-      setData(resumeRaw);
+      resetData();
     }
   };
 
