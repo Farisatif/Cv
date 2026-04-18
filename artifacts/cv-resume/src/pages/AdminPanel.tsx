@@ -536,7 +536,7 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
               These are the default percentages shown in the interactive bar. Visitors can drag them, but their view resets on reload.
             </p>
             <div className="space-y-3">
-              {data.languages.map((lang, i) => (
+              {data.languages.map((langItem, i) => (
                 <div key={i} className="border border-border rounded-xl p-4 bg-card">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -545,8 +545,8 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
                         "bg-rose-500","bg-cyan-500","bg-orange-500","bg-pink-500",
                         "bg-teal-500","bg-indigo-500",
                       ][i % 10]}`} />
-                      <span className="font-mono text-sm font-semibold">{lang.name}</span>
-                      <span className="text-xs text-muted-foreground font-mono">{lang.percent}%</span>
+                      <span className="font-mono text-sm font-semibold">{langItem.name}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{langItem.percent}%</span>
                     </div>
                     <button
                       onClick={() => setData((p) => ({ ...p, languages: p.languages.filter((_, idx) => idx !== i) }))}
@@ -558,18 +558,18 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
                   <div className="grid grid-cols-2 gap-3">
                     <Field
                       label="Language Name"
-                      value={lang.name}
+                      value={langItem.name}
                       onChange={(v) => setData((p) => ({ ...p, languages: p.languages.map((l, idx) => idx === i ? { ...l, name: v } : l) }))}
                     />
                     <div className="space-y-1">
                       <label className="block text-xs font-medium text-muted-foreground">
-                        Default % — <span className="font-mono">{lang.percent}%</span>
+                        Default % — <span className="font-mono">{langItem.percent}%</span>
                       </label>
                       <input
                         type="range"
                         min={1}
                         max={80}
-                        value={lang.percent}
+                        value={langItem.percent}
                         onChange={(e) => {
                           const val = parseInt(e.target.value);
                           setData((p) => ({
