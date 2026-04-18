@@ -20,3 +20,9 @@ export const visitorsTable = pgTable("visitors", {
 });
 
 export type Visitor = typeof visitorsTable.$inferSelect;
+
+export const resumeDataTable = pgTable("resume_data", {
+  id: serial("id").primaryKey(),
+  data: text("data").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

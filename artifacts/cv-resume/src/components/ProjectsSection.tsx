@@ -86,7 +86,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* Description */}
-            <p className={`text-sm text-muted-foreground mb-4 leading-relaxed line-clamp-3 break-words ${isRTL ? "text-right" : ""}`}>
+            <p className={`text-sm text-muted-foreground mb-4 leading-relaxed break-words ${isRTL ? "text-right" : ""}`}>
               {project.description}
             </p>
 
