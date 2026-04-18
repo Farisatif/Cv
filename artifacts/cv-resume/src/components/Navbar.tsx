@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
-import { resumeJSON } from "@/data/resume";
+import { useResumeData } from "@/context/ResumeDataContext";
 import { downloadPDF } from "@/lib/downloadPDF";
 
 interface NavbarProps {
@@ -12,6 +12,8 @@ interface NavbarProps {
 export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
   const { lang, setLang, isRTL } = useLanguage();
   const t = translations[lang];
+  const { data } = useResumeData();
+  const personalName = data.personal.name;
 
   const NAV_ITEMS = [
     { label: t.nav.about,      href: "#about" },
@@ -75,10 +77,10 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
           }}
         >
           <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:scale-110 transition-transform flex-shrink-0">
-            <img src="/Fares.jpg" alt={resumeJSON.personal.name} className="w-full h-full object-cover object-top" />
+            <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
           </div>
           <span className="text-sm font-semibold hidden sm:block">
-            {resumeJSON.personal.name.split(" ")[0]}
+            {personalName.split(" ")[0]}
           </span>
         </a>
 

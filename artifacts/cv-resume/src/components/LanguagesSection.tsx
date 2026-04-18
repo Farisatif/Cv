@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { resumeJSON } from "@/data/resume";
+import { useResumeData } from "@/context/ResumeDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -25,11 +25,17 @@ export default function LanguagesSection() {
   const sectionRef = useScrollReveal();
   const { lang, isRTL } = useLanguage();
   const t = translations[lang];
+  const { data } = useResumeData();
+  const languages = data.languages;
 
   const [started, setStarted] = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
-  const [widths, setWidths] = useState(resumeJSON.languages.map((l) => l.percent));
+  const [widths, setWidths] = useState(languages.map((l) => l.percent));
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setWidths(languages.map((l) => l.percent));
+  }, [data]);
   const dragStartRef = useRef({ x: 0, startWidth: 0, index: 0 });
   const barRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +90,7 @@ export default function LanguagesSection() {
     };
   }, [dragging, widths, isRTL]);
 
-  const resetWidths = () => setWidths(resumeJSON.languages.map((l) => l.percent));
+  const resetWidths = () => setWidths(languages.map((l) => l.percent));
 
   return (
     <section
@@ -130,7 +136,7 @@ export default function LanguagesSection() {
             ref={containerRef}
             className="relative flex h-5 rounded-full overflow-hidden mb-5 select-none border border-border/50 cursor-col-resize"
           >
-            {resumeJSON.languages.map((language, i) => (
+            {languages.map((language, i) => (
               <div
                 key={language.name}
                 className={`relative h-full ${getLangColor(i).bar} transition-opacity`}
@@ -140,7 +146,7 @@ export default function LanguagesSection() {
                   opacity: dragging === i || dragging === null ? 1 : 0.85,
                 }}
               >
-                {i < resumeJSON.languages.length - 1 && (
+                {i < languages.length - 1 && (
                   <div
                     onMouseDown={(e) => handleDividerMouseDown(e, i)}
                     className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-3 z-10 cursor-col-resize flex items-center justify-center group`}
@@ -163,7 +169,7 @@ export default function LanguagesSection() {
 
           {/* Legend */}
           <div className={`flex flex-wrap gap-x-5 gap-y-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-            {resumeJSON.languages.map((language, i) => (
+            {languages.map((language, i) => (
               <div key={language.name} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
                 <span className={`w-3 h-3 rounded-sm ${getLangColor(i).bar}`} />
                 <span className="text-xs text-foreground font-medium">{language.name}</span>

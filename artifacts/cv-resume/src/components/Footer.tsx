@@ -1,12 +1,13 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
-import { resumeJSON } from "@/data/resume";
+import { useResumeData } from "@/context/ResumeDataContext";
 
 export default function Footer() {
   const { lang, isRTL } = useLanguage();
   const t = translations[lang];
   const year = new Date().getFullYear();
-  const personal = resumeJSON.personal;
+  const { data } = useResumeData();
+  const personal = data.personal;
   const title = personal[lang].title;
 
   return (
