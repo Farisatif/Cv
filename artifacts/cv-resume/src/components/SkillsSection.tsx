@@ -190,33 +190,23 @@ export default function SkillsSection() {
     <section
       id="skills"
       ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-20 sm:py-24 max-w-5xl mx-auto px-4 sm:px-6"
+      className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      {/* Header */}
-      <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
-        <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight">{t.skills.title}</h2>
-        </div>
-        <p className="text-muted-foreground text-sm">{t.skills.subtitle}</p>
+      <div className={`mb-12 ${isRTL ? "text-right" : ""}`}>
+        <span className="section-label">{t.skills.title}</span>
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mb-1">
+          {lang === "ar" ? "مهاراتي التقنية" : "Technical Skills"}
+        </h2>
+        <p className="text-muted-foreground text-sm mt-2">{t.skills.subtitle}</p>
       </div>
 
-      {/* Category filter */}
       <div className={`flex flex-wrap gap-2 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
-              filter === cat
-                ? "bg-foreground text-background border-foreground"
-                : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-            }`}
+            className={`tag-filter ${filter === cat ? "active" : ""}`}
           >
             {cat}
           </button>

@@ -36,49 +36,48 @@ function CommentCard({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), index * 80);
+    const timer = setTimeout(() => setVisible(true), index * 70);
     return () => clearTimeout(timer);
   }, [index]);
 
-  // For Arabic/non-Latin names, use only the first character to avoid overflow in the small circle
   const isArabicChar = (ch: string) => /[\u0600-\u06FF]/.test(ch);
   const firstChars = comment.name.trim().split(/\s+/).map((w) => w[0] ?? "").filter(Boolean);
   const rawInitials = firstChars.join("").toUpperCase().slice(0, 2);
-  const initials = firstChars.length > 0 && isArabicChar(firstChars[0])
-    ? firstChars[0]
-    : rawInitials;
+  const initials = firstChars.length > 0 && isArabicChar(firstChars[0]) ? firstChars[0] : rawInitials;
 
   return (
     <div
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 0.4s ease, transform 0.4s ease",
+        transform: visible ? "translateY(0)" : "translateY(16px)",
+        transition: "opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.45s cubic-bezier(0.16,1,0.3,1)",
       }}
-      className="group border border-border rounded-xl bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all"
+      className="group border border-border rounded-2xl bg-card p-5 hover:border-foreground/15 hover:shadow-sm transition-all"
     >
-      <div className={`flex items-start gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <div className="w-9 h-9 rounded-full bg-foreground/10 border border-border flex items-center justify-center overflow-hidden flex-shrink-0 mt-0.5">
-          <span className={`font-bold font-mono leading-none select-none ${isArabicChar(initials[0] ?? "") ? "text-sm" : "text-xs"}`}>
+      <div className={`flex items-start gap-3.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+        <div className="w-9 h-9 rounded-full bg-foreground/8 border border-border flex items-center justify-center overflow-hidden flex-shrink-0 mt-0.5">
+          <span className={`font-bold leading-none select-none text-foreground/70 ${isArabicChar(initials[0] ?? "") ? "text-sm" : "text-xs font-mono"}`}>
             {initials}
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className={`flex items-center justify-between gap-2 mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div className={`flex items-center justify-between gap-2 mb-2 ${isRTL ? "flex-row-reverse" : ""}`}>
             <div className={`flex items-center gap-2 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <span className="text-sm font-semibold truncate">{comment.name}</span>
+              <span className="text-sm font-semibold truncate tracking-tight">{comment.name}</span>
               <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">{timeAgo(comment.createdAt, lang)}</span>
             </div>
           </div>
-          <p className={`text-sm text-muted-foreground leading-relaxed break-words ${isRTL ? "text-right" : ""}`}>
+          <p className={`text-sm text-muted-foreground leading-relaxed break-words mb-3 ${isRTL ? "text-right" : ""}`}>
             {comment.message}
           </p>
-          <div className={`mt-2.5 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
             <button
               onClick={() => onLike(comment.id)}
               disabled={liked}
-              className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-200 ${isRTL ? "flex-row-reverse" : ""} ${
-                liked ? "text-foreground bg-foreground/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg transition-all duration-200 ${isRTL ? "flex-row-reverse" : ""} ${
+                liked
+                  ? "text-foreground bg-foreground/10 border border-foreground/15"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border"
               }`}
             >
               <svg
@@ -150,35 +149,32 @@ export default function CommentsSection() {
     <section
       id="comments"
       ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-16 max-w-5xl mx-auto px-4 sm:px-6"
+      className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className={`mb-8 ${isRTL ? "text-right" : ""}`}>
-        <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div className="w-6 h-6 rounded border border-border flex items-center justify-center flex-shrink-0">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight">{t.guestbook.title}</h2>
-        </div>
-        <p className="text-muted-foreground text-sm">{t.guestbook.subtitle}</p>
+      <div className={`mb-12 ${isRTL ? "text-right" : ""}`}>
+        <span className="section-label">{t.guestbook.title}</span>
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+          {lang === "ar" ? "سجّل حضورك" : "Sign the guestbook"}
+        </h2>
+        <p className="text-muted-foreground mt-3 text-[15px] leading-relaxed max-w-md">
+          {t.guestbook.subtitle}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Form — always first in DOM; CSS order reverses it in RTL */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         <div className="lg:col-span-2" style={{ order: isRTL ? 2 : 1 }}>
-          <div className="border border-border rounded-xl bg-card p-5 sticky top-20 shadow-sm">
-            <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div className="border border-border rounded-2xl bg-card p-6 sticky top-20">
+            <h3 className={`text-sm font-semibold mb-5 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
               {t.guestbook.writeMessage}
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className={`text-xs text-muted-foreground mb-1.5 block ${isRTL ? "text-right" : ""}`}>
+                <label className={`text-[11px] text-muted-foreground mb-1.5 block uppercase tracking-wide ${isRTL ? "text-right" : ""}`}>
                   {t.guestbook.name}
                 </label>
                 <input
@@ -188,11 +184,11 @@ export default function CommentsSection() {
                   placeholder={t.guestbook.namePlaceholder}
                   maxLength={50}
                   dir="auto"
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
                 />
               </div>
               <div>
-                <label className={`text-xs text-muted-foreground mb-1.5 block ${isRTL ? "text-right" : ""}`}>
+                <label className={`text-[11px] text-muted-foreground mb-1.5 block uppercase tracking-wide ${isRTL ? "text-right" : ""}`}>
                   {t.guestbook.message}
                 </label>
                 <textarea
@@ -202,35 +198,42 @@ export default function CommentsSection() {
                   maxLength={300}
                   rows={4}
                   dir="auto"
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all resize-none"
                 />
-                <div className={`text-[10px] text-muted-foreground mt-0.5 ${isRTL ? "text-left" : "text-right"}`}>
+                <div className={`text-[10px] text-muted-foreground mt-1 font-mono ${isRTL ? "text-left" : "text-right"}`}>
                   {message.length}/300
                 </div>
               </div>
-              {error && <p className={`text-xs text-red-500 ${isRTL ? "text-right" : ""}`}>{error}</p>}
+              {error && (
+                <p className={`text-xs text-red-500 flex items-center gap-1.5 ${isRTL ? "flex-row-reverse text-right" : ""}`}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  {error}
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={submitting}
-                className={`w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   submitted
-                    ? "bg-foreground/10 text-foreground border border-foreground/20"
-                    : "bg-foreground text-background hover:opacity-90 active:scale-95"
+                    ? "bg-foreground/8 text-foreground border border-foreground/15"
+                    : "bg-foreground text-background hover:opacity-90 active:scale-[0.98]"
                 } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                     </svg>
                     {t.guestbook.posting}
                   </span>
                 ) : submitted ? (
                   <span className="flex items-center justify-center gap-2 text-xs">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    {lang === "ar" ? "✓ تم الإرسال — بانتظار موافقة المشرف" : "✓ Sent — awaiting admin approval"}
+                    {lang === "ar" ? "تم الإرسال — بانتظار موافقة المشرف" : "Sent — awaiting admin approval"}
                   </span>
                 ) : (
                   t.guestbook.post
@@ -240,31 +243,33 @@ export default function CommentsSection() {
           </div>
         </div>
 
-        {/* Comments list */}
         <div className="lg:col-span-3 space-y-3" style={{ order: isRTL ? 1 : 2 }}>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="border border-border rounded-xl bg-card p-4 animate-pulse">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-muted" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-muted rounded w-1/3" />
-                      <div className="h-3 bg-muted rounded w-full" />
-                      <div className="h-3 bg-muted rounded w-2/3" />
+                <div key={i} className="border border-border rounded-2xl bg-card p-5 animate-pulse">
+                  <div className="flex gap-3.5">
+                    <div className="w-9 h-9 rounded-full bg-muted flex-shrink-0" />
+                    <div className="flex-1 space-y-2.5 pt-1">
+                      <div className="h-3 bg-muted rounded-full w-1/3" />
+                      <div className="h-3 bg-muted rounded-full w-full" />
+                      <div className="h-3 bg-muted rounded-full w-2/3" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : !comments || comments.length === 0 ? (
-            <div className="border border-border rounded-xl bg-card p-10 text-center">
-              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+            <div className="border border-border rounded-2xl bg-card p-12 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>
-              <p className="text-sm text-muted-foreground">{t.guestbook.noMessages}</p>
+              <p className="text-sm text-muted-foreground font-medium">{t.guestbook.noMessages}</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                {lang === "ar" ? "كن أول من يكتب رسالة!" : "Be the first to leave a message!"}
+              </p>
             </div>
           ) : (
             comments.map((comment, i) => (

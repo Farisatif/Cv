@@ -96,13 +96,13 @@ export default function LanguagesSection() {
     <section
       id="languages-bar"
       ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-12 max-w-5xl mx-auto px-4 sm:px-6"
+      className="section-reveal py-8 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+      <div className="border border-border rounded-2xl bg-card overflow-hidden">
         <div className={`px-6 py-4 border-b border-border flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="16 18 22 12 16 6"/>
               <polyline points="8 6 2 12 8 18"/>
             </svg>
