@@ -41,35 +41,41 @@ export default function LanguagesSection() {
     return () => observer.disconnect();
   }, []);
 
-  const handleDividerMouseDown = (e: React.MouseEvent, index: number) => {
+  const handlePointerDown = (e: React.PointerEvent, index: number) => {
     e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
     dragStartRef.current = { x: e.clientX, startWidth: widths[index], index };
     setDragging(index);
   };
 
-  useEffect(() => {
-    if (dragging === null) return;
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const containerWidth = containerRef.current.offsetWidth;
-      const rawDx = e.clientX - dragStartRef.current.x;
-      const dx = isRTL ? -rawDx : rawDx;
-      const delta = (dx / containerWidth) * 100;
-      const newWidth = Math.max(5, Math.min(80, dragStartRef.current.startWidth + delta));
-      const diff = newWidth - dragStartRef.current.startWidth;
-      setWidths(prev => {
-        const next = [...prev];
-        next[dragging] = newWidth;
-        if (dragging + 1 < next.length) next[dragging + 1] = Math.max(3, prev[dragging + 1] - diff);
-        const sum = next.reduce((a, b) => a + b, 0);
-        return next.map(w => (w / sum) * 100);
-      });
-    };
-    const handleMouseUp = () => setDragging(null);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => { window.removeEventListener("mousemove", handleMouseMove); window.removeEventListener("mouseup", handleMouseUp); };
-  }, [dragging, widths, isRTL]);
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (dragging === null || !containerRef.current) return;
+    
+    const containerWidth = containerRef.current.offsetWidth;
+    const rawDx = e.clientX - dragStartRef.current.x;
+    const dx = isRTL ? -rawDx : rawDx;
+    const delta = (dx / containerWidth) * 100;
+    
+    const newWidth = Math.max(5, Math.min(80, dragStartRef.current.startWidth + delta));
+    const diff = newWidth - dragStartRef.current.startWidth;
+    
+    setWidths(prev => {
+      const next = [...prev];
+      next[dragging] = newWidth;
+      if (dragging + 1 < next.length) {
+        next[dragging + 1] = Math.max(3, prev[dragging + 1] - diff);
+      }
+      const sum = next.reduce((a, b) => a + b, 0);
+      return next.map(w => (w / sum) * 100);
+    });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (dragging !== null) {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      setDragging(null);
+    }
+  };
 
   const reset = () => setWidths(languages.map(l => l.percent));
 
@@ -133,8 +139,10 @@ export default function LanguagesSection() {
                 >
                   {i < languages.length - 1 && (
                     <div
-                      onMouseDown={(e) => handleDividerMouseDown(e, i)}
-                      className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-4 z-10 cursor-col-resize flex items-center justify-center group`}
+                      onPointerDown={(e) => handlePointerDown(e, i)}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-4 z-10 cursor-col-resize flex items-center justify-center group touch-none`}
                       style={{ transform: isRTL ? "translateX(-50%)" : "translateX(50%)" }}
                     >
                       <div className={`w-0.5 h-full bg-background/80 transition-all ${dragging === i ? "opacity-100 scale-x-150" : "opacity-60 group-hover:opacity-100 group-hover:scale-x-150"}`} />

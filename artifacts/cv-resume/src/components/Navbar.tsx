@@ -342,7 +342,7 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
                     {lang === "ar" ? (darkMode ? "الوضع الليلي" : "الوضع النهاري") : (darkMode ? "Dark Theme" : "Light Theme")}
                   </div>
                   <div className={`w-12 h-6 rounded-full relative transition-colors p-1 ${darkMode ? "bg-primary" : "bg-muted-foreground/30"}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white transition-all shadow-sm ${isRTL ? (darkMode ? "translate-x-0" : "translate-x-6") : (darkMode ? "translate-x-6" : "translate-x-0")}`} />
+                    <div className={`w-4 h-4 rounded-full bg-foreground transition-all shadow-sm ${isRTL ? (darkMode ? "translate-x-0" : "translate-x-6") : (darkMode ? "translate-x-6" : "translate-x-0")}`} />
                   </div>
                 </button>
 
