@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./app";
 import { logger } from "./lib/logger";
+import { runMigrations } from "./lib/migrations";
 import { seedAdminCredentials } from "./lib/seed";
 
 const rawPort = process.env["PORT"];
@@ -16,7 +17,10 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 async function main() {
-  // Seed default admin credentials if none exist
+  // 1. Ensure schema is up-to-date (idempotent, safe to run every boot)
+  await runMigrations();
+
+  // 2. Seed default admin credentials if none exist
   await seedAdminCredentials();
 
   app.listen(port, (err) => {

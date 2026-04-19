@@ -64,6 +64,21 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### api-server (API Server)
 - **Type**: api, preview at `/api`
 - **Directory**: `artifacts/api-server/`
+- **Auth routes**: `/api/auth/login` (password), `/api/auth/google`, `/api/auth/verify`, `/api/auth/logout`, `/api/auth/change-password`
+- **Admin routes**: `/api/admin/stats` — visitor count, comment counts, DB status, last save time
+- **Security**: Admin comment endpoints accept either `X-Admin-Key` or `X-Session-Token` headers
+- **Startup**: Runs 14 idempotent schema migrations via `src/lib/migrations.ts` before seeding
+- **Default admin**: username `admin`, password `Zoom100*` (bcrypt-hashed in DB)
+- **DB schema**: `admin_sessions` columns: `id`, `google_id` (unique), `email`, `name`, `session_token`, `expires_at`, `created_at`
+- **DB schema**: `admin_credentials` columns: `id`, `username` (unique), `password_hash`, `created_at`, `updated_at`
+
+## Admin Panel
+- Located at `/admin` (login required)
+- Default credentials: username `admin`, password `Zoom100*`
+- 9 tabs with icons: Personal, Skills, Experience, Projects, Education, Languages, Achievements, Comments, Settings
+- **Settings tab**: account info, site statistics (visitors/comments/DB status), change password
+- **Comments tab**: approve/delete pending comments using session token authentication
+- **Security**: Session tokens stored in `sessionStorage` and sent via `X-Session-Token` header
 
 ## Key Commands
 

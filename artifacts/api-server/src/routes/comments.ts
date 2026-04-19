@@ -11,6 +11,30 @@ import nodemailer from "nodemailer";
 const router: IRouter = Router();
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "Zoom100*";
+
+async function isAuthorized(req: import("express").Request): Promise<boolean> {
+  // Accept X-Admin-Key for backward compatibility
+  const adminKey = req.headers["x-admin-key"] || req.query.adminKey;
+  if (adminKey === ADMIN_KEY) return true;
+
+  // Accept X-Session-Token (secure, no plaintext key in frontend)
+  const sessionToken = req.headers["x-session-token"] as string | undefined;
+  if (sessionToken) {
+    try {
+      const result = await pool.query(
+        `SELECT expires_at FROM admin_sessions WHERE session_token = $1 LIMIT 1`,
+        [sessionToken]
+      );
+      if (result.rows.length > 0 && new Date(result.rows[0].expires_at) > new Date()) {
+        return true;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  return false;
+}
 const ADMIN_EMAIL = process.env.NOTIFY_EMAIL || process.env.ADMIN_EMAIL || "farisatif7780@gmail.com";
 const APP_BASE_URL = process.env.REPLIT_DEV_DOMAIN
   ? `https://${process.env.REPLIT_DEV_DOMAIN}`
@@ -106,8 +130,7 @@ router.get("/comments", async (req, res): Promise<void> => {
 });
 
 router.get("/comments/all", async (req, res): Promise<void> => {
-  const key = req.headers["x-admin-key"] || req.query.adminKey;
-  if (key !== ADMIN_KEY) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
   try {
     const result = await pool.query(
       `SELECT id, name, message, likes, approved, created_at as "createdAt" FROM comments ORDER BY created_at DESC`
@@ -199,8 +222,7 @@ router.get("/comments/moderate", async (req, res): Promise<void> => {
 });
 
 router.post("/comments/:id/approve", async (req, res): Promise<void> => {
-  const key = req.headers["x-admin-key"];
-  if (key !== ADMIN_KEY) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
   try {
@@ -217,8 +239,7 @@ router.post("/comments/:id/approve", async (req, res): Promise<void> => {
 });
 
 router.delete("/comments/:id", async (req, res): Promise<void> => {
-  const key = req.headers["x-admin-key"];
-  if (key !== ADMIN_KEY) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
   try {

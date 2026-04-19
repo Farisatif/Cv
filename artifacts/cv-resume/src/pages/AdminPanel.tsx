@@ -172,14 +172,15 @@ function HighlightsEditor({
 }
 
 const TABS = [
-  { id: "personal",      labelEn: "Personal",      labelAr: "الشخصية" },
-  { id: "skills",        labelEn: "Skills",         labelAr: "المهارات" },
-  { id: "experience",    labelEn: "Experience",     labelAr: "الخبرة" },
-  { id: "projects",      labelEn: "Projects",       labelAr: "المشاريع" },
-  { id: "education",     labelEn: "Education",      labelAr: "التعليم" },
-  { id: "languages",     labelEn: "Languages",      labelAr: "اللغات" },
-  { id: "achievements",  labelEn: "Achievements",   labelAr: "الإنجازات" },
-  { id: "comments",      labelEn: "Comments",       labelAr: "التعليقات" },
+  { id: "personal",      labelEn: "Personal",      labelAr: "الشخصية",   icon: "👤" },
+  { id: "skills",        labelEn: "Skills",         labelAr: "المهارات",  icon: "⚡" },
+  { id: "experience",    labelEn: "Experience",     labelAr: "الخبرة",    icon: "💼" },
+  { id: "projects",      labelEn: "Projects",       labelAr: "المشاريع",  icon: "🚀" },
+  { id: "education",     labelEn: "Education",      labelAr: "التعليم",   icon: "🎓" },
+  { id: "languages",     labelEn: "Languages",      labelAr: "اللغات",    icon: "💻" },
+  { id: "achievements",  labelEn: "Achievements",   labelAr: "الإنجازات", icon: "🏆" },
+  { id: "comments",      labelEn: "Comments",       labelAr: "التعليقات", icon: "💬" },
+  { id: "settings",      labelEn: "Settings",       labelAr: "الإعدادات", icon: "⚙️" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -193,25 +194,33 @@ type AdminComment = {
   createdAt: string;
 };
 
+function useAdminHeaders() {
+  const sessionToken = sessionStorage.getItem("cv-admin-token") || "";
+  return sessionToken
+    ? { "X-Session-Token": sessionToken }
+    : { "X-Admin-Key": "Zoom100*" };
+}
+
 function CommentsTab() {
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<number | null>(null);
-
-  const storedToken = sessionStorage.getItem("cv-admin-token");
-  const adminToken = (storedToken && storedToken !== "dev-token") ? storedToken : "Zoom100*";
+  const [fetchError, setFetchError] = useState("");
+  const authHeaders = useAdminHeaders();
 
   const fetchComments = async () => {
     setLoading(true);
+    setFetchError("");
     try {
-      const res = await fetch("/api/comments/all", {
-        headers: { "X-Admin-Key": adminToken },
-      });
+      const res = await fetch("/api/comments/all", { headers: authHeaders });
       if (res.ok) {
-        const data = await res.json();
-        setComments(data);
+        setComments(await res.json());
+      } else {
+        setFetchError(`Failed to load comments (${res.status})`);
       }
-    } catch {}
+    } catch {
+      setFetchError("Network error — check server connection");
+    }
     setLoading(false);
   };
 
@@ -220,11 +229,13 @@ function CommentsTab() {
   const approve = async (id: number) => {
     setActionId(id);
     try {
-      await fetch(`/api/comments/${id}/approve`, {
+      const res = await fetch(`/api/comments/${id}/approve`, {
         method: "POST",
-        headers: { "X-Admin-Key": adminToken },
+        headers: authHeaders,
       });
-      setComments((prev) => prev.map((c) => c.id === id ? { ...c, approved: true } : c));
+      if (res.ok) {
+        setComments((prev) => prev.map((c) => c.id === id ? { ...c, approved: true } : c));
+      }
     } catch {}
     setActionId(null);
   };
@@ -233,11 +244,13 @@ function CommentsTab() {
     if (!confirm("حذف هذا التعليق؟")) return;
     setActionId(id);
     try {
-      await fetch(`/api/comments/${id}`, {
+      const res = await fetch(`/api/comments/${id}`, {
         method: "DELETE",
-        headers: { "X-Admin-Key": adminToken },
+        headers: authHeaders,
       });
-      setComments((prev) => prev.filter((c) => c.id !== id));
+      if (res.ok) {
+        setComments((prev) => prev.filter((c) => c.id !== id));
+      }
     } catch {}
     setActionId(null);
   };
@@ -253,6 +266,12 @@ function CommentsTab() {
           تحديث ↻
         </button>
       </div>
+
+      {fetchError && (
+        <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 flex items-center gap-2">
+          <span>⚠</span> {fetchError}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-8 text-muted-foreground text-sm">جاري التحميل...</div>
@@ -337,6 +356,232 @@ function CommentsTab() {
   );
 }
 
+type Stats = {
+  visitors: number;
+  totalComments: number;
+  pendingComments: number;
+  approvedComments: number;
+  resumeLastSaved: string | null;
+  dbStatus: "ok" | "error";
+  serverTime: string | null;
+};
+
+function SettingsTab({ onLogout }: { onLogout: () => void }) {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState("");
+  const authHeaders = useAdminHeaders();
+
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const adminEmail = sessionStorage.getItem("cv-admin-email") || "admin";
+  const sessionToken = sessionStorage.getItem("cv-admin-token") || "";
+
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    setStatsError("");
+    try {
+      const res = await fetch("/api/admin/stats", { headers: authHeaders });
+      if (res.ok) {
+        setStats(await res.json());
+      } else {
+        setStatsError("Failed to load stats");
+      }
+    } catch {
+      setStatsError("Network error");
+    }
+    setStatsLoading(false);
+  };
+
+  useEffect(() => { fetchStats(); }, []);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPw !== confirmPw) { setPwMsg({ type: "error", text: "New passwords do not match" }); return; }
+    if (newPw.length < 8) { setPwMsg({ type: "error", text: "Password must be at least 8 characters" }); return; }
+    setPwLoading(true);
+    setPwMsg(null);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": sessionToken },
+        body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPwMsg({ type: "success", text: "Password changed successfully" });
+        setCurrentPw(""); setNewPw(""); setConfirmPw("");
+      } else {
+        setPwMsg({ type: "error", text: data.error || "Failed to change password" });
+      }
+    } catch {
+      setPwMsg({ type: "error", text: "Network error" });
+    }
+    setPwLoading(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "X-Session-Token": sessionToken },
+      });
+    } catch {}
+    sessionStorage.removeItem("cv-admin");
+    sessionStorage.removeItem("cv-admin-token");
+    sessionStorage.removeItem("cv-admin-email");
+    onLogout();
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Account section */}
+      <div>
+        <SectionHeader title="Account" />
+        <div className="border border-border rounded-xl p-5 bg-card space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-foreground/10 border border-border flex items-center justify-center text-lg font-bold">
+              {adminEmail.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div className="font-semibold text-sm">{adminEmail}</div>
+              <div className="text-xs text-muted-foreground">
+                {sessionToken ? "Session active" : "No active session"}
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Site statistics */}
+      <div>
+        <div className="flex items-center justify-between">
+          <SectionHeader title="Site Statistics" />
+          <button onClick={fetchStats} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-lg mb-4">
+            Refresh ↻
+          </button>
+        </div>
+
+        {statsLoading ? (
+          <div className="text-sm text-muted-foreground py-4 text-center">Loading stats…</div>
+        ) : statsError ? (
+          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">⚠ {statsError}</div>
+        ) : stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Visitors", value: stats.visitors, icon: "👁" },
+              { label: "Comments", value: stats.totalComments, icon: "💬" },
+              { label: "Pending", value: stats.pendingComments, icon: "⏳", warn: stats.pendingComments > 0 },
+              { label: "Approved", value: stats.approvedComments, icon: "✅" },
+            ].map(({ label, value, icon, warn }) => (
+              <div key={label} className={`border rounded-xl p-4 text-center ${warn ? "border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20" : "border-border bg-card"}`}>
+                <div className="text-2xl mb-1">{icon}</div>
+                <div className={`text-2xl font-bold tabular-nums ${warn ? "text-amber-600 dark:text-amber-400" : ""}`}>{value}</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {stats && (
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${stats.dbStatus === "ok" ? "bg-emerald-500" : "bg-red-500"}`} />
+              Database: {stats.dbStatus}
+            </span>
+            {stats.resumeLastSaved && (
+              <span>CV last saved: {new Date(stats.resumeLastSaved).toLocaleString()}</span>
+            )}
+            {stats.serverTime && (
+              <span>Server time: {new Date(stats.serverTime).toLocaleString()}</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Change password (only for local/password accounts) */}
+      {sessionToken && !adminEmail.includes("@") && (
+        <div>
+          <SectionHeader title="Change Password" />
+          <div className="border border-border rounded-xl p-5 bg-card">
+            <form onSubmit={handleChangePassword} className="space-y-4 max-w-sm">
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-muted-foreground">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPw}
+                  onChange={(e) => setCurrentPw(e.target.value)}
+                  className="cosmic-input"
+                  autoComplete="current-password"
+                  disabled={pwLoading}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-muted-foreground">New Password</label>
+                <input
+                  type="password"
+                  value={newPw}
+                  onChange={(e) => setNewPw(e.target.value)}
+                  className="cosmic-input"
+                  autoComplete="new-password"
+                  disabled={pwLoading}
+                  placeholder="Min. 8 characters"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-muted-foreground">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPw}
+                  onChange={(e) => setConfirmPw(e.target.value)}
+                  className="cosmic-input"
+                  autoComplete="new-password"
+                  disabled={pwLoading}
+                  placeholder="Repeat new password"
+                />
+              </div>
+
+              {pwMsg && (
+                <div className={`text-xs px-3 py-2 rounded-lg border ${
+                  pwMsg.type === "success"
+                    ? "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-800"
+                    : "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-800"
+                }`}>
+                  {pwMsg.type === "success" ? "✓ " : "⚠ "}{pwMsg.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={!currentPw || !newPw || !confirmPw || pwLoading}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-foreground text-background hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                {pwLoading && (
+                  <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                )}
+                {pwLoading ? "Changing…" : "Change Password"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const { data, setData, saveData, resetData, saving } = useResumeData();
   const [saved, setSaved] = useState(false);
@@ -404,7 +649,17 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
             >
               {saving ? "Saving…" : saved ? "✓ Saved to DB" : "Save"}
             </button>
-            <button onClick={() => { sessionStorage.removeItem("cv-admin"); onLogout(); }} className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-all">
+            <button
+              onClick={async () => {
+                const token = sessionStorage.getItem("cv-admin-token") || "";
+                try { await fetch("/api/auth/logout", { method: "POST", headers: { "X-Session-Token": token } }); } catch {}
+                sessionStorage.removeItem("cv-admin");
+                sessionStorage.removeItem("cv-admin-token");
+                sessionStorage.removeItem("cv-admin-email");
+                onLogout();
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-all"
+            >
               Logout
             </button>
             <a href="/" className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
@@ -421,15 +676,15 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 ${
+              className={`flex-1 py-2 px-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex flex-col items-center justify-center gap-0.5 min-w-[52px] ${
                 tab === t.id
                   ? "bg-foreground text-background shadow-md dark:bg-[hsl(220_18%_93%)] dark:text-[hsl(240_24%_5%)]"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <span>{t.labelEn}</span>
-              <span className="opacity-40 hidden sm:inline">·</span>
-              <span className="opacity-60 text-[10px]">{t.labelAr}</span>
+              <span className="text-base leading-none">{t.icon}</span>
+              <span className="hidden sm:block mt-0.5">{t.labelEn}</span>
+              <span className="sm:hidden mt-0.5 text-[9px]">{t.labelEn}</span>
             </button>
           ))}
         </div>
@@ -920,7 +1175,10 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
         {/* ── COMMENTS ── */}
         {tab === "comments" && <CommentsTab />}
 
-        {tab !== "comments" && (
+        {/* ── SETTINGS ── */}
+        {tab === "settings" && <SettingsTab onLogout={onLogout} />}
+
+        {tab !== "comments" && tab !== "settings" && (
           <div className="mt-8 pt-4 border-t border-border flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
               All edits in both languages. Press <strong>Save</strong> to write permanently to the database — visible to everyone instantly.
