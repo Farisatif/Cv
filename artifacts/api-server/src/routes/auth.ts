@@ -1,11 +1,131 @@
 import { Router, type IRouter } from "express";
 import { randomBytes } from "crypto";
 import { pool } from "@workspace/db";
+import bcrypt from "bcrypt";
 
 const router: IRouter = Router();
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "farisatif7780@gmail.com";
 
+// ── Password-based login (credentials stored in DB) ────────────────────────
+router.post("/auth/login", async (req, res): Promise<void> => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    res.status(400).json({ error: "Username and password are required" });
+    return;
+  }
+
+  try {
+    const credResult = await pool.query(
+      `SELECT id, username, password_hash FROM admin_credentials WHERE username = $1 LIMIT 1`,
+      [username.trim().toLowerCase()]
+    );
+
+    if (credResult.rows.length === 0) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+
+    const cred = credResult.rows[0];
+    const isValid = await bcrypt.compare(password, cred.password_hash);
+
+    if (!isValid) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+
+    const sessionToken = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const googleId = `local:${cred.username}`;
+
+    const existing = await pool.query(
+      `SELECT id FROM admin_sessions WHERE google_id = $1 LIMIT 1`,
+      [googleId]
+    );
+
+    if (existing.rows.length > 0) {
+      await pool.query(
+        `UPDATE admin_sessions SET session_token = $1, expires_at = $2 WHERE google_id = $3`,
+        [sessionToken, expiresAt, googleId]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO admin_sessions (google_id, email, name, session_token, expires_at)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [googleId, cred.username, cred.username, sessionToken, expiresAt]
+      );
+    }
+
+    console.log(`[Auth] Password login success: ${cred.username}`);
+    res.json({ success: true, token: sessionToken, username: cred.username });
+  } catch (err) {
+    console.error("[Auth] Login error:", err);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// ── Change password ────────────────────────────────────────────────────────
+router.post("/auth/change-password", async (req, res): Promise<void> => {
+  const token = req.headers["x-session-token"] as string;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!token) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+  if (!currentPassword || !newPassword || newPassword.length < 6) {
+    res.status(400).json({ error: "Invalid request" });
+    return;
+  }
+
+  try {
+    const sessionResult = await pool.query(
+      `SELECT google_id, expires_at FROM admin_sessions WHERE session_token = $1 LIMIT 1`,
+      [token]
+    );
+    if (sessionResult.rows.length === 0 || sessionResult.rows[0].expires_at < new Date()) {
+      res.status(401).json({ error: "Session expired or invalid" });
+      return;
+    }
+
+    const googleId: string = sessionResult.rows[0].google_id;
+    if (!googleId.startsWith("local:")) {
+      res.status(403).json({ error: "Password change only available for local accounts" });
+      return;
+    }
+
+    const username = googleId.replace("local:", "");
+    const credResult = await pool.query(
+      `SELECT password_hash FROM admin_credentials WHERE username = $1 LIMIT 1`,
+      [username]
+    );
+    if (credResult.rows.length === 0) {
+      res.status(404).json({ error: "Account not found" });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, credResult.rows[0].password_hash);
+    if (!isValid) {
+      res.status(401).json({ error: "Current password is incorrect" });
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await pool.query(
+      `UPDATE admin_credentials SET password_hash = $1, updated_at = NOW() WHERE username = $2`,
+      [newHash, username]
+    );
+
+    console.log(`[Auth] Password changed for: ${username}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[Auth] Change password error:", err);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+});
+
+// ── Google OAuth login ─────────────────────────────────────────────────────
 router.post("/auth/google", async (req, res): Promise<void> => {
   try {
     const { credential } = req.body;
@@ -70,6 +190,7 @@ router.post("/auth/google", async (req, res): Promise<void> => {
   }
 });
 
+// ── Session verification ───────────────────────────────────────────────────
 router.get("/auth/verify", async (req, res): Promise<void> => {
   const token = req.headers["x-session-token"] as string;
   if (!token) {
@@ -96,6 +217,7 @@ router.get("/auth/verify", async (req, res): Promise<void> => {
   }
 });
 
+// ── Logout ─────────────────────────────────────────────────────────────────
 router.post("/auth/logout", async (req, res): Promise<void> => {
   const token = req.headers["x-session-token"] as string;
   if (token) {

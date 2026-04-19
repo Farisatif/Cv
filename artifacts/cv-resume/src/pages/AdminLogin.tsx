@@ -27,9 +27,13 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
+  const [tab, setTab] = useState<"password" | "google">(
+    GOOGLE_CLIENT_ID ? "google" : "password"
+  );
   const btnRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
     const scriptId = "google-gsi";
     if (document.getElementById(scriptId)) {
       initGoogle();
@@ -66,7 +70,7 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
         logo_alignment: "left",
       });
     }
-  }, [googleReady]);
+  }, [googleReady, tab]);
 
   async function handleGoogleCredential(response: { credential: string }) {
     setLoading(true);
@@ -93,14 +97,12 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
       sessionStorage.setItem("cv-admin-token", data.token || "");
       sessionStorage.setItem("cv-admin-email", data.email || "");
       onLogin();
-    } catch (err) {
+    } catch {
       setError(isRTL ? "حدث خطأ في الاتصال" : "Connection error");
     } finally {
       setLoading(false);
     }
   }
-
-  const noClientId = !GOOGLE_CLIENT_ID;
 
   return (
     <div
@@ -109,6 +111,8 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
     >
       <div className="w-full max-w-sm">
         <div className="border border-border rounded-2xl bg-card shadow-lg overflow-hidden">
+
+          {/* Header */}
           <div className="px-8 pt-8 pb-6 border-b border-border bg-muted/30">
             <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center mb-4 mx-auto">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-background">
@@ -120,23 +124,44 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
               {isRTL ? "لوحة التحكم" : "Admin Panel"}
             </h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
-              {isRTL ? "تسجيل الدخول بحساب Google المصرح له" : "Sign in with your authorized Google account"}
+              {isRTL ? "تسجيل الدخول للإدارة" : "Sign in to manage your CV"}
             </p>
           </div>
 
+          {/* Tabs — only show if Google is available */}
+          {GOOGLE_CLIENT_ID && (
+            <div className="flex border-b border-border">
+              <button
+                onClick={() => { setTab("password"); setError(""); }}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  tab === "password"
+                    ? "text-foreground border-b-2 border-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {isRTL ? "كلمة المرور" : "Password"}
+              </button>
+              <button
+                onClick={() => { setTab("google"); setError(""); }}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  tab === "google"
+                    ? "text-foreground border-b-2 border-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Google
+              </button>
+            </div>
+          )}
+
           <div className="px-8 py-8 space-y-5">
-            {noClientId ? (
-              <div className="text-center">
-                <div className="border border-amber-500/30 bg-amber-500/10 rounded-lg p-4 mb-4">
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    {isRTL
-                      ? "يرجى إعداد VITE_GOOGLE_CLIENT_ID في متغيرات البيئة"
-                      : "Please configure VITE_GOOGLE_CLIENT_ID in environment variables"}
-                  </p>
-                </div>
-                <DevFallback onLogin={onLogin} isRTL={isRTL} />
-              </div>
-            ) : (
+            {/* Password login tab */}
+            {tab === "password" && (
+              <PasswordLoginForm onLogin={onLogin} isRTL={isRTL} setError={setError} />
+            )}
+
+            {/* Google login tab */}
+            {tab === "google" && GOOGLE_CLIENT_ID && (
               <div className="flex flex-col items-center gap-4">
                 <p className="text-xs text-muted-foreground text-center">
                   {isRTL
@@ -172,42 +197,105 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-function DevFallback({ onLogin, isRTL }: { onLogin: () => void; isRTL: boolean }) {
+function PasswordLoginForm({
+  onLogin,
+  isRTL,
+  setError,
+}: {
+  onLogin: () => void;
+  isRTL: boolean;
+  setError: (e: string) => void;
+}) {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const ADMIN_PASSWORD = "Zoom100*";
+  const [localError, setLocalError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (!username.trim() || !password) return;
+
+    setLoading(true);
+    setLocalError("");
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLocalError(
+          isRTL ? "اسم المستخدم أو كلمة المرور غير صحيحة" : "Invalid username or password"
+        );
+        return;
+      }
+
       sessionStorage.setItem("cv-admin", "1");
-      sessionStorage.setItem("cv-admin-token", "dev-token");
+      sessionStorage.setItem("cv-admin-token", data.token || "");
+      sessionStorage.setItem("cv-admin-email", data.username || "admin");
       onLogin();
-    } else {
-      setError(isRTL ? "كلمة المرور غير صحيحة" : "Incorrect password");
+    } catch {
+      setLocalError(isRTL ? "حدث خطأ في الاتصال بالخادم" : "Connection error — server unreachable");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 mt-2">
-      <p className="text-xs text-muted-foreground">
-        {isRTL ? "أو استخدم كلمة المرور (وضع التطوير)" : "Or use password (dev mode)"}
-      </p>
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-        className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
-        autoFocus
-      />
-      {error && <p className="text-xs text-red-500">{error}</p>}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground block">
+          {isRTL ? "اسم المستخدم" : "Username"}
+        </label>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder={isRTL ? "admin" : "admin"}
+          className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
+          autoFocus
+          autoComplete="username"
+          disabled={loading}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground block">
+          {isRTL ? "كلمة المرور" : "Password"}
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
+          autoComplete="current-password"
+          disabled={loading}
+        />
+      </div>
+
+      {localError && (
+        <p className="text-xs text-red-500 font-medium">{localError}</p>
+      )}
+
       <button
         type="submit"
-        disabled={!password}
-        className="w-full py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-all"
+        disabled={!username.trim() || !password || loading}
+        className="w-full py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
       >
-        {isRTL ? "دخول" : "Sign in"}
+        {loading && (
+          <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+        )}
+        {loading
+          ? (isRTL ? "جاري التحقق..." : "Signing in...")
+          : (isRTL ? "دخول" : "Sign in")}
       </button>
     </form>
   );

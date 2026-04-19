@@ -51,3 +51,13 @@ export const adminSessionsTable = pgTable("admin_sessions", {
 });
 
 export type AdminSession = typeof adminSessionsTable.$inferSelect;
+
+export const adminCredentialsTable = pgTable("admin_credentials", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type AdminCredential = typeof adminCredentialsTable.$inferSelect;
