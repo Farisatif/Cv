@@ -1,9 +1,58 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 import { useListComments, useCreateComment, useLikeComment, getListCommentsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+
+// Scroll-driven radial glow circle — grows from center as user scrolls into the section
+function ScrollCircle({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | null> }) {
+  const circleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el  = sectionRef.current;
+      const dot = circleRef.current;
+      if (!el || !dot) return;
+
+      const rect = el.getBoundingClientRect();
+      const vh   = window.innerHeight;
+
+      // 0 = section just enters from bottom, 1 = section top reached
+      const raw      = 1 - rect.top / vh;
+      const progress = Math.max(0, Math.min(1, raw));
+
+      dot.style.transform = `translate(-50%, -50%) scale(${progress})`;
+      dot.style.opacity   = String(Math.min(1, progress * 1.6));
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [sectionRef]);
+
+  return (
+    <div
+      ref={circleRef}
+      aria-hidden="true"
+      style={{
+        position:       "absolute",
+        top:            "55%",
+        left:           "50%",
+        width:          "min(900px, 130vw)",
+        height:         "min(900px, 130vw)",
+        borderRadius:   "50%",
+        transform:      "translate(-50%, -50%) scale(0)",
+        opacity:        0,
+        pointerEvents:  "none",
+        background:     "radial-gradient(circle, hsl(263 80% 62% / 0.07) 0%, hsl(220 80% 55% / 0.04) 45%, transparent 72%)",
+        filter:         "blur(2px)",
+        willChange:     "transform, opacity",
+        zIndex:         0,
+      }}
+    />
+  );
+}
 
 function timeAgo(dateStr: string, lang: "en" | "ar") {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -146,14 +195,19 @@ export default function CommentsSection() {
 
   const totalLikes = comments?.reduce((sum, c) => sum + c.likes, 0) ?? 0;
 
+  const elRef = sectionRef as React.RefObject<HTMLElement | null>;
+
   return (
     <section
       id="comments"
-      ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
+      ref={elRef}
+      className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6 relative overflow-hidden"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className={`mb-14 ${isRTL ? "text-right" : ""}`}>
+      {/* Scroll-driven glow circle */}
+      <ScrollCircle sectionRef={elRef} />
+
+      <div className={`relative z-10 mb-14 ${isRTL ? "text-right" : ""}`}>
         <span className="section-label">{t.guestbook.title}</span>
         <h2 className="section-title">
           {lang === "ar" ? "سجّل حضورك" : "Sign the guestbook"}
@@ -185,7 +239,7 @@ export default function CommentsSection() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Form */}
         <div className="lg:col-span-2" style={{ order: isRTL ? 2 : 1 }}>
           <div className="cosmic-card glow-border rounded-2xl p-6 sticky top-20">

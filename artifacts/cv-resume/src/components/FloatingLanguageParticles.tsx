@@ -1,11 +1,9 @@
 import { useEffect, useRef, useCallback } from "react";
 
 const LABELS = [
-  "JavaScript", "TypeScript", "Python", "React", "Rust", "Go",
-  "C++", "Java", "SQL", "Node.js", "Linux", "C#", "Next.js",
-  "Flutter", "CSS", "HTML", "API", "Kotlin",
-  "GraphQL", "Git", "Docker", "Redis", "MySQL",
-  "Bash", "Swift", "Tailwind", "Vue",
+  "JavaScript", "TypeScript", "Python", "React",
+  "Go", "SQL", "Node.js", "Docker",
+  "Git", "Tailwind", "Linux", "Redis",
 ];
 
 const CODE_LINES = [
@@ -44,9 +42,9 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
     fontWeight:    "300",
     cornerRadius:  5,
     borderWidth:   0.5,
-    bgAlpha:       0.04,
-    borderAlpha:   0.12,
-    opacityRange:  [0.04, 0.08],
+    bgAlpha:       0.03,
+    borderAlpha:   0.09,
+    opacityRange:  [0.025, 0.05],
     sizeRange:     [9, 12],
     rotSpeedRange: [0.000006, 0.000018],
     driftMultiplier: 0.5,
@@ -55,9 +53,9 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
     fontWeight:    "400",
     cornerRadius:  7,
     borderWidth:   0.8,
-    bgAlpha:       0.055,
-    borderAlpha:   0.16,
-    opacityRange:  [0.055, 0.10],
+    bgAlpha:       0.04,
+    borderAlpha:   0.11,
+    opacityRange:  [0.035, 0.065],
     sizeRange:     [11, 16],
     rotSpeedRange: [0.000015, 0.000038],
     driftMultiplier: 0.85,
@@ -66,9 +64,9 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
     fontWeight:    "500",
     cornerRadius:  9,
     borderWidth:   1.0,
-    bgAlpha:       0.050,
-    borderAlpha:   0.14,
-    opacityRange:  [0.045, 0.09],
+    bgAlpha:       0.035,
+    borderAlpha:   0.10,
+    opacityRange:  [0.030, 0.060],
     sizeRange:     [13, 19],
     rotSpeedRange: [0.000028, 0.000060],
     driftMultiplier: 1.2,
@@ -158,13 +156,19 @@ function createParticles(count: number): Particle[] {
       : level === "MID"
         ? (depth - 0.40) / 0.30
         : (depth - 0.70) / 0.30;
-    const opacity = lerp(st.opacityRange[0], st.opacityRange[1], levelT);
-    const size    = lerp(st.sizeRange[0], st.sizeRange[1], levelT);
-    const rotSign = rng() < 0.5 ? 1 : -1;
+    const opacity  = lerp(st.opacityRange[0], st.opacityRange[1], levelT);
+    const size     = lerp(st.sizeRange[0], st.sizeRange[1], levelT);
+    const rotSign  = rng() < 0.5 ? 1 : -1;
     const rotSpeed = lerp(st.rotSpeedRange[0], st.rotSpeedRange[1], rng()) * rotSign;
+
+    // Edge-biased X: particles cluster in the outer 22% on each side, center is clear
+    const side    = rng() < 0.5 ? "left" : "right";
+    const edgeT   = rng() * rng(); // skewed toward the very edge (0 = deep edge)
+    const screenX = side === "left" ? edgeT * 0.22 : 1 - edgeT * 0.22;
+
     result.push({
       label:        LABELS[li],
-      screenX:      0.03 + rng() * 0.94,
+      screenX,
       screenY:      rng(),
       depth,
       depthLevel:   level,
@@ -172,9 +176,9 @@ function createParticles(count: number): Particle[] {
       opacity,
       phase:        rng() * Math.PI * 2,
       phaseSpeed:   0.00020 + rng() * 0.00035,
-      driftAmpX:    (8 + rng() * 14) * st.driftMultiplier,
-      driftAmpY:    (5 + rng() * 9) * st.driftMultiplier,
-      baseRotation: (rng() - 0.5) * 0.25,
+      driftAmpX:    (6 + rng() * 10) * st.driftMultiplier,
+      driftAmpY:    (4 + rng() * 8)  * st.driftMultiplier,
+      baseRotation: (rng() - 0.5) * 0.20,
       rotSpeed,
       wrapOffsetY:  0,
       cachedBoxW:   0,
@@ -229,10 +233,10 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-// Reduced count: 48 particles, 60 stars, 14 code lines
-const PARTICLES  = createParticles(48);
-const CODE_CHIPS = createCodeLines();
-const STARS      = createStars(65);
+// 24 edge-biased particles, 50 stars, 8 code lines (subtle background only)
+const PARTICLES  = createParticles(24);
+const CODE_CHIPS = createCodeLines().slice(0, 8);
+const STARS      = createStars(50);
 
 export default function FloatingLanguageParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

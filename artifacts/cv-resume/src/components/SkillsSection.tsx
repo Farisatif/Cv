@@ -770,158 +770,63 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
   lang: "en" | "ar";
   isRTL: boolean;
 }) {
-  const cats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
+  const cats    = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
   const visible = filter === allLabel ? skills : skills.filter(s => s.category === filter);
   const sorted  = [...visible].sort((a, b) => b.level - a.level);
 
-  // Spring-back drag — manipulate DOM directly for 60fps, no React state during drag
-  const cardEls   = useRef<Map<string, HTMLDivElement>>(new Map());
-  const dragRef   = useRef<{ id: string; el: HTMLDivElement; startX: number; startY: number } | null>(null);
-
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (!dragRef.current) return;
-      const { el, startX, startY } = dragRef.current;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      el.style.transform  = `translate(${dx}px, ${dy}px) scale(1.04)`;
-      el.style.transition = "box-shadow 0.15s ease";
-      el.style.boxShadow  = `0 16px 48px rgba(0,0,0,0.35), 0 0 0 2px hsl(263 80% 68% / 0.30)`;
-      el.style.zIndex     = "20";
-    };
-
-    const onUp = () => {
-      if (!dragRef.current) return;
-      const { id, el } = dragRef.current;
-      dragRef.current = null;
-
-      // Check collision with overlapping cards
-      const rect = el.getBoundingClientRect();
-      const hitIds: string[] = [];
-      cardEls.current.forEach((otherEl, otherId) => {
-        if (otherId === id) return;
-        const or = otherEl.getBoundingClientRect();
-        const cx = (rect.left + rect.right) / 2;
-        const cy = (rect.top + rect.bottom) / 2;
-        if (cx > or.left && cx < or.right && cy > or.top && cy < or.bottom) {
-          hitIds.push(otherId);
-        }
-      });
-
-      // Spring back
-      el.style.transition = "transform 0.65s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.5s ease, z-index 0s 0.65s";
-      el.style.transform  = "translate(0px, 0px) scale(1)";
-      el.style.zIndex     = "";
-
-      if (hitIds.length > 0) {
-        // Collision glow on dragged card
-        el.style.boxShadow = "0 0 40px hsl(263 82% 68% / 0.75), 0 0 80px hsl(263 82% 68% / 0.35), inset 0 0 20px hsl(263 82% 68% / 0.12)";
-        setTimeout(() => { el.style.boxShadow = ""; }, 1000);
-
-        // Collision glow on hit cards
-        hitIds.forEach(hitId => {
-          const hitEl = cardEls.current.get(hitId);
-          if (!hitEl) return;
-          hitEl.style.transition = "box-shadow 0.12s ease";
-          hitEl.style.boxShadow  = "0 0 35px hsl(186 90% 60% / 0.70), 0 0 60px hsl(186 90% 60% / 0.30), inset 0 0 16px hsl(186 90% 60% / 0.10)";
-          setTimeout(() => {
-            hitEl.style.transition = "box-shadow 1s ease";
-            hitEl.style.boxShadow  = "";
-          }, 180);
-        });
-      } else {
-        el.style.boxShadow = "";
-      }
-    };
-
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-  }, []);
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {sorted.map((skill, i) => {
+    <div className="grid grid-cols-2 gap-3">
+      {sorted.map((skill) => {
         const catIdx = Math.max(0, cats.indexOf(skill.category));
         const color  = PALETTE[catIdx % PALETTE.length];
         const label  = getLabel(skill.level);
-        const hslStr = `hsl(${color.h},${color.s}%,${color.l}%)`;
+        const hsl    = `hsl(${color.h},${color.s}%,${color.l}%)`;
+        const hslFn  = (a: string) => `hsl(${color.h},${color.s}%,${color.l}%/${a})`;
 
         return (
           <div
             key={skill.id}
-            ref={(el) => { if (el) cardEls.current.set(skill.id, el); else cardEls.current.delete(skill.id); }}
-            className="group rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 hover:border-[hsl(263_60%_65%/0.35)] hover:shadow-lg select-none"
-            style={{
-              animationDelay: `${i * 30}ms`,
-              cursor: "grab",
-              willChange: "transform",
-              transition: "border-color 0.2s, box-shadow 0.2s",
-            }}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              const el = cardEls.current.get(skill.id);
-              if (!el) return;
-              dragRef.current = { id: skill.id, el, startX: e.clientX, startY: e.clientY };
-              el.style.transition = "none";
-              el.style.cursor = "grabbing";
-              el.setPointerCapture(e.pointerId);
-            }}
-            onPointerUp={() => {
-              const el = cardEls.current.get(skill.id);
-              if (el) el.style.cursor = "";
-            }}
+            className="group rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4
+                       hover:border-[hsl(263_60%_65%/0.30)] hover:shadow-md
+                       transition-all duration-200"
           >
-            <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+            {/* Header row */}
+            <div className={`flex items-center gap-2.5 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
               <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 border transition-transform group-hover:scale-110 duration-200"
-                style={{
-                  background:  `${hslStr.replace(")", " / 0.12)")}`,
-                  borderColor: `${hslStr.replace(")", " / 0.25)")}`,
-                }}
+                className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: hslFn("0.10"), border: `1px solid ${hslFn("0.22")}` }}
               >
                 <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ background: hslStr, boxShadow: `0 0 8px ${hslStr}` }}
+                  className="w-2 h-2 rounded-full group-hover:scale-125 transition-transform duration-200"
+                  style={{ background: hsl, boxShadow: `0 0 7px ${hslFn("0.70")}` }}
                 />
               </div>
               <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
                 <div className="text-sm font-bold tracking-tight truncate">{skill.name}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">{skill.category}</div>
+                <div className="text-[10px] text-muted-foreground/60 uppercase tracking-widest truncate">{skill.category}</div>
               </div>
-              <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0"
-                style={{
-                  color:       hslStr,
-                  borderColor: `${hslStr.replace(")", " / 0.25)")}`,
-                  background:  `${hslStr.replace(")", " / 0.08)")}`,
-                }}
-              >
-                {lang === "ar" ? label.ar : label.en}
-              </span>
             </div>
 
             {/* Progress bar */}
-            <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background: `${hslStr.replace(")", " / 0.12)")}` }}>
+            <div className="h-1 rounded-full overflow-hidden mb-2.5" style={{ background: hslFn("0.10") }}>
               <div
-                className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
+                className="h-full rounded-full"
                 style={{
-                  width: `${skill.level}%`,
-                  background: `linear-gradient(90deg, ${hslStr}, hsl(${color.h},${color.s}%,${Math.min(color.l + 16, 90)}%))`,
-                  boxShadow: `0 0 8px ${hslStr.replace(")", " / 0.55)")}`,
+                  width:      `${skill.level}%`,
+                  background: `linear-gradient(90deg, ${hsl}, hsl(${color.h},${color.s}%,${Math.min(color.l + 18, 90)}%))`,
+                  boxShadow:  `0 0 6px ${hslFn("0.45")}`,
                 }}
               />
             </div>
 
-            <div className={`flex items-center justify-between mt-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <span className="text-[10px] text-muted-foreground font-mono">{skill.level}%</span>
-              <span className="text-[10px] text-muted-foreground opacity-50">
-                {Array.from({ length: 5 }, (_, k) => (
-                  <span key={k} style={{ opacity: skill.level >= (k + 1) * 20 ? 1 : 0.2 }}>◆</span>
-                ))}
+            {/* Footer row */}
+            <div className={`flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
+              <span className="text-[10px] font-mono text-muted-foreground/50">{skill.level}%</span>
+              <span
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                style={{ color: hsl, background: hslFn("0.09") }}
+              >
+                {lang === "ar" ? label.ar : label.en}
               </span>
             </div>
           </div>
