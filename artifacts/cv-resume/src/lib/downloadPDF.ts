@@ -2,13 +2,9 @@ import { getPersonal, getSkills, getExperience, getProjects, getEducation } from
 
 export async function downloadPDF(lang: "en" | "ar" = "en", data?: any) {
   const filename = lang === "ar" ? "السيرة-الذاتية.pdf" : "cv-resume.pdf";
-
   const { default: jsPDF } = await import("jspdf");
 
-  // If data is not provided, we try to get it from the window or fallback to a default
-  // In a real app, this should be passed from the component
   const resumeData = data || (window as any).__RESUME_DATA__;
-
   if (!resumeData) {
     console.error("No resume data found for PDF generation");
     window.print();
@@ -30,60 +26,120 @@ export async function downloadPDF(lang: "en" | "ar" = "en", data?: any) {
 
     const margin = 20;
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     let y = margin;
 
     // Helper for text
-    const addText = (text: string, size: number, style: string = "normal", color: [number, number, number] = [0, 0, 0]) => {
+    const addText = (text: string, size: number, style: string = "normal", color: [number, number, number] = [0, 0, 0], align: "left" | "center" | "right" = "left") => {
       pdf.setFontSize(size);
       pdf.setFont("helvetica", style);
       pdf.setTextColor(color[0], color[1], color[2]);
       
       const lines = pdf.splitTextToSize(text, pageWidth - margin * 2);
-      pdf.text(lines, margin, y);
-      y += (lines.length * size * 0.5) + 2;
+      let xPos = margin;
+      if (align === "center") xPos = pageWidth / 2;
+      else if (align === "right") xPos = pageWidth - margin;
+      
+      pdf.text(lines, xPos, y, { align });
+      y += (lines.length * size * 0.4) + 2;
     };
 
     const addSection = (title: string) => {
+      if (y > pageHeight - 40) { pdf.addPage(); y = margin; }
       y += 5;
-      pdf.setDrawColor(200, 200, 200);
+      pdf.setDrawColor(230, 230, 230);
+      pdf.setLineWidth(0.5);
       pdf.line(margin, y, pageWidth - margin, y);
-      y += 7;
-      addText(title.toUpperCase(), 12, "bold", [60, 60, 60]);
-      y += 2;
+      y += 8;
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(40, 40, 40);
+      pdf.text(title.toUpperCase(), margin, y);
+      y += 6;
     };
 
-    // Header
-    addText(personal.name, 24, "bold", [0, 0, 0]);
-    addText(personal.title, 14, "normal", [100, 100, 100]);
-    addText(`${personal.email} | ${personal.phone} | ${personal.location}`, 10, "normal", [100, 100, 100]);
+    // Header with Profile Picture
+    const photoSize = 35;
+    try {
+      // We use the public path, in browser it will be available
+      pdf.addImage("/Fares.jpg", "JPEG", pageWidth - margin - photoSize, y, photoSize, photoSize);
+    } catch (e) {
+      console.warn("Could not add profile picture to PDF", e);
+    }
+
+    // Name and Title
+    pdf.setFontSize(26);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(personal.name, margin, y + 10);
     
+    y += 18;
+    pdf.setFontSize(14);
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(80, 80, 80);
+    pdf.text(personal.title, margin, y);
+    
+    y += 8;
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    const contactInfo = `${personal.email}  |  ${personal.phone}  |  ${personal.location}`;
+    pdf.text(contactInfo, margin, y);
+    
+    y = Math.max(y + 15, margin + photoSize + 5);
+
     // Experience
     if (experience.length > 0) {
       addSection(lang === "ar" ? "الخبرة العملية" : "Experience");
       experience.forEach(exp => {
-        if (y > 260) { pdf.addPage(); y = margin; }
-        addText(`${exp.role} @ ${exp.company}`, 11, "bold");
-        addText(exp.period, 9, "italic", [120, 120, 120]);
-        addText(exp.description, 10);
-        y += 3;
+        if (y > pageHeight - 30) { pdf.addPage(); y = margin; }
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`${exp.role} @ ${exp.company}`, margin, y);
+        
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "italic");
+        pdf.setTextColor(130, 130, 130);
+        pdf.text(exp.period, pageWidth - margin, y, { align: "right" });
+        
+        y += 5;
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(60, 60, 60);
+        const descLines = pdf.splitTextToSize(exp.description, pageWidth - margin * 2);
+        pdf.text(descLines, margin, y);
+        y += (descLines.length * 4.5) + 4;
       });
     }
 
     // Skills
     if (skills.length > 0) {
       addSection(lang === "ar" ? "المهارات" : "Skills");
-      const skillsText = skills.map(s => `${s.name} (${s.level}%)`).join(", ");
-      addText(skillsText, 10);
+      const skillsText = skills.map(s => `${s.name}`).join("  •  ");
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(60, 60, 60);
+      const skillLines = pdf.splitTextToSize(skillsText, pageWidth - margin * 2);
+      pdf.text(skillLines, margin, y);
+      y += (skillLines.length * 5) + 5;
     }
 
     // Projects
     if (projects.length > 0) {
       addSection(lang === "ar" ? "المشاريع" : "Projects");
       projects.forEach(proj => {
-        if (y > 260) { pdf.addPage(); y = margin; }
-        addText(proj.title, 11, "bold");
-        addText(proj.description, 10);
-        y += 2;
+        if (y > pageHeight - 30) { pdf.addPage(); y = margin; }
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(proj.title, margin, y);
+        y += 5;
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(60, 60, 60);
+        const projLines = pdf.splitTextToSize(proj.description, pageWidth - margin * 2);
+        pdf.text(projLines, margin, y);
+        y += (projLines.length * 4.5) + 4;
       });
     }
 
@@ -91,10 +147,23 @@ export async function downloadPDF(lang: "en" | "ar" = "en", data?: any) {
     if (education.length > 0) {
       addSection(lang === "ar" ? "التعليم" : "Education");
       education.forEach(edu => {
-        if (y > 260) { pdf.addPage(); y = margin; }
-        addText(edu.degree, 11, "bold");
-        addText(`${edu.school} | ${edu.period}`, 10);
-        y += 2;
+        if (y > pageHeight - 25) { pdf.addPage(); y = margin; }
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(edu.degree, margin, y);
+        
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(130, 130, 130);
+        pdf.text(edu.period, pageWidth - margin, y, { align: "right" });
+        
+        y += 5;
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(edu.school, margin, y);
+        y += 8;
       });
     }
 
