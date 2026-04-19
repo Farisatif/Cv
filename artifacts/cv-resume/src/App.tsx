@@ -42,7 +42,11 @@ const SECTIONS = {
 export type Mood = "cosmic" | "minimal" | "professional";
 
 function SectionDivider() {
-  return <div className="glow-divider" />;
+  return (
+    <div className="px-4 sm:px-6 my-1">
+      <div className="section-bridge" />
+    </div>
+  );
 }
 
 function CVApp() {
