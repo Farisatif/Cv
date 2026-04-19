@@ -258,6 +258,24 @@ function drawFrame(
     gc.addColorStop(1,    "rgba(0,0,0,0)");
     ctx.fillStyle = gc; ctx.fillRect(0, 0, w, h);
 
+    // ── Edge Fade Gradient (Purple to transparent) ──────────────────────────
+    // This creates the requested purple fade at the edges
+    const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+    edgeFade.addColorStop(0, "rgba(90, 45, 240, 0.15)");
+    edgeFade.addColorStop(0.15, "rgba(90, 45, 240, 0)");
+    edgeFade.addColorStop(0.85, "rgba(90, 45, 240, 0)");
+    edgeFade.addColorStop(1, "rgba(90, 45, 240, 0.15)");
+    ctx.fillStyle = edgeFade;
+    ctx.fillRect(0, 0, w, h);
+
+    const sideFade = ctx.createLinearGradient(0, 0, w, 0);
+    sideFade.addColorStop(0, "rgba(90, 45, 240, 0.12)");
+    sideFade.addColorStop(0.1, "rgba(90, 45, 240, 0)");
+    sideFade.addColorStop(0.9, "rgba(90, 45, 240, 0)");
+    sideFade.addColorStop(1, "rgba(90, 45, 240, 0.12)");
+    ctx.fillStyle = sideFade;
+    ctx.fillRect(0, 0, w, h);
+
     // Stars
     const velAbs = Math.abs(scrollVel);
     const streak = Math.min(velAbs * 0.55, 16);
@@ -282,475 +300,236 @@ function drawFrame(
         const halo = ctx.createRadialGradient(nx * w, ny * h, 0, nx * w, ny * h, r * 5);
         halo.addColorStop(0, `rgba(220,235,255,${(alpha * 0.12).toFixed(3)})`);
         halo.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = halo;
-        ctx.fillRect(nx * w - r * 6, ny * h - r * 6, r * 12, r * 12);
+        ctx.fillStyle = halo; ctx.fill();
       }
     });
-
-    // Subtle category connection lines
-    catMap.forEach((catNodes, catIdx) => {
-      if (catNodes.length < 2) return;
-      const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
-      ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.060)`;
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([2, 24]);
-      for (let i = 0; i < catNodes.length - 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(catNodes[i].x, catNodes[i].y);
-        ctx.lineTo(catNodes[i + 1].x, catNodes[i + 1].y);
-        ctx.stroke();
-      }
-      ctx.restore();
-    });
-
   } else {
-    // Light mode — subtle blooms only
-    const breathe = 0.015 * Math.sin(ts * 0.00027);
-    catMap.forEach((catNodes, catIdx) => {
-      const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
-      const cx = catNodes.reduce((a, n) => a + n.x, 0) / catNodes.length;
-      const cy = catNodes.reduce((a, n) => a + n.y, 0) / catNodes.length;
-      const rad = 140 + catNodes.length * 20;
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-      g.addColorStop(0, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.058 + breathe)})`);
-      g.addColorStop(0.6, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.018 + breathe * 0.35)})`);
-      g.addColorStop(1, `hsla(${ch},${s}%,${l}%,0)`);
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    });
-
-    STARS.slice(0, 50).forEach(star => {
-      const nx = ((star.x0 + ts * star.vx) % 1 + 1) % 1;
-      const ny = ((star.y0 + ts * star.vy) % 1 + 1) % 1;
-      const tw = 0.55 + 0.45 * Math.sin(ts * star.twinkleSpeed + star.phase);
-      ctx.beginPath();
-      ctx.arc(nx * w, ny * h, star.r * 0.8, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(60,40,190,${((0.015 + star.a * 0.03) * tw).toFixed(3)})`;
-      ctx.fill();
-    });
-
-    catMap.forEach((catNodes, catIdx) => {
-      if (catNodes.length < 2) return;
-      const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
-      ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.075)`;
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([2, 22]);
-      for (let i = 0; i < catNodes.length - 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(catNodes[i].x, catNodes[i].y);
-        ctx.lineTo(catNodes[i + 1].x, catNodes[i + 1].y);
-        ctx.stroke();
-      }
-      ctx.restore();
-    });
+    // Light mode background
+    ctx.fillStyle = "rgba(255,255,255,0.01)";
+    ctx.fillRect(0, 0, w, h);
+    
+    // Soft purple fade for light mode too
+    const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+    edgeFade.addColorStop(0, "rgba(90, 45, 240, 0.05)");
+    edgeFade.addColorStop(0.1, "rgba(90, 45, 240, 0)");
+    edgeFade.addColorStop(0.9, "rgba(90, 45, 240, 0)");
+    edgeFade.addColorStop(1, "rgba(90, 45, 240, 0.05)");
+    ctx.fillStyle = edgeFade;
+    ctx.fillRect(0, 0, w, h);
   }
 }
 
-// ── Galaxy props ──────────────────────────────────────────────────────────
-interface GalaxyProps {
-  skills: Skill[];
-  filter: string;
-  allLabel: string;
-  lang: "en" | "ar";
-  isMobile: boolean;
-}
-
-// ── Galaxy component ──────────────────────────────────────────────────────
-function SkillGalaxy({ skills, filter, allLabel, lang, isMobile }: GalaxyProps) {
+export default function SkillsSection() {
+  const { lang, isRTL } = useLanguage();
+  const { data } = useResumeData();
+  const t = translations[lang];
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const wrapperEls   = useRef<Map<string, HTMLDivElement>>(new Map());
-  const dprRef       = useRef(1);
-  const animRef      = useRef(0);
-  const isDarkRef    = useRef(true);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { revealRef, isVisible } = useScrollReveal();
 
-  const scrollRef = useRef({ vel: 0, prevY: 0, relOffset: 0 });
+  const skills = useMemo(() => getSkills(data), [data]);
+  const categories = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
 
-  const [cw, setCw] = useState(880);
-  const [ch, setCh] = useState(520);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [nodes, setNodes] = useState<PlacedNode[]>([]);
+  const [activeNode, setActiveNode] = useState<string | null>(null);
+  const stateRef = useRef({
+    ts: 0,
+    scrollVel: 0,
+    lastSY: 0,
+    isDark: true,
+    width: 0,
+    height: 0,
+    animId: 0,
+    smoothVel: 0,
+  });
 
-  const orderedCats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
-
-  const nodes = useMemo(
-    () => buildNodes(skills, orderedCats, isMobile, cw, ch),
-    [skills, orderedCats, isMobile, cw, ch],
-  );
-
-  // ── Resize ────────────────────────────────────────────────────────────────
+  // Handle Resize & Init Nodes
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      const w = entries[0].contentRect.width;
-      const minH = isMobile ? 380 : 480;
-      const maxH = isMobile ? 480 : 580;
-      const ratio = isMobile ? 0.82 : 0.60;
-      setCw(w);
-      setCh(Math.min(maxH, Math.max(minH, Math.round(w * ratio))));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isMobile]);
+    const handleResize = () => {
+      if (!containerRef.current || !canvasRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      
+      const w = rect.width;
+      const h = rect.height;
+      
+      canvasRef.current.width = w * dpr;
+      canvasRef.current.height = h * dpr;
+      canvasRef.current.style.width = `${w}px`;
+      canvasRef.current.style.height = `${h}px`;
+      
+      const ctx = canvasRef.current.getContext("2d");
+      if (ctx) ctx.scale(dpr, dpr);
+      
+      stateRef.current.width = w;
+      stateRef.current.height = h;
+      
+      const isMobile = window.innerWidth < 768;
+      setNodes(buildNodes(skills, categories, isMobile, w, h));
+    };
 
-  // ── HiDPI canvas ──────────────────────────────────────────────────────────
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [skills, categories]);
+
+  // Animation Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
-    dprRef.current = dpr;
-    canvas.width  = Math.round(cw * dpr);
-    canvas.height = Math.round(ch * dpr);
     const ctx = canvas.getContext("2d");
-    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }, [cw, ch, isMobile]);
-
-  // ── RAF: canvas + parallax ────────────────────────────────────────────────
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    if (!ctx) return;
 
     const onScroll = () => {
-      const raw = window.scrollY - scrollRef.current.prevY;
-      scrollRef.current.vel = scrollRef.current.vel * 0.72 + raw * 0.28;
-      scrollRef.current.prevY = window.scrollY;
-      const rect = container.getBoundingClientRect();
-      scrollRef.current.relOffset = -(rect.top + window.scrollY - window.scrollY) + window.scrollY - (window.scrollY - rect.top);
+      const sy = window.scrollY;
+      stateRef.current.scrollVel = sy - stateRef.current.lastSY;
+      stateRef.current.lastSY = sy;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    let lastTs = 0;
+    const checkDark = () => {
+      stateRef.current.isDark = document.documentElement.classList.contains("dark");
+    };
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
-    const tick = (ts: number) => {
-      animRef.current = requestAnimationFrame(tick);
-      if (lastTs === 0) { lastTs = ts; return; }
-      lastTs = ts;
-
-      // ── Canvas draw ──────────────────────────────────────────────────────
-      const canvas = canvasRef.current;
-      const ctx    = canvas?.getContext("2d");
-      if (ctx && canvas) {
-        const dpr = dprRef.current;
-        const ew  = Math.round(cw * dpr);
-        const eh  = Math.round(ch * dpr);
-        if (canvas.width !== ew || canvas.height !== eh) {
-          canvas.width = ew; canvas.height = eh;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }
-        isDarkRef.current = document.documentElement.classList.contains("dark");
-        drawFrame(ctx, nodes, cw, ch, isDarkRef.current, ts, scrollRef.current.vel);
-      }
-
-      // ── Parallax on wrapper divs ─────────────────────────────────────────
-      const rect     = container.getBoundingClientRect();
-      const vis      = -rect.top / ch; // 0 = top of section at viewport top
-      const vel      = scrollRef.current.vel;
-      const velAbs   = Math.abs(vel);
-      const isStretch = velAbs > 6;
-      const stretchSign = vel > 0 ? 1 : -1;
-
-      nodes.forEach(node => {
-        const el = wrapperEls.current.get(node.skill.id);
-        if (!el) return;
-
-        const parallaxY = vis * ch * 0.18 * node.cfg.parallaxSpeed;
-        const stretchY  = isStretch
-          ? stretchSign * Math.min(velAbs * 0.55, 30) * node.cfg.parallaxSpeed
-          : 0;
-
-        el.style.transform = `translateY(${(parallaxY + stretchY).toFixed(2)}px)`;
-        el.style.transition = isStretch
-          ? "transform 0.25s cubic-bezier(0.4,0,0.2,1)"
-          : "none";
-      });
-
-      // Decay velocity
-      scrollRef.current.vel *= 0.85;
+    const loop = (time: number) => {
+      stateRef.current.ts = time;
+      stateRef.current.smoothVel += (stateRef.current.scrollVel - stateRef.current.smoothVel) * 0.12;
+      
+      drawFrame(
+        ctx,
+        nodes,
+        stateRef.current.width,
+        stateRef.current.height,
+        stateRef.current.isDark,
+        time,
+        stateRef.current.smoothVel
+      );
+      
+      stateRef.current.scrollVel *= 0.92;
+      stateRef.current.animId = requestAnimationFrame(loop);
     };
 
-    animRef.current = requestAnimationFrame(tick);
+    stateRef.current.animId = requestAnimationFrame(loop);
     return () => {
-      cancelAnimationFrame(animRef.current);
+      cancelAnimationFrame(stateRef.current.animId);
       window.removeEventListener("scroll", onScroll);
+      obs.disconnect();
     };
-  }, [nodes, cw, ch]);
-
-  const wrapRef = (id: string) => (el: HTMLDivElement | null) => {
-    if (el) wrapperEls.current.set(id, el);
-    else wrapperEls.current.delete(id);
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full"
-      style={{ height: ch, overflow: "hidden" }}
-    >
-      {/* Atmospheric canvas */}
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{ width: cw, height: ch, top: 0, left: 0 }}
-      />
-
-      {/* Feathered edge */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 100% 100% at 50% 50%,
-            transparent 28%,
-            hsl(var(--background)/0.22) 52%,
-            hsl(var(--background)/0.60) 74%,
-            hsl(var(--background)/0.88) 90%,
-            hsl(var(--background)) 100%
-          )`,
-        }}
-      />
-
-      {/* Skill nodes */}
-      {nodes.map(node => {
-        const { h: ch, s, l } = node.color;
-        const hidden  = filter !== allLabel && node.skill.category !== filter;
-        const isHov   = hoveredId === node.skill.id;
-        const label   = getLabel(node.skill.level);
-
-        // Base font size per layer before scale
-        const baseFontPx = node.layer === "fg" ? 13 : node.layer === "mg" ? 12 : 11;
-        const baseOrbPx  = node.layer === "fg" ? 10 : node.layer === "mg" ? 8 : 7;
-        const basePadV   = node.layer === "fg" ? 6 : 5;
-        const basePadH   = node.layer === "fg" ? 12 : 10;
-
-        const glowBase  = `hsl(${ch},${s}%,${l}%)`;
-        const glowOuter = `hsl(${ch},${s}%,${l}%/0.35)`;
-        const glowFar   = `hsl(${ch},${s}%,${l}%/0.12)`;
-
-        return (
-          <div
-            key={node.skill.id}
-            ref={wrapRef(node.skill.id)}
-            aria-hidden={hidden}
-            style={{
-              position:    "absolute",
-              left:        node.x,
-              top:         node.y,
-              willChange:  "transform",
-              zIndex:      node.cfg.zIndex,
-            }}
-          >
-            {/* Floating inner — CSS @keyframes, no JS transform conflict */}
-            <div
-              style={{
-                animation: `${node.animName} ${node.animDur.toFixed(1)}s ease-in-out infinite ${node.animDelay.toFixed(1)}s both`,
-                willChange: "transform",
-              }}
-            >
-              {/* Chip */}
-              <div
-                role="button"
-                tabIndex={hidden ? -1 : 0}
-                aria-label={`${node.skill.name} — ${lang === "ar" ? label.ar : label.en} ${node.skill.level}%`}
-                onMouseEnter={() => !isMobile && setHoveredId(node.skill.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onFocus={() => setHoveredId(node.skill.id)}
-                onBlur={() => setHoveredId(null)}
-                onTouchStart={() => isMobile && setHoveredId(node.skill.id)}
-                onTouchEnd={() => isMobile && setTimeout(() => setHoveredId(null), 700)}
-                style={{
-                  display:        "flex",
-                  alignItems:     "center",
-                  gap:            `${6 * node.scale}px`,
-                  padding:        `${basePadV}px ${basePadH}px`,
-                  borderRadius:   999,
-                  transform:      `translate(-50%, -50%) scale(${isHov ? node.scale * 1.10 : node.scale})`,
-                  opacity:        hidden ? 0 : node.opacity,
-                  filter:         node.blur > 0 ? `blur(${node.blur.toFixed(1)}px)` : undefined,
-                  background:     isHov
-                    ? `hsl(${ch},${s}%,${l}%/0.18)`
-                    : `hsl(${ch},${s}%,${l}%/0.08)`,
-                  border:         `1px solid hsl(${ch},${s}%,${l}%/${isHov ? "0.48" : "0.20"})`,
-                  boxShadow:      isHov
-                    ? `0 0 ${14 * node.scale}px ${glowBase}/0.55, 0 0 ${30 * node.scale}px ${glowOuter}, 0 0 ${50 * node.scale}px ${glowFar}`
-                    : `0 0 ${8 * node.scale}px ${glowBase}/0.28, 0 0 ${18 * node.scale}px ${glowOuter}`,
-                  backdropFilter: "blur(6px)",
-                  transition:     "transform 0.2s ease-in-out, opacity 0.35s ease-in-out, box-shadow 0.2s ease-in-out, background 0.2s ease-in-out, border-color 0.2s ease-in-out",
-                  pointerEvents:  hidden ? "none" : "auto",
-                  cursor:         "default",
-                  userSelect:     "none",
-                  whiteSpace:     "nowrap",
-                }}
-              >
-                {/* Glow orb */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    width:        `${baseOrbPx}px`,
-                    height:       `${baseOrbPx}px`,
-                    borderRadius: "50%",
-                    flexShrink:   0,
-                    background:   `radial-gradient(circle at 34% 34%, hsl(${ch},${s}%,${Math.min(l + 26, 95)}%), ${glowBase})`,
-                    boxShadow:    isHov
-                      ? `0 0 ${baseOrbPx * 2.2}px ${glowBase}, 0 0 ${baseOrbPx * 5}px ${glowOuter}`
-                      : `0 0 ${baseOrbPx * 1.4}px ${glowBase}, 0 0 ${baseOrbPx * 3}px ${glowOuter}`,
-                    transition:   "box-shadow 0.2s ease-in-out",
-                  }}
-                />
-
-                {/* Label */}
-                <span
-                  style={{
-                    fontSize:      `${baseFontPx}px`,
-                    fontWeight:    node.skill.level >= 70 ? 700 : 600,
-                    letterSpacing: "0.012em",
-                    color:         isHov
-                      ? `hsl(${ch},${s}%,${Math.min(l + 22, 95)}%)`
-                      : "hsl(var(--foreground)/0.82)",
-                    textShadow:    isHov
-                      ? `0 0 14px hsl(${ch},${s}%,${l}%/0.85), 0 0 30px hsl(${ch},${s}%,${l}%/0.35)`
-                      : `0 0 9px hsl(${ch},${s}%,${l}%/0.32)`,
-                    transition:    "color 0.2s ease-in-out, text-shadow 0.2s ease-in-out",
-                  }}
-                >
-                  {node.skill.name}
-                </span>
-              </div>
-
-              {/* Hover tooltip */}
-              {isHov && (
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position:       "absolute",
-                    bottom:         "calc(100% + 14px)",
-                    left:           "50%",
-                    transform:      "translateX(-50%) translateY(-4px)",
-                    width:          156,
-                    padding:        "10px 12px",
-                    borderRadius:   14,
-                    background:     "hsl(var(--card)/0.92)",
-                    backdropFilter: "blur(24px)",
-                    WebkitBackdropFilter: "blur(24px)",
-                    border:         `1px solid hsl(${ch},${s}%,${l}%/0.22)`,
-                    boxShadow:      `0 8px 40px rgba(0,0,0,0.32), 0 0 22px hsl(${ch},${s}%,${l}%/0.10)`,
-                    zIndex:         60,
-                    pointerEvents:  "none",
-                    animation:      "fade-up 0.15s ease-out forwards",
-                  }}
-                >
-                  <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.13em", opacity: 0.42, marginBottom: 7 }}>
-                    {node.skill.category}
-                  </div>
-                  <div style={{ height: 3, borderRadius: 3, overflow: "hidden", background: `hsl(${ch},${s}%,${l}%/0.14)`, marginBottom: 8 }}>
-                    <div style={{
-                      height: "100%", width: `${node.skill.level}%`,
-                      background: `linear-gradient(90deg, hsl(${ch},${s}%,${l}%), hsl(${ch},${s}%,${Math.min(l + 18, 90)}%))`,
-                      borderRadius: 3, boxShadow: `0 0 8px hsl(${ch},${s}%,${l}%/0.70)`,
-                    }} />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: `hsl(${ch},${s}%,${l}%)`, textShadow: `0 0 9px hsl(${ch},${s}%,${l}%/0.55)` }}>
-                      {lang === "ar" ? label.ar : label.en}
-                    </span>
-                    <span style={{ fontSize: 11, fontFamily: "monospace", opacity: 0.48 }}>{node.skill.level}%</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Section ───────────────────────────────────────────────────────────────
-export default function SkillsSection() {
-  const sectionRef      = useScrollReveal();
-  const { lang, isRTL } = useLanguage();
-  const { data }        = useResumeData();
-  const t               = translations[lang];
-
-  const skills   = getSkills(lang, data) as Skill[];
-  const [filter, setFilter] = useState("All");
-  const allLabel = t.skills.all;
-
-  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
-    const h  = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", h);
-    setIsMobile(mq.matches);
-    return () => mq.removeEventListener("change", h);
-  }, []);
-
-  const categories = useMemo(
-    () => [allLabel, ...Array.from(new Set(skills.map(s => s.category)))],
-    [skills, allLabel],
-  );
-
-  useEffect(() => { setFilter(allLabel); }, [lang, allLabel]);
+  }, [nodes]);
 
   return (
     <section
       id="skills"
-      ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
-      dir={isRTL ? "rtl" : "ltr"}
+      ref={revealRef}
+      className={`relative py-24 sm:py-32 overflow-hidden transition-opacity duration-1000 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
     >
-      {/* Header */}
-      <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
-        <span className="section-label">{t.skills.title}</span>
-        <h2 className="section-title mb-3">
-          {lang === "ar" ? "مجرة المهارات" : "Skill Galaxy"}
-        </h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {lang === "ar"
-            ? "مهاراتي التقنية موزّعة في فضاء مفتوح — مرّر فوق أي نجمة لاستكشافها"
-            : "Technical skills distributed across open space — hover any star to explore"}
-        </p>
-      </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className={`mb-12 sm:mb-20 ${isRTL ? "text-right" : "text-left"}`}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] sm:text-xs font-bold tracking-widest uppercase text-primary">
+              {t.skills.title}
+            </span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-bold mb-6 tracking-tight">
+            {lang === "ar" ? "مجرة المهارات" : "Skills Galaxy"}
+          </h2>
+          <p className="text-muted-foreground text-sm sm:text-lg max-w-2xl leading-relaxed">
+            {lang === "ar" 
+              ? "استكشف مهاراتي التقنية الموزعة في فضاء الإبداع. كل عقدة تمثل خبرة تراكمت عبر سنوات من العمل."
+              : "Explore my technical expertise distributed across a creative space. Each node represents experience accumulated over years of work."}
+          </p>
+        </div>
 
-      {/* Category filters */}
-      <div className={`mb-8 ${isMobile ? "filters-scroll" : `flex flex-wrap gap-2 ${isRTL ? "flex-row-reverse" : ""}`}`}>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`tag-filter ${filter === cat ? "active" : ""}`}
-          >
-            {cat === allLabel ? allLabel : cat}
-          </button>
-        ))}
-      </div>
+        <div
+          ref={containerRef}
+          className="relative w-full aspect-[4/3] sm:aspect-[21/9] min-h-[450px] sm:min-h-[600px] rounded-3xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden group shadow-2xl"
+        >
+          {/* Canvas Background */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+          />
 
-      {/* Galaxy */}
-      <div className="galaxy-wrapper">
-        <SkillGalaxy
-          key={`${lang}-${isMobile}`}
-          skills={skills}
-          filter={filter}
-          allLabel={allLabel}
-          lang={lang}
-          isMobile={isMobile}
-        />
-      </div>
+          {/* Interactive Skill Nodes */}
+          {nodes.map((node) => {
+            const label = getLabel(node.skill.level);
+            const isActive = activeNode === node.skill.id;
+            const parallaxY = stateRef.current.smoothVel * (node.cfg.parallaxSpeed - 1) * 0.4;
 
-      {/* Legend */}
-      <div className={`mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
-        {LEVEL_LABELS.map(lvl => (
-          <span key={lvl.en} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: `hsl(${lvl.hsl})`, boxShadow: `0 0 6px hsl(${lvl.hsl}/0.55)` }} />
-            {lang === "ar" ? lvl.ar : lvl.en}
-          </span>
-        ))}
-        <span className={`flex items-center gap-1.5 opacity-40 ${isRTL ? "mr-auto" : "ml-auto"}`}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
-          </svg>
-          {lang === "ar" ? "يتفاعل مع التمرير" : "Reacts to scroll"}
-        </span>
+            return (
+              <div
+                key={node.skill.id}
+                className="absolute transition-all duration-500 ease-out"
+                style={{
+                  left: `${(node.x / stateRef.current.width) * 100}%`,
+                  top: `${(node.y / stateRef.current.height) * 100}%`,
+                  transform: `translate(-50%, -50%) scale(${node.scale}) translateY(${parallaxY}px)`,
+                  zIndex: node.cfg.zIndex,
+                  opacity: node.opacity,
+                }}
+              >
+                <div
+                  className={`relative group/node cursor-help animate-[${node.animName}_${node.animDur}s_ease-in-out_infinite]`}
+                  style={{ animationDelay: `${node.animDelay}s` }}
+                  onMouseEnter={() => setActiveNode(node.skill.id)}
+                  onMouseLeave={() => setActiveNode(null)}
+                >
+                  {/* Glow Effect */}
+                  <div
+                    className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover/node:opacity-40 transition-opacity duration-500"
+                    style={{ backgroundColor: `hsl(${node.color.h}, ${node.color.s}%, ${node.color.l}%)` }}
+                  />
+
+                  {/* Node Body */}
+                  <div
+                    className={`relative flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all duration-300 ${
+                      isActive 
+                        ? "bg-background border-primary shadow-[0_0_20px_rgba(90,45,240,0.3)] scale-110" 
+                        : "bg-background/80 border-border/50 backdrop-blur-md"
+                    }`}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: `hsl(${node.color.h}, ${node.color.s}%, ${node.color.l}%)` }}
+                    />
+                    <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+                      {node.skill.name}
+                    </span>
+                  </div>
+
+                  {/* Tooltip / Level Info */}
+                  <div
+                    className={`absolute -bottom-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-foreground text-background text-[10px] font-bold whitespace-nowrap transition-all duration-300 pointer-events-none ${
+                      isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: `hsl(${label.hsl})` }}>
+                        {lang === "ar" ? label.ar : label.en}
+                      </span>
+                      <span className="opacity-50">|</span>
+                      <span>{node.skill.level}%</span>
+                    </div>
+                    {/* Tooltip Arrow */}
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Floating Instructions */}
+          <div className="absolute bottom-6 right-6 flex items-center gap-3 text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest pointer-events-none">
+            <div className="w-8 h-px bg-border/50" />
+            {lang === "ar" ? "حرك الشاشة لرؤية التفاعل" : "Scroll to see interaction"}
+          </div>
+        </div>
       </div>
     </section>
   );

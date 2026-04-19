@@ -165,7 +165,7 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
           {/* Right actions */}
           <div className={`flex items-center gap-1 flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
 
-            {/* Mood switcher */}
+            {/* Mood switcher (Desktop) */}
             <div ref={moodRef} className="relative hidden sm:block">
               <button
                 onClick={() => setMoodOpen(!moodOpen)}
@@ -209,11 +209,6 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
                       )}
                     </button>
                   ))}
-
-                  <div className="mx-3 border-t border-border/50 my-1" />
-                  <div className={`px-3 py-2 text-[10px] text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
-                    {lang === "ar" ? "غيّر جو الموقع" : "Change site atmosphere"}
-                  </div>
                 </div>
               )}
             </div>
@@ -225,35 +220,15 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
               {lang === "en" ? "عربي" : "EN"}
             </button>
 
-            <button
-              onClick={handleDownloadPDF}
-              disabled={pdfLoading}
-              className="hidden sm:flex h-8 w-8 rounded-lg items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 disabled:opacity-40"
-              aria-label={t.nav.downloadCV}
-              title={t.nav.downloadCV}
-            >
-              {pdfLoading ? (
-                <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-              ) : (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              )}
-            </button>
-
+            {/* Desktop Theme Toggle */}
             <button
               onClick={onToggleDark}
-              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+              className="hidden sm:flex h-8 w-8 rounded-lg items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
               aria-label="Toggle dark mode"
             >
               {darkMode ? (
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5"/>
-                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                 </svg>
               ) : (
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -262,94 +237,131 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
               )}
             </button>
 
+            {/* Mobile Menu Toggle */}
             <button
-              className="xl:hidden h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               onClick={() => setMenuOpen(!menuOpen)}
+              className="xl:hidden h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               aria-label="Toggle menu"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                {menuOpen
-                  ? <path d="M18 6 6 18M6 6l12 12"/>
-                  : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>
-                }
-              </svg>
+              <div className="w-4 flex flex-col gap-1 items-end">
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-4 translate-y-1.5 -rotate-45" : "w-4"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "opacity-0" : "w-2.5"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-4 -translate-y-1.5 rotate-45" : "w-3.5"}`} />
+              </div>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu Overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 z-40 xl:hidden print:hidden" dir={isRTL ? "rtl" : "ltr"} onClick={() => setMenuOpen(false)}>
-          <div className="absolute inset-0 bg-background/70 dark:bg-background/80 backdrop-blur-md" />
-          <div
-            className="absolute top-14 left-0 right-0 bottom-0 bg-background dark:bg-[hsl(240_28%_4%)] border-t border-border"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="max-w-5xl mx-auto px-4 pt-4 pb-8">
-              <ul className="space-y-0.5 mb-4">
-                {NAV_ITEMS.map((item) => {
-                  const sectionId = item.href.slice(1);
-                  const isActive = activeSection === sectionId;
-                  return (
-                    <li key={item.href}>
-                      <a
-                        href={item.href}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setMenuOpen(false);
-                          setTimeout(() => scrollTo(item.href), 100);
-                        }}
-                        className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all ${isRTL ? "flex-row-reverse text-right" : ""} ${
-                          isActive
-                            ? "bg-foreground text-background dark:bg-[hsl(263_80%_68%)] dark:text-[hsl(240_25%_3.5%)] font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        }`}
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
+        <div
+          className="fixed inset-0 z-[60] bg-background/98 backdrop-blur-xl flex flex-col p-6 animate-fade-in xl:hidden"
+          dir={isRTL ? "rtl" : "ltr"}
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full border border-border overflow-hidden">
+                <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
+              </div>
+              <span className="font-bold">{personalName}</span>
+            </div>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="h-10 w-10 rounded-full bg-muted flex items-center justify-center"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
 
-              {/* Mood in mobile */}
-              <div className="border-t border-border pt-4 mb-2">
-                <p className={`text-[11px] text-muted-foreground uppercase tracking-wider px-3 mb-2 ${isRTL ? "text-right" : ""}`}>
-                  {lang === "ar" ? "جو الموقع" : "Site Mood"}
-                </p>
-                <div className="flex gap-2 px-1">
+          <div className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 gap-1 mb-8">
+              {NAV_ITEMS.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => { e.preventDefault(); scrollTo(item.href); setMenuOpen(false); }}
+                  className="px-4 py-3 rounded-xl text-lg font-medium hover:bg-muted transition-colors flex items-center justify-between group"
+                >
+                  <span>{item.label}</span>
+                  <svg className={`opacity-0 group-hover:opacity-40 transition-opacity ${isRTL ? "rotate-180" : ""}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </a>
+              ))}
+            </div>
+
+            {/* Integrated Appearance System (Theme + Mood) */}
+            <div className="mb-8">
+              <div className={`px-4 mb-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
+                {lang === "ar" ? "المظهر والنظام" : "Appearance & System"}
+              </div>
+              
+              <div className="bg-muted/40 rounded-2xl p-2 border border-border/40">
+                {/* Theme Toggle in Menu */}
+                <button
+                  onClick={onToggleDark}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${darkMode ? "bg-background shadow-sm" : "hover:bg-muted"}`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${darkMode ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {darkMode ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    )}
+                  </div>
+                  <div className={`flex-1 text-sm font-semibold ${isRTL ? "text-right" : "text-left"}`}>
+                    {lang === "ar" ? (darkMode ? "المظهر الليلي" : "المظهر النهاري") : (darkMode ? "Dark Mode" : "Light Mode")}
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${darkMode ? "bg-primary" : "bg-muted-foreground/30"}`}>
+                    <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${isRTL ? (darkMode ? "left-1" : "left-6") : (darkMode ? "left-6" : "left-1")}`} />
+                  </div>
+                </button>
+
+                <div className="h-px bg-border/40 mx-4 my-1" />
+
+                {/* Mood Options in Menu */}
+                <div className="grid grid-cols-3 gap-1 mt-1">
                   {MOOD_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => { onSetMood(opt.value); }}
-                      className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-xl text-xs border transition-all ${
+                      onClick={() => onSetMood(opt.value)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
                         mood === opt.value
-                          ? "border-foreground bg-foreground/5 text-foreground dark:border-[hsl(263_80%_68%)] dark:bg-[hsl(263_80%_68%/0.1)] dark:text-[hsl(263_80%_80%)]"
-                          : "border-border text-muted-foreground hover:bg-muted"
+                          ? "bg-background text-primary shadow-sm ring-1 ring-primary/20"
+                          : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      {opt.icon}
-                      <span>{lang === "ar" ? opt.label_ar : opt.label}</span>
+                      <span className={mood === opt.value ? "text-primary" : "opacity-60"}>{opt.icon}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tighter">
+                        {lang === "ar" ? opt.label_ar : opt.label}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
-
-              <div className="border-t border-border mt-2 pt-4">
-                <button
-                  onClick={() => { setMenuOpen(false); handleDownloadPDF(); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all ${isRTL ? "flex-row-reverse text-right" : ""}`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  {t.nav.downloadCV}
-                </button>
-              </div>
             </div>
+          </div>
+
+          <div className="mt-auto pt-6 border-t border-border/40">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={pdfLoading}
+              className="w-full h-12 rounded-xl bg-foreground text-background font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {pdfLoading ? (
+                <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              )}
+              {t.nav.downloadCV}
+            </button>
           </div>
         </div>
       )}

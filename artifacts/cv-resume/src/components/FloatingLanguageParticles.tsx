@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useMemo } from "react";
 
 // ── Language labels ────────────────────────────────────────────────────────
 const LABELS = [
@@ -10,10 +10,6 @@ const LABELS = [
 ];
 
 // ── Depth levels — three distinct visual planes ────────────────────────────
-// FAR  (depth 0.00–0.40): small, cold, almost invisible — deep space
-// MID  (depth 0.40–0.70): medium, violet/purple — floating debris
-// NEAR (depth 0.70–1.00): larger, warm accent — foreground atmosphere
-
 type DepthLevel = "FAR" | "MID" | "NEAR";
 
 interface LevelStyle {
@@ -64,7 +60,6 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
   },
 };
 
-// ── Per-level colors (no gray ever) ───────────────────────────────────────
 const LEVEL_COLORS = {
   dark: {
     FAR:  { h: 216, s: 88, l: 72 }, // cool blue — deep space
@@ -78,7 +73,6 @@ const LEVEL_COLORS = {
   },
 } as const;
 
-// ── Particle definition ────────────────────────────────────────────────────
 interface Particle {
   label:          string;
   x:              number;   // viewport fraction 0–1
@@ -102,23 +96,23 @@ function getDepthLevel(d: number): DepthLevel {
 }
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-function rng() { return Math.random(); }
+
+// Use a deterministic PRNG for stable distribution
+function seededRng(seed: number) {
+  let s = (seed % 2147483647) || 1;
+  return (): number => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
 
 function createParticles(count: number): Particle[] {
-  const used = new Set<number>();
+  const rng = seededRng(42);
   const result: Particle[] = [];
 
   for (let i = 0; i < count; i++) {
-    let li: number;
-    do { li = Math.floor(rng() * LABELS.length); }
-    while (used.has(li) && used.size < LABELS.length);
-    used.add(li);
-
+    const li = i % LABELS.length;
     const depth = 0.08 + rng() * 0.88;
     const level = getDepthLevel(depth);
     const st    = LEVEL_STYLES[level];
 
-    // t within level (0 = start of level, 1 = end)
     const levelT = level === "FAR"
       ? depth / 0.40
       : level === "MID"
@@ -133,7 +127,7 @@ function createParticles(count: number): Particle[] {
 
     result.push({
       label:          LABELS[li],
-      x:              0.04 + rng() * 0.92,
+      x:              0.02 + rng() * 0.96,
       baseScrollFrac: rng(),
       depth,
       depthLevel:     level,
@@ -150,7 +144,6 @@ function createParticles(count: number): Particle[] {
   return result;
 }
 
-// ── Round rect helper (cross-browser) ─────────────────────────────────────
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number, r: number,
@@ -169,7 +162,6 @@ function roundRect(
   ctx.closePath();
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
 export default function FloatingLanguageParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef  = useRef({
@@ -182,6 +174,7 @@ export default function FloatingLanguageParticles() {
     height:        0,
     isDark:        true,
     docHeight:     0,
+    lastTime:      0,
   });
 
   const resize = useCallback(() => {
@@ -207,24 +200,25 @@ export default function FloatingLanguageParticles() {
     if (!ctx) return;
 
     const state      = stateRef.current;
-    state.particles  = createParticles(30);
+    // Increase particle count and ensure regular distribution
+    state.particles  = createParticles(45);
     state.docHeight  = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
 
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    // Scroll
     let lastSY = window.scrollY;
     const onScroll = () => {
       const sy        = window.scrollY;
-      state.scrollVel = sy - lastSY;
+      // Clamp velocity to avoid extreme jumps
+      const rawVel    = sy - lastSY;
+      state.scrollVel = Math.max(-60, Math.min(60, rawVel));
       lastSY          = sy;
       state.targetScrollY = sy;
       state.docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Dark mode observer
     const checkDark = () => {
       state.isDark = document.documentElement.classList.contains("dark");
     };
@@ -232,18 +226,17 @@ export default function FloatingLanguageParticles() {
     const darkObs = new MutationObserver(checkDark);
     darkObs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
-    // ── Draw loop ──────────────────────────────────────────────────────────
     const draw = (ts: number) => {
       state.animId = requestAnimationFrame(draw);
-
+      
       const { width, height, isDark, docHeight } = state;
       if (width === 0) return;
 
-      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * 0.055;
+      // Smoother scroll interpolation
+      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * 0.08;
       const scrollFrac = state.smoothScrollY / Math.max(1, docHeight - height);
 
       ctx.clearRect(0, 0, width, height);
-
       const palette = isDark ? LEVEL_COLORS.dark : LEVEL_COLORS.light;
 
       state.particles.forEach(p => {
@@ -251,37 +244,41 @@ export default function FloatingLanguageParticles() {
         const color = palette[p.depthLevel];
         const { h, s, l } = color;
 
-        // ── Position ───────────────────────────────────────────────────
+        // ── Position ──
         const parallaxFactor = 1 - p.depth * 0.85;
-        const scrollOffset   = (p.baseScrollFrac - scrollFrac) * height * 3.2 * parallaxFactor;
+        // Extended scroll range for better distribution
+        const scrollOffset   = (p.baseScrollFrac - scrollFrac) * height * 4.0 * parallaxFactor;
 
         const driftX = Math.sin(ts * p.phaseSpeed + p.phase) * p.driftAmpX;
         const driftY = Math.sin(ts * p.phaseSpeed * 0.68 + p.phase + 1.1) * p.driftAmpY;
-        const velBoost = state.scrollVel * (1 - p.depth) * 0.38;
+        
+        // Velocity effect is more subtle and smooth
+        const velBoost = state.scrollVel * (1 - p.depth) * 0.25;
 
         const px = p.x * width + driftX;
         const py = height * 0.5 + scrollOffset + driftY + velBoost;
 
-        if (py < -80 || py > height + 80) return;
+        // Wrap around vertically if needed or just skip if too far out
+        if (py < -120 || py > height + 120) return;
 
-        // ── Edge fade ─────────────────────────────────────────────────
-        const edgePad = 90;
+        // ── Edge fade ──
+        const edgePad = 120;
         let edgeFade  = 1;
         if (py < edgePad)              edgeFade = Math.max(0, py / edgePad);
         else if (py > height - edgePad) edgeFade = Math.max(0, (height - py) / edgePad);
 
-        const velOpacity = Math.min(0.5, Math.abs(state.scrollVel) * 0.005);
+        const velOpacity = Math.min(0.4, Math.abs(state.scrollVel) * 0.003);
         const finalAlpha = (p.opacity + velOpacity * (1 - p.depth)) * edgeFade;
         if (finalAlpha < 0.004) return;
 
-        // ── Rotation — continuous slow spin ──────────────────────────
+        // ── Rotation ──
         const totalRot = p.baseRotation + ts * p.rotSpeed;
 
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(totalRot);
 
-        // ── Measure text ─────────────────────────────────────────────
+        // ── Render ──
         ctx.font = `${st.fontWeight} ${p.size}px 'Space Grotesk','Inter',sans-serif`;
         const textW   = ctx.measureText(p.label).width;
         const padX    = p.depthLevel === "FAR" ? 6 : p.depthLevel === "MID" ? 8 : 9;
@@ -292,20 +289,17 @@ export default function FloatingLanguageParticles() {
         const by      = -boxH / 2;
         const cr      = st.cornerRadius;
 
-        // ── Badge background ─────────────────────────────────────────
         ctx.globalAlpha = finalAlpha * st.bgAlpha * (1 / p.opacity);
         ctx.fillStyle   = `hsl(${h},${s}%,${l}%)`;
         roundRect(ctx, bx, by, boxW, boxH, cr);
         ctx.fill();
 
-        // ── Badge border ─────────────────────────────────────────────
         ctx.globalAlpha = finalAlpha * st.borderAlpha * (1 / p.opacity);
         ctx.strokeStyle = `hsl(${h},${s}%,${l}%)`;
         ctx.lineWidth   = st.borderWidth;
         roundRect(ctx, bx, by, boxW, boxH, cr);
         ctx.stroke();
 
-        // ── Label text ───────────────────────────────────────────────
         ctx.globalAlpha  = finalAlpha;
         ctx.fillStyle    = `hsl(${h},${s}%,${l}%)`;
         ctx.textAlign    = "center";
@@ -315,8 +309,8 @@ export default function FloatingLanguageParticles() {
         ctx.restore();
       });
 
-      // Velocity decay
-      state.scrollVel *= 0.86;
+      // Velocity decay - slower for smoother motion
+      state.scrollVel *= 0.92;
     };
 
     state.animId = requestAnimationFrame(draw);
