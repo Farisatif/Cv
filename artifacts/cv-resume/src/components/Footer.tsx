@@ -11,10 +11,13 @@ export default function Footer() {
   const title = personal[lang]?.title ?? "";
 
   return (
-    <footer className="border-t border-border py-10 max-w-5xl mx-auto px-4 sm:px-6 print:hidden" dir={isRTL ? "rtl" : "ltr"}>
+    <footer className="border-t border-border dark:border-[hsl(263_80%_68%/0.1)] py-10 max-w-5xl mx-auto px-4 sm:px-6 print:hidden" dir={isRTL ? "rtl" : "ltr"}>
+      {/* Top glow line in dark mode */}
+      <div className="glow-divider mb-8 hidden dark:block" />
+
       <div className={`flex flex-col sm:flex-row items-center justify-between gap-6 ${isRTL ? "sm:flex-row-reverse" : ""}`}>
-        <div className={`flex items-center gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div className="w-7 h-7 rounded-full overflow-hidden border border-border flex-shrink-0">
+        <div className={`flex items-center gap-3 group ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div className="w-7 h-7 rounded-full overflow-hidden border border-border dark:border-[hsl(263_80%_68%/0.25)] flex-shrink-0 transition-all group-hover:ring-2 group-hover:ring-[hsl(263_80%_68%/0.3)]">
             <img src="/Fares.jpg" alt={personal.name} className="w-full h-full object-cover object-top" />
           </div>
           <div>
@@ -28,15 +31,15 @@ export default function Footer() {
 
           <span className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
             <span>{t.footer.builtWith}</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-foreground/50">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-foreground/40 dark:text-[hsl(263_80%_68%/0.7)]">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
-            <span className="font-mono">React + TS</span>
+            <span className="font-mono dark:text-[hsl(263_80%_75%/0.8)]">React + TS</span>
           </span>
 
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="hover:text-foreground transition-colors flex items-center gap-1"
+            className="hover:text-foreground dark:hover:text-[hsl(263_80%_75%)] transition-colors flex items-center gap-1"
           >
             {t.footer.backToTop}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,7 +54,7 @@ export default function Footer() {
               window.history.pushState({}, "", "/admin");
               window.dispatchEvent(new PopStateEvent("popstate"));
             }}
-            className="hover:text-foreground transition-colors opacity-30 hover:opacity-80"
+            className="hover:text-foreground transition-colors opacity-25 hover:opacity-70"
             title="Admin"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

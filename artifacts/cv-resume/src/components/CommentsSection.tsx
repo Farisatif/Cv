@@ -20,11 +20,7 @@ function timeAgo(dateStr: string, lang: "en" | "ar") {
 }
 
 function CommentCard({
-  comment,
-  index,
-  onLike,
-  liked,
-  lang,
+  comment, index, onLike, liked, lang,
 }: {
   comment: { id: number; name: string; message: string; likes: number; createdAt: string };
   index: number;
@@ -50,13 +46,13 @@ function CommentCard({
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
-        transition: "opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+        transition: "opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1)",
       }}
-      className="group border border-border rounded-2xl bg-card p-5 hover:border-foreground/15 hover:shadow-sm transition-all"
+      className="cosmic-card rounded-2xl p-5 group"
     >
       <div className={`flex items-start gap-3.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <div className="w-9 h-9 rounded-full bg-foreground/8 border border-border flex items-center justify-center overflow-hidden flex-shrink-0 mt-0.5">
-          <span className={`font-bold leading-none select-none text-foreground/70 ${isArabicChar(initials[0] ?? "") ? "text-sm" : "text-xs font-mono"}`}>
+        <div className="w-9 h-9 rounded-full border border-border dark:border-[hsl(263_80%_68%/0.2)] dark:bg-[hsl(263_80%_68%/0.08)] bg-foreground/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span className={`font-bold leading-none select-none text-foreground/70 dark:text-[hsl(263_80%_78%)] ${isArabicChar(initials[0] ?? "") ? "text-sm" : "text-xs font-mono"}`}>
             {initials}
           </span>
         </div>
@@ -76,20 +72,13 @@ function CommentCard({
               disabled={liked}
               className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg transition-all duration-200 ${isRTL ? "flex-row-reverse" : ""} ${
                 liked
-                  ? "text-foreground bg-foreground/10 border border-foreground/15"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border"
+                  ? "text-foreground bg-foreground/10 border border-foreground/15 dark:text-[hsl(263_80%_75%)] dark:bg-[hsl(263_80%_68%/0.12)] dark:border-[hsl(263_80%_68%/0.2)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border dark:hover:border-[hsl(263_80%_68%/0.2)]"
               }`}
             >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill={liked ? "currentColor" : "none"}
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="12" height="12" viewBox="0 0 24 24"
+                fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
               <span className={`tabular-nums ${liked ? "font-semibold" : ""}`}>{comment.likes}</span>
@@ -125,8 +114,7 @@ export default function CommentsSection() {
     try {
       await createComment.mutateAsync({ data: { name: name.trim(), message: message.trim() } });
       queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey() });
-      setName("");
-      setMessage("");
+      setName(""); setMessage("");
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 6000);
     } catch {
@@ -164,9 +152,10 @@ export default function CommentsSection() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         <div className="lg:col-span-2" style={{ order: isRTL ? 2 : 1 }}>
-          <div className="border border-border rounded-2xl bg-card p-6 sticky top-20">
+          <div className="cosmic-card glow-border rounded-2xl p-6 sticky top-20">
             <h3 className={`text-sm font-semibold mb-5 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round" className="dark:text-[hsl(263_80%_70%)]">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
@@ -184,7 +173,7 @@ export default function CommentsSection() {
                   placeholder={t.guestbook.namePlaceholder}
                   maxLength={50}
                   dir="auto"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all"
+                  className="cosmic-input"
                 />
               </div>
               <div>
@@ -198,7 +187,7 @@ export default function CommentsSection() {
                   maxLength={300}
                   rows={4}
                   dir="auto"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 transition-all resize-none"
+                  className="cosmic-input resize-none"
                 />
                 <div className={`text-[10px] text-muted-foreground mt-1 font-mono ${isRTL ? "text-left" : "text-right"}`}>
                   {message.length}/300
@@ -217,8 +206,8 @@ export default function CommentsSection() {
                 disabled={submitting}
                 className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   submitted
-                    ? "bg-foreground/8 text-foreground border border-foreground/15"
-                    : "bg-foreground text-background hover:opacity-90 active:scale-[0.98]"
+                    ? "bg-foreground/8 text-foreground border border-foreground/15 dark:bg-[hsl(263_80%_68%/0.1)] dark:border-[hsl(263_80%_68%/0.25)] dark:text-[hsl(263_80%_80%)]"
+                    : "btn-primary"
                 } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {submitting ? (
@@ -247,22 +236,23 @@ export default function CommentsSection() {
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="border border-border rounded-2xl bg-card p-5 animate-pulse">
+                <div key={i} className="cosmic-card rounded-2xl p-5">
                   <div className="flex gap-3.5">
-                    <div className="w-9 h-9 rounded-full bg-muted flex-shrink-0" />
+                    <div className="w-9 h-9 rounded-full bg-muted dark:bg-[hsl(263_80%_68%/0.08)] flex-shrink-0 shimmer" />
                     <div className="flex-1 space-y-2.5 pt-1">
-                      <div className="h-3 bg-muted rounded-full w-1/3" />
-                      <div className="h-3 bg-muted rounded-full w-full" />
-                      <div className="h-3 bg-muted rounded-full w-2/3" />
+                      <div className="h-3 bg-muted rounded-full w-1/3 shimmer" />
+                      <div className="h-3 bg-muted rounded-full w-full shimmer" />
+                      <div className="h-3 bg-muted rounded-full w-2/3 shimmer" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : !comments || comments.length === 0 ? (
-            <div className="border border-border rounded-2xl bg-card p-12 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+            <div className="cosmic-card rounded-2xl p-12 text-center glow-border">
+              <div className="w-14 h-14 rounded-2xl dark:bg-[hsl(263_80%_68%/0.08)] bg-muted flex items-center justify-center mx-auto mb-4 border border-border dark:border-[hsl(263_80%_68%/0.2)]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(263_80%_70%)]">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>

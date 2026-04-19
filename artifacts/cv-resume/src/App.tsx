@@ -17,23 +17,39 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 1, staleTime: 30_000 },
-  },
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
+
+// ─── SECTION VISIBILITY ────────────────────────────────────────────────────
+// To remove a section cleanly, set its value to false.
+// The layout adapts automatically — no broken spacing or gaps.
+const SECTIONS = {
+  skills:        true,
+  languages:     true,
+  contributions: true,
+  experience:    true,
+  projects:      true,
+  education:     true,
+  contact:       true,
+  guestbook:     true,
+} as const;
+// ──────────────────────────────────────────────────────────────────────────
 
 function CVApp() {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("cv-dark");
       if (stored !== null) return stored === "true";
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+      // default: dark (cosmic atmosphere)
+      return true;
     }
     return true;
   });
+
   const [manualOverride, setManualOverride] = useState(
     () => localStorage.getItem("cv-dark") !== null
   );
+
   const [adminView, setAdminView] = useState<"cv" | "login" | "panel">(() => {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
@@ -48,9 +64,7 @@ function CVApp() {
     const handleNav = () => {
       const path = window.location.pathname;
       if (path.includes("admin")) {
-        setAdminView(
-          sessionStorage.getItem("cv-admin") === "1" ? "panel" : "login"
-        );
+        setAdminView(sessionStorage.getItem("cv-admin") === "1" ? "panel" : "login");
       } else {
         setAdminView("cv");
       }
@@ -84,13 +98,7 @@ function CVApp() {
   };
 
   if (adminView === "login") {
-    return (
-      <AdminLogin
-        onLogin={() => {
-          setAdminView("panel");
-        }}
-      />
-    );
+    return <AdminLogin onLogin={() => setAdminView("panel")} />;
   }
 
   if (adminView === "panel") {
@@ -105,21 +113,31 @@ function CVApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-400">
       <Navbar darkMode={darkMode} onToggleDark={handleToggleDark} />
+
       <main id="cv-main">
         <HeroSection />
-        <div className="border-t border-border/50" />
-        <SkillsSection />
-        <LanguagesSection />
-        <ContributionGraph />
-        <div className="border-t border-border/50" />
-        <ExperienceSection />
-        <ProjectsSection />
-        <EducationSection />
-        <ContactSection />
-        <CommentsSection />
+
+        {(SECTIONS.skills || SECTIONS.languages || SECTIONS.contributions) && (
+          <div className="glow-divider" />
+        )}
+
+        {SECTIONS.skills        && <SkillsSection />}
+        {SECTIONS.languages     && <LanguagesSection />}
+        {SECTIONS.contributions && <ContributionGraph />}
+
+        {(SECTIONS.experience || SECTIONS.projects || SECTIONS.education) && (
+          <div className="glow-divider" />
+        )}
+
+        {SECTIONS.experience && <ExperienceSection />}
+        {SECTIONS.projects   && <ProjectsSection />}
+        {SECTIONS.education  && <EducationSection />}
+        {SECTIONS.contact    && <ContactSection />}
+        {SECTIONS.guestbook  && <CommentsSection />}
       </main>
+
       <Footer />
     </div>
   );

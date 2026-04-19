@@ -36,12 +36,9 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
       const sections = NAV_ITEMS.map((item) => item.href.slice(1));
       for (const section of [...sections].reverse()) {
         const el = document.getElementById(section);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 130) {
-            setActiveSection(section);
-            break;
-          }
+        if (el && el.getBoundingClientRect().top <= 130) {
+          setActiveSection(section);
+          break;
         }
       }
     };
@@ -50,48 +47,38 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
   }, [lang]);
 
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
   const handleDownloadPDF = async () => {
     setPdfLoading(true);
-    try {
-      await downloadPDF(lang);
-    } finally {
-      setPdfLoading(false);
-    }
+    try { await downloadPDF(lang); }
+    finally { setPdfLoading(false); }
   };
 
   const scrollTo = (href: string) => {
-    const id = href.slice(1);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 nav-blur print:hidden ${
+        className={`fixed top-0 left-0 right-0 z-50 print:hidden nav-blur transition-all duration-300 ${
           scrolled
-            ? "border-b border-border bg-background/90 shadow-sm"
+            ? "border-b border-border dark:border-border bg-background/90 dark:bg-background/80 shadow-sm dark:shadow-[0_1px_0_hsl(263_80%_68%/0.1)]"
             : "bg-transparent"
         }`}
         dir={isRTL ? "rtl" : "ltr"}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
+          {/* Logo */}
           <a
             href="#about"
             className={`flex items-center gap-2.5 group flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
+            onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           >
-            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 transition-all flex-shrink-0">
+            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 dark:group-hover:ring-[hsl(263_80%_68%/0.4)] transition-all flex-shrink-0">
               <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
             </div>
             <span className="text-sm font-semibold hidden sm:block tracking-tight">
@@ -99,6 +86,7 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
             </span>
           </a>
 
+          {/* Desktop Nav */}
           <ul className={`hidden xl:flex items-center gap-0.5 flex-1 justify-center ${isRTL ? "flex-row-reverse" : ""}`}>
             {NAV_ITEMS.map((item) => {
               const sectionId = item.href.slice(1);
@@ -107,13 +95,10 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollTo(item.href);
-                    }}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                    onClick={(e) => { e.preventDefault(); scrollTo(item.href); }}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap relative ${
                       isActive
-                        ? "bg-foreground text-background"
+                        ? "bg-foreground text-background dark:bg-[hsl(263_80%_68%)] dark:text-[hsl(240_25%_3.5%)] dark:shadow-[0_0_16px_hsl(263_80%_68%/0.4)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
@@ -124,10 +109,11 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
             })}
           </ul>
 
+          {/* Right actions */}
           <div className={`flex items-center gap-1 flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
             <button
               onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="flex h-8 px-2.5 rounded-lg items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 font-mono border border-border/60"
+              className="flex h-8 px-2.5 rounded-lg items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 font-mono border border-border/60 dark:border-border dark:hover:border-[hsl(263_80%_68%/0.3)] dark:hover:shadow-[0_0_10px_hsl(263_80%_68%/0.15)]"
               aria-label="Toggle language"
             >
               {lang === "en" ? "عربي" : "EN"}
@@ -176,30 +162,22 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
               aria-label="Toggle menu"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                {menuOpen ? (
-                  <path d="M18 6 6 18M6 6l12 12"/>
-                ) : (
-                  <>
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
-                  </>
-                )}
+                {menuOpen
+                  ? <path d="M18 6 6 18M6 6l12 12"/>
+                  : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>
+                }
               </svg>
             </button>
           </div>
         </div>
       </nav>
 
+      {/* Mobile menu */}
       {menuOpen && (
-        <div
-          className="fixed inset-0 z-40 xl:hidden print:hidden"
-          dir={isRTL ? "rtl" : "ltr"}
-          onClick={() => setMenuOpen(false)}
-        >
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 z-40 xl:hidden print:hidden" dir={isRTL ? "rtl" : "ltr"} onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-background/70 dark:bg-background/80 backdrop-blur-md" />
           <div
-            className={`absolute top-14 ${isRTL ? "left-0 right-0" : "left-0 right-0"} bottom-0 bg-background border-t border-border`}
+            className="absolute top-14 left-0 right-0 bottom-0 bg-background dark:bg-[hsl(240_28%_4%)] border-t border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="max-w-5xl mx-auto px-4 pt-4 pb-8">
@@ -218,7 +196,7 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
                         }}
                         className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all ${isRTL ? "flex-row-reverse text-right" : ""} ${
                           isActive
-                            ? "bg-foreground text-background font-semibold"
+                            ? "bg-foreground text-background dark:bg-[hsl(263_80%_68%)] dark:text-[hsl(240_25%_3.5%)] font-semibold dark:shadow-[0_0_20px_hsl(263_80%_68%/0.3)]"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         }`}
                       >
@@ -228,7 +206,7 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
                   );
                 })}
               </ul>
-              <div className="border-t border-border mt-4 pt-4 space-y-1">
+              <div className="border-t border-border mt-4 pt-4">
                 <button
                   onClick={() => { setMenuOpen(false); handleDownloadPDF(); }}
                   className={`w-full flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all ${isRTL ? "flex-row-reverse text-right" : ""}`}

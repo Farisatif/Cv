@@ -28,24 +28,26 @@ export default function ExperienceSection() {
       </div>
 
       <div className="relative">
+        {/* Timeline line */}
         <div
-          className={`absolute top-0 bottom-0 w-px bg-gradient-to-b from-foreground/30 via-border to-transparent hidden sm:block ${
+          className={`absolute top-0 bottom-0 w-px hidden sm:block ${
             isRTL ? "right-[19px]" : "left-[19px]"
           }`}
+          style={{
+            background: "linear-gradient(to bottom, hsl(var(--foreground)/0.3), hsl(var(--border)), transparent)"
+          }}
         />
 
         <div className="space-y-3">
           {experience.map((exp, i) => {
             const isOpen = expanded === i;
             return (
-              <div
-                key={i}
-                className={`relative ${isRTL ? "sm:pr-12" : "sm:pl-12"}`}
-              >
+              <div key={i} className={`relative ${isRTL ? "sm:pr-12" : "sm:pl-12"}`}>
+                {/* Timeline dot */}
                 <div
-                  className={`absolute hidden sm:flex items-center justify-center top-5 w-[10px] h-[10px] rounded-full border-2 transition-all duration-300 ${
+                  className={`absolute hidden sm:block top-5 w-[10px] h-[10px] rounded-full border-2 transition-all duration-300 ${
                     isOpen
-                      ? "border-foreground bg-foreground scale-125"
+                      ? "border-foreground bg-foreground scale-125 timeline-dot-active"
                       : "border-border bg-background"
                   } ${isRTL ? "right-[15px]" : "left-[15px]"}`}
                   style={{ transform: `translateY(-50%) ${isOpen ? "scale(1.3)" : "scale(1)"}` }}
@@ -56,13 +58,7 @@ export default function ExperienceSection() {
                   className="w-full text-left group"
                   aria-expanded={isOpen}
                 >
-                  <div
-                    className={`border rounded-2xl bg-card overflow-hidden transition-all duration-300 ${
-                      isOpen
-                        ? "border-foreground/20 shadow-sm"
-                        : "border-border hover:border-foreground/15"
-                    }`}
-                  >
+                  <div className={`cosmic-card rounded-2xl overflow-hidden ${isOpen ? "glow-border" : ""}`}>
                     <div className={`px-6 py-5 flex items-start gap-4 ${isRTL ? "flex-row-reverse" : ""}`}>
                       <div className="flex-1 min-w-0">
                         <div className={`flex items-center gap-2.5 flex-wrap mb-1 ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -83,20 +79,22 @@ export default function ExperienceSection() {
                           </span>
                         </div>
                       </div>
-                      <div
-                        className={`text-muted-foreground transition-all duration-300 flex-shrink-0 mt-0.5 ${
-                          isOpen ? "rotate-90 text-foreground" : "group-hover:text-foreground"
-                        }`}
-                      >
+                      <div className={`text-muted-foreground transition-all duration-300 flex-shrink-0 mt-0.5 ${
+                        isOpen ? "rotate-90 text-foreground dark:text-[hsl(263_80%_68%)]" : "group-hover:text-foreground"
+                      }`}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6" />
+                          <polyline points="9 18 15 12 9 6"/>
                         </svg>
                       </div>
                     </div>
 
                     <div
-                      className="overflow-hidden transition-all duration-400"
-                      style={{ maxHeight: isOpen ? "700px" : "0px", opacity: isOpen ? 1 : 0, transition: "max-height 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease" }}
+                      className="overflow-hidden"
+                      style={{
+                        maxHeight: isOpen ? "700px" : "0px",
+                        opacity: isOpen ? 1 : 0,
+                        transition: "max-height 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease"
+                      }}
                     >
                       <div className={`px-6 pb-6 border-t border-border pt-5 ${isRTL ? "text-right" : ""}`}>
                         <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
@@ -104,13 +102,11 @@ export default function ExperienceSection() {
                         </p>
                         <ul className="space-y-2.5">
                           {exp.highlights.map((h, hi) => (
-                            <li
-                              key={hi}
-                              className={`flex items-start gap-3 text-sm ${isRTL ? "flex-row-reverse" : ""}`}
-                            >
-                              <span className="mt-1.5 w-4 h-4 rounded flex items-center justify-center bg-foreground/8 flex-shrink-0">
-                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
+                            <li key={hi} className={`flex items-start gap-3 text-sm ${isRTL ? "flex-row-reverse" : ""}`}>
+                              <span className="mt-1.5 w-4 h-4 rounded flex items-center justify-center bg-foreground/8 dark:bg-[hsl(263_80%_68%/0.1)] flex-shrink-0">
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                                  className="dark:text-[hsl(263_80%_75%)]">
+                                  <polyline points="20 6 9 17 4 12"/>
                                 </svg>
                               </span>
                               <span className="text-foreground/75 leading-relaxed">{h}</span>
