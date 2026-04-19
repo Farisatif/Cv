@@ -7,25 +7,26 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 // ── Color palette ─────────────────────────────────────────────────────────
 const PALETTE = [
-  { h: 263, s: 78, l: 65 }, // violet
-  { h: 217, s: 90, l: 63 }, // blue
-  { h: 188, s: 88, l: 55 }, // cyan
-  { h: 43,  s: 95, l: 58 }, // amber
-  { h: 155, s: 80, l: 48 }, // emerald
-  { h: 22,  s: 90, l: 60 }, // orange
-  { h: 340, s: 80, l: 65 }, // rose
+  { h: 263, s: 78, l: 65 },
+  { h: 217, s: 90, l: 63 },
+  { h: 188, s: 88, l: 55 },
+  { h: 43,  s: 95, l: 58 },
+  { h: 155, s: 80, l: 48 },
+  { h: 22,  s: 90, l: 60 },
+  { h: 340, s: 80, l: 65 },
 ] as const;
 
-// ── Level labels ──────────────────────────────────────────────────────────
 const LEVEL_LABELS = [
   { min: 0,  max: 39,  en: "Learning",     ar: "متعلم",  hsl: "220 15% 55%" },
   { min: 40, max: 64,  en: "Intermediate", ar: "متوسط",  hsl: "220 90% 60%" },
   { min: 65, max: 84,  en: "Advanced",     ar: "متقدم",  hsl: "263 80% 65%" },
   { min: 85, max: 100, en: "Expert",       ar: "خبير",   hsl: "160 80% 45%" },
 ];
-function getLabel(n: number) { return LEVEL_LABELS.find(l => n >= l.min && n <= l.max) ?? LEVEL_LABELS[0]; }
+function getLabel(n: number) {
+  return LEVEL_LABELS.find(l => n >= l.min && n <= l.max) ?? LEVEL_LABELS[0];
+}
 
-// ── Deterministic seeded PRNG ─────────────────────────────────────────────
+// ── PRNG ─────────────────────────────────────────────────────────────────
 function strHash(s: string): number {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
@@ -36,121 +37,169 @@ function seededRng(seed: number) {
   return (): number => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
 }
 
+// ── Star field (built once, animated per frame) ───────────────────────────
+interface StarData {
+  x0: number; y0: number;   // base normalized position [0,1]
+  r:  number;               // radius px
+  a:  number;               // base alpha
+  vx: number; vy: number;   // drift velocity (normalized per ms)
+  twinkleSpeed: number;
+  phase: number;
+  bright: boolean;
+}
+
+function buildStarField(count: number): StarData[] {
+  const rng = seededRng(42);
+  return Array.from({ length: count }, () => ({
+    x0:          rng(),
+    y0:          rng(),
+    r:           0.28 + rng() * 1.65,
+    a:           0.04 + rng() * 0.30,
+    vx:          (rng() - 0.5) * 0.000022,   // very slow, anywhere on screen
+    vy:          (rng() - 0.5) * 0.000017,
+    twinkleSpeed: 0.0007 + rng() * 0.0018,
+    phase:        rng() * Math.PI * 2,
+    bright:       rng() > 0.93,
+  }));
+}
+
+const STAR_FIELD = buildStarField(160);
+
+// ── Skill data types ──────────────────────────────────────────────────────
 interface Skill { id: string; name: string; level: number; category: string }
 
 interface GNode extends Skill {
-  bx: number; by: number;        // base position [0–1]
-  depth: number;                  // 0=far/slow … 1=near/fast
-  phase: number; speed: number;   // orbital drift
+  bx: number; by: number;
+  depth: number;
+  phase: number; speed: number;
   color: typeof PALETTE[number];
   catIdx: number;
-  orbPx: number;                  // orb diameter in px
+  orbPx: number;
 }
 
-// ── Build galaxy nodes ────────────────────────────────────────────────────
 function buildNodes(skills: Skill[], cats: string[]): GNode[] {
   const numCats = Math.max(1, cats.length);
   return skills.map(sk => {
     const catIdx = Math.max(0, cats.indexOf(sk.category));
     const rng    = seededRng(strHash(sk.id));
     const [r1, r2, r3, r4, r5] = [rng(), rng(), rng(), rng(), rng()];
-
-    // Arrange clusters on an ellipse
     const angle = (catIdx / numCats) * Math.PI * 2 - Math.PI * 0.55;
     const cx = 0.50 + 0.38 * Math.cos(angle);
     const cy = 0.50 + 0.30 * Math.sin(angle);
     const sc = 0.20;
-    const bx = Math.max(0.06, Math.min(0.92, cx + (r1 - 0.5) * sc * 2.2));
-    const by = Math.max(0.08, Math.min(0.89, cy + (r2 - 0.5) * sc * 1.9));
-
-    // Orb size by skill level
-    const orbPx = sk.level >= 80 ? 14 : sk.level >= 60 ? 11 : sk.level >= 40 ? 9 : 7;
-
     return {
       ...sk,
-      bx, by,
-      depth: 0.10 + r3 * 0.80,
-      phase: r4 * Math.PI * 2,
-      speed: 0.00022 + r5 * 0.00032,
-      color: PALETTE[catIdx % PALETTE.length],
-      catIdx, orbPx,
+      bx:     Math.max(0.06, Math.min(0.92, cx + (r1 - 0.5) * sc * 2.2)),
+      by:     Math.max(0.08, Math.min(0.89, cy + (r2 - 0.5) * sc * 1.9)),
+      depth:  0.10 + r3 * 0.80,
+      phase:  r4 * Math.PI * 2,
+      speed:  0.00022 + r5 * 0.00032,
+      color:  PALETTE[catIdx % PALETTE.length],
+      catIdx,
+      orbPx:  sk.level >= 80 ? 14 : sk.level >= 60 ? 11 : sk.level >= 40 ? 9 : 7,
     };
   });
 }
 
-// ── Canvas nebula background ──────────────────────────────────────────────
-function drawBg(
-  ctx: CanvasRenderingContext2D,
-  nodes: GNode[],
-  w: number, h: number,
-  isDark: boolean,
-  scrollVel: number,
+// ── Nebula category centroid clusters ─────────────────────────────────────
+function getCatCentroids(nodes: GNode[]) {
+  const map = new Map<number, GNode[]>();
+  nodes.forEach(n => {
+    if (!map.has(n.catIdx)) map.set(n.catIdx, []);
+    map.get(n.catIdx)!.push(n);
+  });
+  return map;
+}
+
+// ── Canvas draw — called every animation frame ─────────────────────────────
+function drawFrame(
+  ctx:      CanvasRenderingContext2D,
+  nodes:    GNode[],
+  w:        number,
+  h:        number,
+  isDark:   boolean,
+  ts:       number,   // timestamp ms
+  scrollVel: number,  // px/frame
 ) {
   ctx.clearRect(0, 0, w, h);
 
-  const byCat = new Map<number, GNode[]>();
-  nodes.forEach(n => {
-    if (!byCat.has(n.catIdx)) byCat.set(n.catIdx, []);
-    byCat.get(n.catIdx)!.push(n);
-  });
+  const byCat = getCatCentroids(nodes);
 
   if (isDark) {
-    // Large, vivid nebula clouds per category
+    // Slowly breathing nebula clouds
+    const breathe = 0.028 * Math.sin(ts * 0.00032);   // ±2.8% opacity pulse
     byCat.forEach((catNodes, catIdx) => {
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       const cx  = catNodes.reduce((a, n) => a + n.bx, 0) / catNodes.length * w;
       const cy  = catNodes.reduce((a, n) => a + n.by, 0) / catNodes.length * h;
-      const rad = 140 + catNodes.length * 22;
-
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-      g.addColorStop(0,    `hsla(${ch},${s}%,${l}%,0.22)`);
-      g.addColorStop(0.45, `hsla(${ch},${s}%,${l}%,0.09)`);
+      const rad = 145 + catNodes.length * 24 + Math.sin(ts * 0.00028 + catIdx) * 18;
+      const a0  = Math.max(0, 0.20 + breathe);
+      const a1  = Math.max(0, 0.08 + breathe * 0.5);
+      const g   = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+      g.addColorStop(0,    `hsla(${ch},${s}%,${l}%,${a0})`);
+      g.addColorStop(0.48, `hsla(${ch},${s}%,${l}%,${a1})`);
       g.addColorStop(1,    `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
     });
 
-    // Deep central cosmic glow
-    const center = ctx.createRadialGradient(w*0.5, h*0.46, 0, w*0.5, h*0.46, Math.min(w,h)*0.65);
-    center.addColorStop(0,    "rgba(100,60,255,0.08)");
-    center.addColorStop(0.45, "rgba(50,30,180,0.04)");
-    center.addColorStop(1,    "rgba(0,0,0,0)");
-    ctx.fillStyle = center;
+    // Deep central glow — slow rotation
+    const gx = w * (0.5 + 0.04 * Math.cos(ts * 0.00018));
+    const gy = h * (0.46 + 0.03 * Math.sin(ts * 0.00022));
+    const gc = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.min(w, h) * 0.66);
+    gc.addColorStop(0,    "rgba(100,58,255,0.07)");
+    gc.addColorStop(0.45, "rgba(48,28,180,0.035)");
+    gc.addColorStop(1,    "rgba(0,0,0,0)");
+    ctx.fillStyle = gc;
     ctx.fillRect(0, 0, w, h);
 
-    // Star field with light-speed streak effect on fast scroll
-    const rng   = seededRng(42);
-    const speed = Math.abs(scrollVel);
-    const stretch = Math.min(speed * 0.8, 18); // max 18px streaks
+    // Animated star field — stars drift and wrap across entire screen
+    const velAbs = Math.abs(scrollVel);
+    const streak = Math.min(velAbs * 0.55, 14); // light-speed trails on fast scroll
 
-    for (let i = 0; i < 150; i++) {
-      const sx = rng() * w;
-      const sy = rng() * h;
-      const sr = 0.28 + rng() * 1.6;
-      const sa = 0.04 + rng() * 0.30;
-      const bright = rng() > 0.93; // occasional bright star
+    STAR_FIELD.forEach(star => {
+      // Wrap position so stars move across the full canvas
+      const nx = ((star.x0 + ts * star.vx) % 1 + 1) % 1;
+      const ny = ((star.y0 + ts * star.vy) % 1 + 1) % 1;
+      const sx = nx * w;
+      const sy = ny * h;
+
+      // Twinkle: smooth sinusoidal brightness
+      const twinkle = 0.65 + 0.35 * Math.sin(ts * star.twinkleSpeed + star.phase);
+      const alpha   = star.a * twinkle;
+      const radius  = star.r * (star.bright ? 1.8 : 1);
 
       ctx.beginPath();
-      if (stretch > 1.5) {
-        ctx.ellipse(sx, sy, sr, sr + stretch * (0.5 + rng() * 0.5), Math.PI / 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(210,220,255,${sa * 0.55})`;
+      if (streak > 1.2) {
+        // Elongate stars in scroll direction — cinematic light-speed effect
+        ctx.ellipse(sx, sy, radius, radius + streak * (0.4 + twinkle * 0.4), Math.PI / 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(205,215,255,${alpha * 0.5})`;
       } else {
-        ctx.arc(sx, sy, bright ? sr * 2.2 : sr, 0, Math.PI * 2);
-        ctx.fillStyle = bright
-          ? `rgba(255,255,255,${sa * 1.4})`
-          : `rgba(195,205,255,${sa})`;
+        ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = star.bright
+          ? `rgba(255,252,240,${alpha})`
+          : `rgba(195,205,255,${alpha})`;
       }
       ctx.fill();
-    }
 
-    // Faint constellation lines within categories
+      // Bright stars get a soft halo
+      if (star.bright && streak < 2) {
+        const halo = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius * 5);
+        halo.addColorStop(0, `rgba(220,230,255,${alpha * 0.12})`);
+        halo.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = halo;
+        ctx.fillRect(sx - radius * 5, sy - radius * 5, radius * 10, radius * 10);
+      }
+    });
+
+    // Constellation lines within categories
     byCat.forEach((catNodes, catIdx) => {
       if (catNodes.length < 2) return;
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.10)`;
+      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.09)`;
       ctx.lineWidth   = 0.55;
-      ctx.setLineDash([2, 16]);
+      ctx.setLineDash([2, 18]);
       for (let i = 0; i < catNodes.length - 1; i++) {
         ctx.beginPath();
         ctx.moveTo(catNodes[i].bx * w, catNodes[i].by * h);
@@ -161,33 +210,39 @@ function drawBg(
     });
 
   } else {
-    // Light mode: delicate warm haze only
-    const rng = seededRng(99);
-    for (let i = 0; i < 60; i++) {
+    // Light mode: warm drifting particles
+    STAR_FIELD.slice(0, 60).forEach(star => {
+      const nx = ((star.x0 + ts * star.vx) % 1 + 1) % 1;
+      const ny = ((star.y0 + ts * star.vy) % 1 + 1) % 1;
+      const tw = 0.6 + 0.4 * Math.sin(ts * star.twinkleSpeed + star.phase);
       ctx.beginPath();
-      ctx.arc(rng() * w, rng() * h, 0.5 + rng() * 1.3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(70,50,200,${0.02 + rng() * 0.04})`;
+      ctx.arc(nx * w, ny * h, star.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(70,50,200,${(0.022 + star.a * 0.04) * tw})`;
       ctx.fill();
-    }
+    });
+
+    // Soft nebula halos
+    const breathe = 0.02 * Math.sin(ts * 0.00030);
     byCat.forEach((catNodes, catIdx) => {
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       const cx  = catNodes.reduce((a, n) => a + n.bx, 0) / catNodes.length * w;
       const cy  = catNodes.reduce((a, n) => a + n.by, 0) / catNodes.length * h;
       const rad = 100 + catNodes.length * 18;
       const g   = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-      g.addColorStop(0, `hsla(${ch},${s}%,${l}%,0.07)`);
+      g.addColorStop(0, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.06 + breathe)})`);
       g.addColorStop(1, `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
     });
+
     // Light mode constellation lines
     byCat.forEach((catNodes, catIdx) => {
       if (catNodes.length < 2) return;
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.12)`;
+      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.11)`;
       ctx.lineWidth   = 0.55;
-      ctx.setLineDash([2, 16]);
+      ctx.setLineDash([2, 18]);
       for (let i = 0; i < catNodes.length - 1; i++) {
         ctx.beginPath();
         ctx.moveTo(catNodes[i].bx * w, catNodes[i].by * h);
@@ -207,20 +262,30 @@ interface GalaxyProps {
   lang: "en" | "ar";
 }
 
+// Spring state for physically accurate, critically-damped scroll
+interface Spring {
+  pos: number;
+  vel: number;
+}
+
 function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
+  const dprRef       = useRef(1);
   const nodeEls      = useRef<Map<string, HTMLDivElement>>(new Map());
-  const scrollYRef   = useRef(0);
-  const prevScrollY  = useRef(0);
-  const scrollVelRef = useRef(0);
-  const smoothSY     = useRef(0);
-  const sectionMidY  = useRef(0);
-  const animId       = useRef(0);
-  const bgDirtyRef   = useRef(true);
-  const hoveredRef   = useRef<string | null>(null);
-  const isDarkRef    = useRef(true);
-  const mouseRef     = useRef({ x: 0.5, y: 0.5 });
+
+  // Scroll spring — second order dynamics for physically correct smoothing
+  const scrollTarget  = useRef(0);
+  const spring        = useRef<Spring>({ pos: 0, vel: 0 });
+  const sectionMidY   = useRef(0);
+  const prevScrollY   = useRef(0);
+  const scrollVelRef  = useRef(0);
+
+  const animId        = useRef(0);
+  const lastTsRef     = useRef(0);
+  const hoveredRef    = useRef<string | null>(null);
+  const isDarkRef     = useRef(true);
+  const mouseRef      = useRef({ x: 0.5, y: 0.5 });
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [cw, setCw]               = useState(800);
@@ -229,7 +294,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
   const orderedCats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
   const nodes       = useMemo(() => buildNodes(skills, orderedCats), [skills, orderedCats]);
 
-  // Resize observer
+  // ── Resize ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -237,39 +302,33 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
       const w = e[0].contentRect.width;
       const h = Math.min(620, Math.max(440, w * 0.62));
       setCw(w); setCh(h);
-      bgDirtyRef.current = true;
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Redraw canvas helper
-  const redrawBg = useCallback(() => {
+  // ── Canvas setup (resize only) ───────────────────────────────────────────
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width  = cw * dpr;
-    canvas.height = ch * dpr;
-    ctx.scale(dpr, dpr);
-    isDarkRef.current = document.documentElement.classList.contains("dark");
-    drawBg(ctx, nodes, cw, ch, isDarkRef.current, scrollVelRef.current);
-  }, [nodes, cw, ch]);
+    dprRef.current = dpr;
+    canvas.width  = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    const ctx = canvas.getContext("2d");
+    if (ctx) ctx.scale(dpr, dpr);
+  }, [cw, ch]);
 
-  useEffect(() => { redrawBg(); }, [redrawBg]);
-
-  // Dark-mode change
+  // ── Scroll + mouse listeners ─────────────────────────────────────────────
   useEffect(() => {
-    const obs = new MutationObserver(() => { bgDirtyRef.current = true; });
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => obs.disconnect();
-  }, []);
-
-  // Scroll + mouse listeners
-  useEffect(() => {
-    const onScroll = () => { scrollYRef.current = window.scrollY; };
-    const onMouse  = (e: MouseEvent) => {
+    const onScroll = () => {
+      const rawVel = window.scrollY - prevScrollY.current;
+      // Exponential moving average for scroll velocity
+      scrollVelRef.current = scrollVelRef.current * 0.75 + rawVel * 0.25;
+      prevScrollY.current  = window.scrollY;
+      scrollTarget.current = window.scrollY - sectionMidY.current;
+    };
+    const onMouse = (e: MouseEvent) => {
       const el = containerRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -286,7 +345,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
     };
   }, []);
 
-  // Animation loop
+  // ── Main animation loop ───────────────────────────────────────────────────
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -294,51 +353,60 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
     const updateMid = () => {
       const r = container.getBoundingClientRect();
       sectionMidY.current = r.top + window.scrollY + ch * 0.5;
+      // Re-sync scroll target immediately
+      scrollTarget.current = window.scrollY - sectionMidY.current;
     };
     updateMid();
     window.addEventListener("scroll", updateMid, { passive: true });
     window.addEventListener("resize", updateMid, { passive: true });
 
-    // Parallax config: near = 0.30 px/px-scroll, far = 0.035
-    const P_NEAR = 0.30;
-    const P_FAR  = 0.035;
-    const DRIFT  = 18;     // organic float amplitude px
-    const MX_MOUSE = 14;   // max mouse influence px
+    // Spring constants — critically damped (no overshoot)
+    // stiffness=200, damping=2*sqrt(200)≈28.3 → exactly critical
+    const STIFFNESS = 200;
+    const DAMPING   = 28.6;
 
-    let lastTs = 0;
+    // Node motion config
+    const P_NEAR    = 0.30;   // parallax factor for depth=1 (near)
+    const P_FAR     = 0.036;  // parallax factor for depth=0 (far)
+    const DRIFT     = 18;     // px float amplitude
+    const MX_MOUSE  = 14;     // px max mouse influence
 
     const tick = (ts: number) => {
       animId.current = requestAnimationFrame(tick);
-      const dt = ts - lastTs;
-      lastTs = ts;
-      if (dt === 0) return;
 
-      // Velocity
-      const rawVel = scrollYRef.current - prevScrollY.current;
-      scrollVelRef.current += (rawVel - scrollVelRef.current) * 0.18;
-      prevScrollY.current = scrollYRef.current;
+      // Stable dt capped at 50ms (handles tab switching, slow machines)
+      const dt = Math.min((ts - lastTsRef.current) / 1000, 0.050);
+      lastTsRef.current = ts;
+      if (dt <= 0) return;
 
-      // Smooth scroll
-      smoothSY.current += (scrollYRef.current - smoothSY.current) * 0.048;
-      const delta = smoothSY.current - sectionMidY.current;
+      // ── Spring integration — second-order dynamics ─────────────────────
+      const sp = spring.current;
+      const err = scrollTarget.current - sp.pos;
+      const acc = err * STIFFNESS - sp.vel * DAMPING;
+      sp.vel += acc * dt;
+      sp.pos += sp.vel * dt;
 
-      // Redraw bg on dirty or fast scroll
-      if (bgDirtyRef.current || Math.abs(scrollVelRef.current) > 2) {
-        bgDirtyRef.current = false;
-        const canvas = canvasRef.current;
-        const ctx    = canvas?.getContext("2d");
-        if (ctx && canvas) {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) {
-            canvas.width  = cw * dpr;
-            canvas.height = ch * dpr;
-            ctx.scale(dpr, dpr);
-          }
-          isDarkRef.current = document.documentElement.classList.contains("dark");
-          drawBg(ctx, nodes, cw, ch, isDarkRef.current, scrollVelRef.current);
+      // ── Canvas redraw every frame (stars drift independently) ──────────
+      const canvas = canvasRef.current;
+      const ctx    = canvas?.getContext("2d");
+      if (ctx && canvas) {
+        const dpr = dprRef.current;
+        // Only reset scale if canvas was resized
+        const expectedW = Math.round(cw * dpr);
+        const expectedH = Math.round(ch * dpr);
+        if (canvas.width !== expectedW || canvas.height !== expectedH) {
+          canvas.width  = expectedW;
+          canvas.height = expectedH;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
+        isDarkRef.current = document.documentElement.classList.contains("dark");
+        drawFrame(ctx, nodes, cw, ch, isDarkRef.current, ts, scrollVelRef.current);
       }
 
+      // Decay scroll velocity toward zero
+      scrollVelRef.current *= 0.88;
+
+      // ── Skill node positioning ─────────────────────────────────────────
       const mx = mouseRef.current.x - 0.5;
       const my = mouseRef.current.y - 0.5;
 
@@ -346,14 +414,15 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
         const el = nodeEls.current.get(node.id);
         if (!el) return;
 
+        // Organic drift
         const dX = Math.sin(ts * node.speed + node.phase) * DRIFT;
         const dY = Math.cos(ts * node.speed * 0.72 + node.phase + 1.4) * DRIFT * 0.72;
 
-        // Parallax: depth 0=far, 1=near
+        // Parallax from spring position
         const pFactor = P_FAR + node.depth * (P_NEAR - P_FAR);
-        const pY = delta * pFactor;
+        const pY      = sp.pos * pFactor;
 
-        // Mouse parallax (stronger for near objects)
+        // Mouse parallax (deeper = more affected)
         const mxShift = mx * MX_MOUSE * (0.3 + node.depth * 0.7);
         const myShift = my * MX_MOUSE * (0.3 + node.depth * 0.7) * 0.55;
 
@@ -361,6 +430,11 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
           `translate(calc(-50% + ${(dX + mxShift).toFixed(2)}px), calc(-50% + ${(dY + pY + myShift).toFixed(2)}px))`;
       });
     };
+
+    // Sync spring initial pos to current scroll
+    spring.current.pos = window.scrollY - sectionMidY.current;
+    spring.current.vel = 0;
+    scrollTarget.current = spring.current.pos;
 
     animId.current = requestAnimationFrame(tick);
     return () => {
@@ -384,48 +458,48 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
   };
 
   return (
-    // NO card, NO box, NO border — open space
     <div
       ref={containerRef}
       className="relative w-full"
       style={{ height: ch, overflow: "visible" }}
     >
-      {/* Nebula canvas — clipped to bounds, blends into page */}
+      {/* Nebula canvas — clipped, dissolves into page */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-        {/* Atmospheric edge fade — dissolves into the page background */}
+        <canvas
+          ref={canvasRef}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        />
+        {/* Atmospheric edge fade */}
         <div className="absolute inset-0" style={{
           background:
-            "radial-gradient(ellipse 100% 95% at 50% 50%, transparent 38%, hsl(var(--background)/0.55) 68%, hsl(var(--background)/0.88) 86%, hsl(var(--background)) 100%)",
+            "radial-gradient(ellipse 100% 95% at 50% 50%, transparent 36%, hsl(var(--background)/0.52) 66%, hsl(var(--background)/0.86) 84%, hsl(var(--background)) 100%)",
         }} />
       </div>
 
-      {/* Skill orbs — overflow freely into the page atmosphere */}
+      {/* Floating skill orbs */}
       {nodes.map(node => {
-        const hidden   = filter !== allLabel && node.category !== filter;
-        const isHov    = hoveredId === node.id;
+        const hidden = filter !== allLabel && node.category !== filter;
+        const isHov  = hoveredId === node.id;
         const { h, s, l } = node.color;
-        const o  = node.orbPx;
+        const o = node.orbPx;
         const lbl = getLabel(node.level);
-
-        // Orb inner highlight position
-        const hlColor = `hsl(${h},${Math.min(s+10,100)}%,${Math.min(l+22,94)}%)`;
-        const glowInner  = `hsl(${h},${s}%,${l}%)`;
-        const glowOuter  = `hsl(${h},${s}%,${l}%/0.35)`;
-        const glowFarOuter = `hsl(${h},${s}%,${l}%/0.12)`;
+        const hlColor     = `hsl(${h},${Math.min(s+10,100)}%,${Math.min(l+22,94)}%)`;
+        const glowInner   = `hsl(${h},${s}%,${l}%)`;
+        const glowOuter   = `hsl(${h},${s}%,${l}%/0.35)`;
+        const glowFarOut  = `hsl(${h},${s}%,${l}%/0.12)`;
 
         return (
           <div
             key={node.id}
             ref={nodeRef(node.id)}
             style={{
-              position:  "absolute",
-              left:      `${node.bx * 100}%`,
-              top:       `${node.by * 100}%`,
-              willChange: "transform",
-              zIndex:    isHov ? 50 : 4,
-              opacity:   hidden ? 0 : 1,
-              transition: "opacity 0.45s ease",
+              position:    "absolute",
+              left:        `${node.bx * 100}%`,
+              top:         `${node.by * 100}%`,
+              willChange:  "transform",
+              zIndex:      isHov ? 50 : 4,
+              opacity:     hidden ? 0 : 1,
+              transition:  "opacity 0.45s ease",
               pointerEvents: hidden ? "none" : "auto",
             }}
           >
@@ -437,46 +511,43 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
               onTouchStart={e => { e.stopPropagation(); onHover(node.id); }}
               onTouchEnd={() => setTimeout(() => onHover(null), 1800)}
             >
-              {/* ── THE ORB: a sphere of pure light, no rectangle ── */}
+              {/* Glowing orb — sphere of light, no rectangle */}
               <div
                 style={{
                   width:        o,
                   height:       o,
                   borderRadius: "50%",
                   flexShrink:   0,
-                  position:     "relative",
-                  // Radial gradient = 3D sphere illusion
                   background:   `radial-gradient(circle at 33% 33%, ${hlColor} 0%, ${glowInner} 55%, hsl(${h},${s}%,${Math.max(l-14,18)}%) 100%)`,
-                  // Layered box-shadow = soft corona
-                  boxShadow: isHov
-                    ? `0 0 ${o*2}px ${glowInner}, 0 0 ${o*5}px ${glowOuter}, 0 0 ${o*12}px ${glowFarOuter}`
+                  boxShadow:    isHov
+                    ? `0 0 ${o*2}px ${glowInner}, 0 0 ${o*5}px ${glowOuter}, 0 0 ${o*12}px ${glowFarOut}`
                     : `0 0 ${o*1.4}px ${glowInner}, 0 0 ${o*3.5}px ${glowOuter}`,
-                  transition:  "box-shadow 0.35s ease, transform 0.35s ease",
-                  transform:   isHov ? "scale(1.75)" : "scale(1)",
+                  transition:   "box-shadow 0.35s ease, transform 0.35s ease",
+                  transform:    isHov ? "scale(1.75)" : "scale(1)",
                 }}
               />
 
-              {/* ── Floating label: no background, no border, just text in space ── */}
+              {/* Floating text label — no background, pure glow */}
               <span
                 style={{
                   fontSize:      node.level >= 72 ? "12px" : "11px",
                   fontWeight:    node.level >= 65 ? 700 : 600,
                   letterSpacing: "0.01em",
                   whiteSpace:    "nowrap",
-                  color: isHov
-                    ? `hsl(${h},${s}%,${Math.min(l+16, 92)}%)`
+                  color:         isHov
+                    ? `hsl(${h},${s}%,${Math.min(l+16,92)}%)`
                     : "hsl(var(--foreground)/0.82)",
-                  textShadow: isHov
+                  textShadow:    isHov
                     ? `0 0 14px hsl(${h},${s}%,${l}%/0.85), 0 0 28px hsl(${h},${s}%,${l}%/0.40)`
                     : `0 0 8px hsl(${h},${s}%,${l}%/0.35)`,
-                  transition: "color 0.3s ease, text-shadow 0.3s ease",
+                  transition:    "color 0.3s ease, text-shadow 0.3s ease",
                 }}
               >
                 {node.name}
               </span>
             </div>
 
-            {/* ── Hover info panel — ethereal card floating above ── */}
+            {/* Hover panel */}
             {isHov && (
               <div
                 style={{
@@ -495,33 +566,25 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
                   pointerEvents:  "none",
                 }}
               >
-                {/* Category */}
                 <div style={{
                   fontSize: "9px", fontWeight: 700, textTransform: "uppercase",
                   letterSpacing: "0.12em", opacity: 0.5, marginBottom: 7,
                 }}>
                   {node.category}
                 </div>
-                {/* Level bar */}
                 <div style={{
                   width: "100%", height: 3, borderRadius: 3, overflow: "hidden",
                   background: `hsl(${h},${s}%,${l}%/0.14)`, marginBottom: 7,
                 }}>
                   <div style={{
-                    height: "100%",
-                    width:  `${node.level}%`,
+                    height: "100%", width: `${node.level}%`,
                     background: `linear-gradient(90deg, hsl(${h},${s}%,${l}%), hsl(${h},${s}%,${Math.min(l+16,88)}%))`,
                     borderRadius: 3,
                     boxShadow: `0 0 7px hsl(${h},${s}%,${l}%/0.75)`,
                   }} />
                 </div>
-                {/* Label + pct */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{
-                    fontSize: "11px", fontWeight: 700,
-                    color: `hsl(${h},${s}%,${l}%)`,
-                    textShadow: `0 0 8px hsl(${h},${s}%,${l}%/0.5)`,
-                  }}>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: `hsl(${h},${s}%,${l}%)`, textShadow: `0 0 8px hsl(${h},${s}%,${l}%/0.5)` }}>
                     {lang === "ar" ? lbl.ar : lbl.en}
                   </span>
                   <span style={{ fontSize: "11px", fontFamily: "monospace", opacity: 0.55 }}>
@@ -544,7 +607,7 @@ export default function SkillsSection() {
   const { data }        = useResumeData();
   const t               = translations[lang];
 
-  const skills  = getSkills(lang, data) as Skill[];
+  const skills   = getSkills(lang, data) as Skill[];
   const [filter, setFilter] = useState("All");
   const allLabel = t.skills.all;
 
@@ -562,7 +625,6 @@ export default function SkillsSection() {
       className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      {/* Header */}
       <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
         <span className="section-label">{t.skills.title}</span>
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mb-2">
@@ -575,7 +637,6 @@ export default function SkillsSection() {
         </p>
       </div>
 
-      {/* Category filters */}
       <div className={`flex flex-wrap gap-2 mb-8 ${isRTL ? "flex-row-reverse" : ""}`}>
         {categories.map(cat => (
           <button
@@ -588,10 +649,8 @@ export default function SkillsSection() {
         ))}
       </div>
 
-      {/* Galaxy — open space, no box */}
       <SkillGalaxy key={lang} skills={skills} filter={filter} allLabel={allLabel} lang={lang} />
 
-      {/* Legend */}
       <div className={`mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
         {LEVEL_LABELS.map(lvl => (
           <span key={lvl.en} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
