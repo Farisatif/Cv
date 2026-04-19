@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, resumeDataTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -52,7 +52,8 @@ router.put("/resume", async (req, res): Promise<void> => {
     } else {
       await db
         .update(resumeDataTable)
-        .set({ data: dataStr, updatedAt: new Date() });
+        .set({ data: dataStr, updatedAt: new Date() })
+        .where(eq(resumeDataTable.id, existing[0].id));
     }
 
     res.json({ success: true });
