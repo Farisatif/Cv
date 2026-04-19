@@ -790,7 +790,7 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
         return (
           <div
             key={skill.id}
-            className="group relative rounded-xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden
+            className="group relative rounded-xl border border-border bg-card overflow-hidden
                        hover:shadow-md transition-all duration-200"
             style={accentStyle}
           >
@@ -889,7 +889,7 @@ export default function SkillsSection() {
           </div>
 
           {/* View toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-card/60 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-card flex-shrink-0">
             <button
               onClick={() => setViewMode("galaxy")}
               title={lang === "ar" ? "عرض المجرة" : "Galaxy view"}
