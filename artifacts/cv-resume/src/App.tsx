@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ResumeDataProvider } from "@/context/ResumeDataContext";
 import Navbar from "@/components/Navbar";
+import FloatingLanguageParticles from "@/components/FloatingLanguageParticles";
 import HeroSection from "@/components/HeroSection";
 import FeaturedImpact from "@/components/FeaturedImpact";
 import SkillsSection from "@/components/SkillsSection";
@@ -147,8 +148,11 @@ function CVApp() {
 
       <div
         className="min-h-screen bg-background text-foreground"
-        style={{ opacity: loading ? 0 : 1, transition: "opacity 0.7s ease" }}
+        style={{ opacity: loading ? 0 : 1, transition: "opacity 0.7s ease", position: "relative" }}
       >
+        {/* Fixed background particle layer — behind all content */}
+        <FloatingLanguageParticles />
+
         <Navbar
           darkMode={darkMode}
           onToggleDark={handleToggleDark}
@@ -156,7 +160,7 @@ function CVApp() {
           onSetMood={handleSetMood}
         />
 
-        <main id="cv-main">
+        <main id="cv-main" style={{ position: "relative", zIndex: 1 }}>
           <HeroSection />
 
           {SECTIONS.impact && <FeaturedImpact />}
