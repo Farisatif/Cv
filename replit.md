@@ -29,6 +29,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Translations**: UI strings in `src/data/translations.ts` (both languages).
 - **Language context**: `src/context/LanguageContext.tsx` — RTL/LTR support, persisted to localStorage.
 - **PDF download**: `src/lib/downloadPDF.ts` — pure jsPDF (no html2canvas): all CV sections, bilingual labels, skill bars, pagination, footer.
+- **Admin split**: `pages/admin/` subfolder — adminShared, PersonalTab, SkillsTab, ExperienceTab, ProjectsTab, EducationTab, LanguagesTab, AchievementsTab, CommentsTab, SettingsTab. AdminPanel.tsx is a 130-line shell.
 - **Features**:
   - Bilingual EN/AR with RTL layout support (globe icon + ع/E badge in navbar)
   - PDF download (pure jsPDF): full sections, bilingual, skill bars, pagination

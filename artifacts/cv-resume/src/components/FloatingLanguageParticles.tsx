@@ -445,10 +445,22 @@ export default function FloatingLanguageParticles() {
 
     state.animId = requestAnimationFrame(draw);
 
+    // Pause animation when the browser tab is hidden — saves significant CPU
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        cancelAnimationFrame(state.animId);
+      } else {
+        state.lastTime = 0; // reset dt so first resumed frame doesn't spike
+        state.animId = requestAnimationFrame(draw);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(state.animId);
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onVisibility);
       darkObs.disconnect();
     };
   }, [resize]);

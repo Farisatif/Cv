@@ -513,9 +513,20 @@ function SkillGalaxy({ skills, filter, allLabel, lang, isMobile }: GalaxyProps) 
     };
 
     animRef.current = requestAnimationFrame(tick);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        cancelAnimationFrame(animRef.current);
+      } else {
+        animRef.current = requestAnimationFrame(tick);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [nodes, cw, ch]);
 
