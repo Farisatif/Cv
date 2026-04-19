@@ -848,7 +848,31 @@ export default function SkillsSection() {
   const skills   = getSkills(lang, data) as Skill[];
   const [filter, setFilter] = useState("All");
   const allLabel = t.skills.all;
-  const [viewMode, setViewMode] = useState<"galaxy" | "grid">("grid");
+
+  // ── Split-reveal slider ───────────────────────────────────────────────────
+  const [splitPct, setSplitPct]     = useState(0);   // 0 = full Grid, 100 = full Galaxy
+  const isDraggingRef               = useRef(false);
+  const splitContainerRef           = useRef<HTMLDivElement>(null);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+
+  const handleSplitPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    setIsDraggingState(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const handleSplitPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !splitContainerRef.current) return;
+    const rect = splitContainerRef.current.getBoundingClientRect();
+    let pct = isRTL
+      ? ((rect.right - e.clientX) / rect.width) * 100
+      : ((e.clientX - rect.left) / rect.width) * 100;
+    setSplitPct(Math.max(0, Math.min(88, pct)));
+  };
+  const handleSplitPointerUp = () => {
+    isDraggingRef.current = false;
+    setIsDraggingState(false);
+  };
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
   useEffect(() => {
@@ -887,40 +911,15 @@ export default function SkillsSection() {
                 : "All technical skills sorted by proficiency level and category"}
             </p>
           </div>
-
-          {/* View toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-card flex-shrink-0">
-            <button
-              onClick={() => setViewMode("galaxy")}
-              title={lang === "ar" ? "عرض المجرة" : "Galaxy view"}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                viewMode === "galaxy"
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          {/* Drag hint */}
+          {!isMobile && (
+            <div className={`flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                <path d="M5 9l-3 3 3 3M19 9l3 3-3 3M9 5l3-3 3 3M9 19l3 3 3-3"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
               </svg>
-              {lang === "ar" ? "مجرة" : "Galaxy"}
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              title={lang === "ar" ? "عرض الشبكة" : "Grid view"}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                viewMode === "grid"
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-              </svg>
-              {lang === "ar" ? "شبكة" : "Grid"}
-            </button>
-          </div>
+              <span className="opacity-70">{lang === "ar" ? "اسحب الفاصل لرؤية المجرة" : "Drag divider to reveal Galaxy"}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -937,9 +936,17 @@ export default function SkillsSection() {
         ))}
       </div>
 
-      {/* Galaxy / Grid view */}
-      {viewMode === "galaxy" ? (
-        <div className="galaxy-wrapper">
+      {/* ── Split-reveal: Galaxy behind, Grid panel in front ───────────────── */}
+      <div
+        ref={splitContainerRef}
+        className="relative overflow-hidden rounded-xl border border-border select-none"
+        style={{ height: isMobile ? 400 : 540 }}
+        onPointerMove={handleSplitPointerMove}
+        onPointerUp={handleSplitPointerUp}
+        onPointerLeave={handleSplitPointerUp}
+      >
+        {/* Galaxy — fixed background layer */}
+        <div className="absolute inset-0 galaxy-wrapper">
           <SkillGalaxy
             key={`${lang}-${isMobile}`}
             skills={skills}
@@ -949,32 +956,148 @@ export default function SkillsSection() {
             isMobile={isMobile}
           />
         </div>
-      ) : (
-        <SkillGrid
-          skills={skills}
-          filter={filter}
-          allLabel={allLabel}
-          lang={lang}
-          isRTL={isRTL}
-        />
-      )}
+
+        {/* Galaxy label — fades in as divider moves right */}
+        <div
+          aria-hidden="true"
+          className={`absolute top-4 z-10 pointer-events-none transition-opacity duration-300 ${isRTL ? "right-4" : "left-4"}`}
+          style={{ opacity: Math.min(1, splitPct / 18) }}
+        >
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border/40 bg-background/60 backdrop-blur-sm text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+            {lang === "ar" ? "مجرة" : "Galaxy"}
+          </span>
+        </div>
+
+        {/* Grid panel — slides over Galaxy from the left */}
+        <div
+          className="absolute top-0 bottom-0 bg-card overflow-y-auto"
+          style={{
+            left:  isRTL ? 0          : `${splitPct}%`,
+            right: isRTL ? `${splitPct}%` : 0,
+            transition: isDraggingState ? "none" : "left 0.08s ease, right 0.08s ease",
+            boxShadow: splitPct > 2 ? (isRTL ? "4px 0 24px hsl(240 40% 2% / 0.45)" : "-4px 0 24px hsl(240 40% 2% / 0.45)") : "none",
+          }}
+        >
+          {/* Grid label strip at top */}
+          <div className={`sticky top-0 z-10 flex items-center gap-2 px-4 py-2 bg-card/95 backdrop-blur-sm border-b border-border/50 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+            {lang === "ar" ? "شبكة المهارات" : "Skills Grid"}
+          </div>
+          <div className="p-4">
+            <SkillGrid
+              skills={skills}
+              filter={filter}
+              allLabel={allLabel}
+              lang={lang}
+              isRTL={isRTL}
+            />
+          </div>
+        </div>
+
+        {/* ── Divider handle ────────────────────────────────────────────── */}
+        {!isMobile && (
+          <div
+            className="absolute top-0 bottom-0 z-30 touch-none"
+            style={{
+              left:  isRTL ? undefined : `${splitPct}%`,
+              right: isRTL ? `${splitPct}%` : undefined,
+              transform: "translateX(-50%)",
+              width: 40,
+              cursor: "ew-resize",
+            }}
+            onPointerDown={handleSplitPointerDown}
+          >
+            {/* Vertical line */}
+            <div
+              className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px"
+              style={{
+                background: isDraggingState
+                  ? "hsl(263 82% 70% / 0.6)"
+                  : "hsl(var(--border))",
+                transition: "background 0.2s",
+              }}
+            />
+
+            {/* Circular handle */}
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-border bg-card shadow-xl"
+              style={{
+                width: 36, height: 36,
+                boxShadow: isDraggingState
+                  ? "0 0 0 3px hsl(263 82% 70% / 0.25), 0 8px 32px hsl(240 40% 2% / 0.5)"
+                  : "0 4px 20px hsl(240 40% 2% / 0.4)",
+                transition: "box-shadow 0.2s",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                className="text-muted-foreground">
+                <path d="M8 3L4 7l4 4M16 3l4 4-4 4M4 7h16M4 17h16M8 13l-4 4 4 4M16 13l4 4-4 4"/>
+              </svg>
+            </div>
+
+            {/* Snap shortcut buttons */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+              <button
+                className="w-6 h-4 rounded-sm bg-card border border-border text-[8px] font-bold text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center shadow-sm"
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => setSplitPct(0)}
+                title={lang === "ar" ? "شبكة كاملة" : "Full Grid"}
+              >▶</button>
+              <button
+                className="w-6 h-4 rounded-sm bg-card border border-border text-[8px] font-bold text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center shadow-sm"
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => setSplitPct(50)}
+                title={lang === "ar" ? "منتصف" : "Split 50/50"}
+              >◼</button>
+              <button
+                className="w-6 h-4 rounded-sm bg-card border border-border text-[8px] font-bold text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center shadow-sm"
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => setSplitPct(88)}
+                title={lang === "ar" ? "مجرة كاملة" : "Full Galaxy"}
+              >◀</button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: tap to toggle between grid/galaxy */}
+        {isMobile && (
+          <button
+            className="absolute bottom-3 right-3 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card/90 backdrop-blur-sm text-xs font-semibold shadow-lg"
+            onClick={() => setSplitPct(prev => prev < 44 ? 88 : 0)}
+          >
+            {splitPct < 44 ? (
+              <>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/></svg>
+                {lang === "ar" ? "مجرة" : "Galaxy"}
+              </>
+            ) : (
+              <>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                {lang === "ar" ? "شبكة" : "Grid"}
+              </>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Legend */}
-      <div className={`mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
+      <div className={`mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
         {LEVEL_LABELS.map(lvl => (
           <span key={lvl.en} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: `hsl(${lvl.hsl})`, boxShadow: `0 0 6px hsl(${lvl.hsl}/0.55)` }} />
             {lang === "ar" ? lvl.ar : lvl.en}
           </span>
         ))}
-        {viewMode === "galaxy" && (
-          <span className={`flex items-center gap-1.5 opacity-40 ${isRTL ? "mr-auto" : "ml-auto"}`}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
-            </svg>
-            {lang === "ar" ? "قابل للسحب" : "Draggable"}
-          </span>
-        )}
+        <span className={`flex items-center gap-1.5 opacity-40 ${isRTL ? "mr-auto" : "ml-auto"}`}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
+          </svg>
+          {lang === "ar" ? "اسحب الفاصل" : "Drag divider"}
+        </span>
       </div>
     </section>
   );
