@@ -232,10 +232,10 @@ export default function HeroSection() {
 
             {/* Typewriter */}
             <div
-              className={`h-7 flex items-center mb-6 print:hidden ${isRTL ? "flex-row-reverse" : ""}`}
+              className={`h-7 flex items-center mb-6 print:hidden ${isRTL ? "justify-end" : ""}`}
               style={{ animation: "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.11s both" }}
             >
-              <span className={`font-mono text-sm terminal-cursor text-muted-foreground/75 ${isRTL ? "text-right" : ""}`}>
+              <span className={`font-mono text-sm text-muted-foreground/75 ${isRTL ? "terminal-cursor-rtl" : "terminal-cursor"}`}>
                 {typeText}
               </span>
             </div>

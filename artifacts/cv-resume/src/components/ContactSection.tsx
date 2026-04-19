@@ -149,9 +149,13 @@ export default function ContactSection() {
                   {link.icon}
                 </div>
 
-                <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5 font-semibold">{link.label}</div>
-                  <div className="text-sm font-mono font-medium truncate" dir="ltr" style={{ textAlign: isRTL ? "right" : "left" }}>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className={`text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5 font-semibold ${isRTL ? "text-right" : ""}`}>{link.label}</div>
+                  <div
+                    className="text-sm font-mono font-medium truncate overflow-hidden"
+                    dir="ltr"
+                    style={{ textAlign: isRTL ? "right" : "left", maxWidth: "100%" }}
+                  >
                     {link.value}
                   </div>
                 </div>

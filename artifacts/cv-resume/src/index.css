@@ -514,6 +514,22 @@
   .dark .terminal-cursor {
     color: hsl(var(--glow-secondary));
   }
+  /* RTL variant — cursor appears on the right (::before) */
+  .terminal-cursor-rtl::before {
+    content: '|';
+    animation: blink 1.2s step-end infinite;
+    font-weight: 300;
+    opacity: 0.6;
+    margin-right: 1px;
+  }
+  .terminal-cursor-rtl {
+    color: hsl(263 62% 46%);
+    direction: rtl;
+    text-align: right;
+  }
+  .dark .terminal-cursor-rtl {
+    color: hsl(var(--glow-secondary));
+  }
 
   /* ── TAG FILTER BUTTON ── */
   .tag-filter {
