@@ -125,6 +125,8 @@ export default function HeroSection() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const isDark = document.documentElement.classList.contains("dark");
+
+      // Update positions and draw particles
       particles.forEach(p => {
         p.x += p.vx; p.y += p.vy; p.twinkle += p.twinkleSpeed;
         if (p.x < 0) p.x = canvas.width;
@@ -141,20 +143,27 @@ export default function HeroSection() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
-        if (isDark) {
-          particles.forEach(p2 => {
-            const dx = p.x - p2.x, dy = p.y - p2.y;
+      });
+
+      // Draw connections once per pair (i < j) to avoid duplicate strokes
+      if (isDark) {
+        ctx.lineWidth = 0.4;
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 65 && dist > 0) {
+            if (dist < 65) {
               ctx.beginPath();
-              ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
-              ctx.strokeStyle = `rgba(130,90,255,${0.035 * (1 - dist / 65)})`;
-              ctx.lineWidth = 0.4;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(130,90,255,${0.05 * (1 - dist / 65)})`;
               ctx.stroke();
             }
-          });
+          }
         }
-      });
+      }
+
       animId = requestAnimationFrame(draw);
     };
     draw();
