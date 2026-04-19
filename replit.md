@@ -32,22 +32,26 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Features**:
   - Bilingual EN/AR with RTL layout support (toggle in navbar)
   - PDF download via html2canvas + jspdf
-  - Skills badges freely accessible (no scroll restriction)
-  - Animated particle background on hero
+  - Premium design system: `cosmic-card`, `premium-card`, `highlight-card`, `btn-primary`, `btn-secondary`, `cosmic-input`, `section-label`
+  - Space Grotesk + Inter + Noto Sans Arabic typography
+  - Animated particle background on hero with twinkling + constellation lines
+  - Achievement chips on hero (years coding, commits, repos)
   - Typewriter effect for role titles (bilingual)
-  - Animated stat counters
+  - Animated stat counters (count-up on scroll)
   - Draggable skill badges with physics-based drop behavior
   - Interactive language bar with draggable dividers
   - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated)
   - Real GitHub stats (followers, repos, stars) in contribution section
-  - Green-shaded contribution cells (GitHub-style colors)
-  - Scroll-reveal animations on all sections
-  - Accordion experience timeline
-  - Project cards with hover effects
-  - System dark/light mode — pure white light / true black dark
-  - Sticky navbar with active section tracking
-  - Guestbook backed by PostgreSQL (comments + likes)
+  - Scroll-reveal animations on all sections with stagger children
+  - Accordion experience timeline with company initials avatars + duration badges
+  - Project cards (first featured full-width) with language dot + star/fork counts
+  - New AchievementsSection with 6 highlight cards + accent colors (id: `achievements`)
+  - 3 site moods: Cosmic (dark glow), Minimal (no glows), Professional (blue/white)
+  - Sticky navbar with active section tracking + "Highlights" nav item
+  - Multi-section footer with quick links + connect section
+  - Guestbook backed by PostgreSQL (comments + likes + char counter + trust signals)
   - Live visitor counter (session-deduplicated)
+  - Admin panel with premium field styling (cosmic-input)
   - Admin panel at `/cv-resume/admin` with password "Zoom100*"
     - Add/edit/delete: skills, experience, projects, education, personal info
     - Changes stored to localStorage; accessible via ⚙ gear icon in footer

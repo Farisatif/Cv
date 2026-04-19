@@ -32,6 +32,7 @@ export default function ContactSection() {
       href: `mailto:${personal.email}`,
       actionLabel: t.contact.sendEmail,
       onAction: copyEmail,
+      color: "hsl(263 80% 68%)",
     },
     {
       label: t.contact.whatsapp,
@@ -43,6 +44,7 @@ export default function ContactSection() {
       ),
       href: `https://wa.me/${personal.whatsapp}`,
       actionLabel: t.contact.openWhatsApp,
+      color: "hsl(142 70% 45%)",
     },
     {
       label: t.contact.github,
@@ -54,10 +56,11 @@ export default function ContactSection() {
       ),
       href: `https://${personal.github}`,
       actionLabel: t.contact.visitGitHub,
+      color: "hsl(220 14% 65%)",
     },
     {
       label: t.contact.linkedin,
-      value: personal.linkedin,
+      value: personal.linkedin.split("?")[0],
       icon: (
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
@@ -67,6 +70,7 @@ export default function ContactSection() {
       ),
       href: `https://${personal.linkedin}`,
       actionLabel: t.contact.visitLinkedIn,
+      color: "hsl(210 100% 52%)",
     },
   ];
 
@@ -77,11 +81,9 @@ export default function ContactSection() {
       className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className={`mb-12 ${isRTL ? "text-right" : ""}`}>
+      <div className={`mb-14 ${isRTL ? "text-right" : ""}`}>
         <span className="section-label">{lang === "ar" ? "التواصل" : "Contact"}</span>
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-          {t.contact.title}
-        </h2>
+        <h2 className="section-title">{t.contact.title}</h2>
         <p className="text-muted-foreground mt-3 max-w-md text-[15px] leading-relaxed">
           {t.contact.subtitle}
         </p>
@@ -90,13 +92,13 @@ export default function ContactSection() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Availability card */}
         <div className={`lg:col-span-2 ${isRTL ? "lg:order-2" : "lg:order-1"}`}>
-          <div className="cosmic-card glow-border rounded-2xl p-6 h-full flex flex-col justify-between">
+          <div className="premium-card glow-border rounded-2xl p-6 h-full flex flex-col justify-between gap-6">
             <div>
-              <div className="w-11 h-11 rounded-xl border border-border dark:border-[hsl(263_80%_68%/0.2)] dark:bg-[hsl(263_80%_68%/0.08)] bg-muted flex items-center justify-center mb-4 text-xl">
+              <div className="w-11 h-11 rounded-xl bg-muted dark:bg-[hsl(263_80%_68%/0.07)] border border-border dark:border-[hsl(263_80%_68%/0.18)] flex items-center justify-center mb-5 text-xl">
                 👋
               </div>
-              <h3 className={`font-semibold text-base mb-2 ${isRTL ? "text-right" : ""}`}>
-                {lang === "ar" ? "متاح للفرص" : "Available for work"}
+              <h3 className={`font-bold text-base mb-2 tracking-tight ${isRTL ? "text-right" : ""}`}>
+                {lang === "ar" ? "متاح للفرص" : "Open to work"}
               </h3>
               <p className={`text-sm text-muted-foreground leading-relaxed ${isRTL ? "text-right" : ""}`}>
                 {lang === "ar"
@@ -104,11 +106,25 @@ export default function ContactSection() {
                   : "I prefer discussing projects over email or WhatsApp. I typically respond within 24 hours."}
               </p>
             </div>
-            <div className={`mt-6 flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-muted-foreground font-medium dark:text-[hsl(192_100%_62%/0.8)]">
-                {lang === "ar" ? "متاح الآن" : "Online now"}
-              </span>
+            <div>
+              <div className={`flex items-center gap-2.5 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                </span>
+                <span className="text-xs text-muted-foreground font-medium dark:text-[hsl(192_100%_60%/0.8)]">
+                  {lang === "ar" ? "متاح الآن" : "Available now"}
+                </span>
+              </div>
+              <button
+                onClick={() => document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" })}
+                className="w-full btn-secondary text-xs py-2"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {lang === "ar" ? "سجّل حضورك في دفتر الزوار" : "Sign the guestbook"}
+              </button>
             </div>
           </div>
         </div>
@@ -116,18 +132,26 @@ export default function ContactSection() {
         {/* Contact links */}
         <div className={`lg:col-span-3 ${isRTL ? "lg:order-1" : "lg:order-2"}`}>
           <div className="cosmic-card rounded-2xl overflow-hidden divide-y divide-border">
-            {contactLinks.map((link) => (
+            {contactLinks.map((link, i) => (
               <div
                 key={link.label}
-                className={`px-5 py-4 flex items-center gap-4 hover:bg-muted/30 dark:hover:bg-[hsl(263_80%_68%/0.04)] transition-all group ${isRTL ? "flex-row-reverse" : ""}`}
+                className={`px-5 py-4 flex items-center gap-4 hover:bg-muted/20 dark:hover:bg-[hsl(263_80%_68%/0.03)] transition-all group ${isRTL ? "flex-row-reverse" : ""}`}
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                <div className="icon-btn w-9 h-9 rounded-xl flex-shrink-0">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border border-border transition-all group-hover:scale-105"
+                  style={{
+                    background: `${link.color}12`,
+                    color: link.color,
+                    borderColor: `${link.color}22`,
+                  }}
+                >
                   {link.icon}
                 </div>
 
                 <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
-                  <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-0.5">{link.label}</div>
-                  <div className="text-sm font-mono font-medium truncate" dir="ltr" style={{ textAlign: "left" }}>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5 font-semibold">{link.label}</div>
+                  <div className="text-sm font-mono font-medium truncate" dir="ltr" style={{ textAlign: isRTL ? "right" : "left" }}>
                     {link.value}
                   </div>
                 </div>
@@ -138,24 +162,29 @@ export default function ContactSection() {
                       onClick={link.onAction}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                         copied
-                          ? "border-foreground bg-foreground text-background dark:border-[hsl(263_80%_68%)] dark:bg-[hsl(263_80%_68%)] dark:text-[hsl(240_25%_3.5%)]"
-                          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground dark:hover:border-[hsl(263_80%_68%/0.4)]"
+                          ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
+                          : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(263_80%_68%/0.35)]"
                       }`}
                     >
-                      {copied ? t.contact.copied : t.contact.copy}
+                      {copied ? (
+                        <span className="flex items-center gap-1">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                          {t.contact.copied}
+                        </span>
+                      ) : t.contact.copy}
                     </button>
                   )}
                   <a
                     href={link.href}
                     target={link.href.startsWith("mailto") ? undefined : "_blank"}
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground dark:hover:border-[hsl(263_80%_68%/0.35)] dark:hover:shadow-[0_0_10px_hsl(263_80%_68%/0.1)] transition-all duration-200 flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(263_80%_68%/0.3)] transition-all duration-200 flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
                   >
                     {link.actionLabel}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                      <polyline points="15 3 21 3 21 9"/>
-                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17L17 7M17 7H7M17 7v10"/>
                     </svg>
                   </a>
                 </div>

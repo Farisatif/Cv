@@ -11,6 +11,7 @@ import ContributionGraph from "@/components/ContributionGraph";
 import ExperienceSection from "@/components/ExperienceSection";
 import ProjectsSection from "@/components/ProjectsSection";
 import EducationSection from "@/components/EducationSection";
+import AchievementsSection from "@/components/AchievementsSection";
 import ContactSection from "@/components/ContactSection";
 import CommentsSection from "@/components/CommentsSection";
 import Footer from "@/components/Footer";
@@ -23,15 +24,14 @@ const queryClient = new QueryClient({
 });
 
 // ─── SECTION VISIBILITY ─────────────────────────────────────────────
-// Set any value to false to cleanly hide that section.
-// The layout adapts automatically — no broken spacing or gaps.
 const SECTIONS = {
-  impact:        true,   // Featured stats strip below hero
+  impact:        true,
   skills:        true,
   languages:     true,
   contributions: true,
   experience:    true,
   projects:      true,
+  achievements:  true,
   education:     true,
   contact:       true,
   guestbook:     true,
@@ -40,6 +40,10 @@ const SECTIONS = {
 
 export type Mood = "cosmic" | "minimal" | "professional";
 
+function SectionDivider() {
+  return <div className="glow-divider" />;
+}
+
 function CVApp() {
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +51,7 @@ function CVApp() {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("cv-dark");
       if (stored !== null) return stored === "true";
-      return true; // default: cosmic dark
+      return true;
     }
     return true;
   });
@@ -95,7 +99,6 @@ function CVApp() {
     return () => mq.removeEventListener("change", handler);
   }, [manualOverride]);
 
-  // Apply dark mode + mood to html element
   useEffect(() => {
     const html = document.documentElement;
     if (darkMode && mood !== "professional") {
@@ -116,7 +119,6 @@ function CVApp() {
   const handleSetMood = useCallback((m: Mood) => {
     setMood(m);
     localStorage.setItem("cv-mood", m);
-    // Professional forces light
     if (m === "professional") {
       document.documentElement.classList.remove("dark");
     } else if (darkMode) {
@@ -144,8 +146,8 @@ function CVApp() {
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
 
       <div
-        className="min-h-screen bg-background text-foreground transition-colors duration-400"
-        style={{ opacity: loading ? 0 : 1, transition: "opacity 0.6s ease" }}
+        className="min-h-screen bg-background text-foreground"
+        style={{ opacity: loading ? 0 : 1, transition: "opacity 0.7s ease" }}
       >
         <Navbar
           darkMode={darkMode}
@@ -159,21 +161,21 @@ function CVApp() {
 
           {SECTIONS.impact && <FeaturedImpact />}
 
-          {(SECTIONS.skills || SECTIONS.languages || SECTIONS.contributions) && (
-            <div className="glow-divider mt-8" />
-          )}
+          <SectionDivider />
 
           {SECTIONS.skills        && <SkillsSection />}
           {SECTIONS.languages     && <LanguagesSection />}
           {SECTIONS.contributions && <ContributionGraph />}
 
-          {(SECTIONS.experience || SECTIONS.projects || SECTIONS.education) && (
-            <div className="glow-divider" />
-          )}
+          <SectionDivider />
 
-          {SECTIONS.experience && <ExperienceSection />}
-          {SECTIONS.projects   && <ProjectsSection />}
-          {SECTIONS.education  && <EducationSection />}
+          {SECTIONS.experience   && <ExperienceSection />}
+          {SECTIONS.projects     && <ProjectsSection />}
+          {SECTIONS.achievements && <AchievementsSection />}
+          {SECTIONS.education    && <EducationSection />}
+
+          <SectionDivider />
+
           {SECTIONS.contact    && <ContactSection />}
           {SECTIONS.guestbook  && <CommentsSection />}
         </main>

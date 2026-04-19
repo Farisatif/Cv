@@ -18,14 +18,12 @@ function Field({
   multiline?: boolean;
   dir?: string;
 }) {
-  const cls =
-    "w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all";
   return (
-    <div className="space-y-1">
-      <label className="block text-xs font-medium text-muted-foreground">{label}</label>
+    <div className="space-y-1.5">
+      <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</label>
       {multiline ? (
         <textarea
-          className={cls + " min-h-[80px] resize-y"}
+          className="cosmic-input min-h-[80px] resize-y leading-relaxed"
           value={String(value)}
           dir={dir}
           onChange={(e) => onChange(e.target.value)}
@@ -33,7 +31,7 @@ function Field({
       ) : (
         <input
           type={type}
-          className={cls}
+          className="cosmic-input"
           value={String(value)}
           dir={dir}
           onChange={(e) => onChange(e.target.value)}
@@ -45,8 +43,9 @@ function Field({
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-border mb-4 mt-2">
-      <h2 className="text-sm font-bold text-foreground">{title}</h2>
+    <div className="flex items-center gap-3 pt-4 mb-4">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{title}</span>
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
@@ -111,9 +110,9 @@ function TagsEditor({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
           placeholder="Type & press Enter"
-          className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          className="cosmic-input text-sm py-1.5"
         />
-        <button type="button" onClick={add} className="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-muted transition-all">Add</button>
+        <button type="button" onClick={add} className="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-muted transition-all whitespace-nowrap">Add</button>
       </div>
     </div>
   );
@@ -145,7 +144,7 @@ function HighlightsEditor({
             <input
               dir="ltr"
               placeholder={`🇬🇧 Highlight ${i + 1}`}
-              className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
+              className="cosmic-input text-sm py-1.5"
               value={itemsEn[i] ?? ""}
               onChange={(e) => {
                 const next = [...itemsEn];
@@ -156,7 +155,7 @@ function HighlightsEditor({
             <input
               dir="rtl"
               placeholder={`🇸🇦 نقطة ${i + 1}`}
-              className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20 text-right"
+              className="cosmic-input text-sm py-1.5 text-right"
               value={itemsAr[i] ?? ""}
               onChange={(e) => {
                 const next = [...itemsAr];
@@ -408,16 +407,20 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Tab bar */}
-        <div className="flex gap-1 mb-6 border border-border rounded-xl p-1 bg-muted/30 overflow-x-auto">
+        <div className="flex gap-1 mb-6 border border-border rounded-xl p-1 bg-muted/20 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                tab === t.id ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 ${
+                tab === t.id
+                  ? "bg-foreground text-background shadow-md dark:bg-[hsl(220_18%_93%)] dark:text-[hsl(240_24%_5%)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              {t.labelEn} / {t.labelAr}
+              <span>{t.labelEn}</span>
+              <span className="opacity-40 hidden sm:inline">·</span>
+              <span className="opacity-60 text-[10px]">{t.labelAr}</span>
             </button>
           ))}
         </div>

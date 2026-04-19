@@ -58,6 +58,7 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
     { label: t.nav.skills,     href: "#skills" },
     { label: t.nav.experience, href: "#experience" },
     { label: t.nav.projects,   href: "#projects" },
+    { label: lang === "ar" ? "الإنجازات" : "Highlights", href: "#achievements" },
     { label: t.nav.education,  href: "#education" },
     { label: t.nav.contact,    href: "#contact" },
     { label: t.nav.guestbook,  href: "#comments" },
