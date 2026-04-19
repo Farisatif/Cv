@@ -56,13 +56,11 @@ const DEPTH: Record<Layer, DepthConfig> = {
   bg: { scaleMin: 0.40, scaleMax: 0.60, opacityMin: 0.30, opacityMax: 0.50, blurMin: 2.0, blurMax: 6.0, parallaxSpeed: 0.4, durMin: 10, durMax: 14, zIndex: 1 },
 };
 
-// 8 CSS float animation names (defined in index.css)
 const FLOAT_ANIMS = [
   "sk-float-0","sk-float-1","sk-float-2","sk-float-3",
   "sk-float-4","sk-float-5","sk-float-6","sk-float-7",
 ];
 
-// ── Poisson disc placement ────────────────────────────────────────────────
 function poissonDisc(
   count: number,
   w: number, h: number,
@@ -77,12 +75,10 @@ function poissonDisc(
     const x = mX + rng() * (w - mX * 2);
     const y = mY + rng() * (h - mY * 2);
 
-    // Penalize dead center (< 12% of max radius) — avoid clustering
     const cx = w / 2, cy = h / 2;
     const normDist = Math.hypot(x - cx, y - cy) / Math.hypot(cx, cy);
     if (normDist < 0.12 && rng() > 0.12) continue;
 
-    // Minimum distance check
     if (pts.every(p => Math.hypot(p.x - x, p.y - y) >= minDist)) {
       pts.push({ x, y });
     }
@@ -91,7 +87,6 @@ function poissonDisc(
   return pts;
 }
 
-// ── Data types ────────────────────────────────────────────────────────────
 interface Skill { id: string; name: string; level: number; category: string }
 
 interface PlacedNode {
@@ -123,28 +118,23 @@ function buildNodes(
   const MX       = isMobile ? 24 : 48;
   const MY       = isMobile ? 24 : 48;
 
-  // Sort by level desc, cap to MAX
   const pool = [...skills].sort((a, b) => b.level - a.level).slice(0, MAX);
   const n    = pool.length;
 
-  // Assign depth layers: fg=20%, mg=50%, bg=30%
   const nFg = Math.max(1, Math.round(n * 0.20));
   const nMg = Math.max(1, Math.round(n * 0.50));
   const layers: Layer[] = pool.map((_, i) =>
     i < nFg ? "fg" : i < nFg + nMg ? "mg" : "bg"
   );
 
-  // Generate spread positions
   let pts = poissonDisc(n, cw, ch, MIN_DIST, MX, MY, 53);
 
-  // Shuffle positions (don't let highest-level always get edge, etc.)
   const shRng = seededRng(17);
   for (let i = pts.length - 1; i > 0; i--) {
     const j = Math.floor(shRng() * (i + 1));
     [pts[i], pts[j]] = [pts[j], pts[i]];
   }
 
-  // Fallback grid if Poisson under-fills
   while (pts.length < n) {
     const i   = pts.length;
     const col = i % 5, row = Math.floor(i / 5);
@@ -180,7 +170,6 @@ function buildNodes(
   });
 }
 
-// ── Star field ────────────────────────────────────────────────────────────
 interface StarData { x0: number; y0: number; r: number; a: number; vx: number; vy: number; twinkleSpeed: number; phase: number; bright: boolean }
 
 function buildStars(count: number): StarData[] {
@@ -203,19 +192,19 @@ function drawFrame(
   nodes: PlacedNode[],
   w: number, h: number,
   isDark: boolean,
+  mood: string,
   ts: number,
   scrollVel: number,
 ) {
   ctx.clearRect(0, 0, w, h);
 
-  // ── Nebula by category centroid ──────────────────────────────────────────
   const catMap = new Map<number, PlacedNode[]>();
   nodes.forEach(n => {
     if (!catMap.has(n.catIdx)) catMap.set(n.catIdx, []);
     catMap.get(n.catIdx)!.push(n);
   });
 
-  if (isDark) {
+  if (isDark && mood === "cosmic") {
     // Deep space overlay
     const bg = ctx.createRadialGradient(w * 0.5, h * 0.46, 0, w * 0.5, h * 0.46, Math.max(w, h) * 0.82);
     bg.addColorStop(0,    "rgba(14,8,38,0.50)");
@@ -239,14 +228,6 @@ function drawFrame(
       g.addColorStop(0.80, `hsla(${ch},${s}%,${l}%,${(a1 * 0.22).toFixed(3)})`);
       g.addColorStop(1,    `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-
-      // Secondary offset bloom
-      const ox = cx + 50 * Math.cos(ts * 0.000085 + catIdx);
-      const oy = cy + 40 * Math.sin(ts * 0.000068 + catIdx + 0.8);
-      const g2 = ctx.createRadialGradient(ox, oy, 0, ox, oy, rad * 0.55);
-      g2.addColorStop(0, `hsla(${ch},${s}%,${Math.min(l + 10, 90)}%,${(a0 * 0.45).toFixed(3)})`);
-      g2.addColorStop(1, `hsla(${ch},${s}%,${l}%,0)`);
-      ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h);
     });
 
     // Purple core glow
@@ -257,24 +238,6 @@ function drawFrame(
     gc.addColorStop(0.40, "rgba(38,20,160,0.03)");
     gc.addColorStop(1,    "rgba(0,0,0,0)");
     ctx.fillStyle = gc; ctx.fillRect(0, 0, w, h);
-
-    // ── Edge Fade Gradient (Purple to transparent) ──────────────────────────
-    // This creates the requested purple fade at the edges
-    const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
-    edgeFade.addColorStop(0, "rgba(90, 45, 240, 0.15)");
-    edgeFade.addColorStop(0.15, "rgba(90, 45, 240, 0)");
-    edgeFade.addColorStop(0.85, "rgba(90, 45, 240, 0)");
-    edgeFade.addColorStop(1, "rgba(90, 45, 240, 0.15)");
-    ctx.fillStyle = edgeFade;
-    ctx.fillRect(0, 0, w, h);
-
-    const sideFade = ctx.createLinearGradient(0, 0, w, 0);
-    sideFade.addColorStop(0, "rgba(90, 45, 240, 0.12)");
-    sideFade.addColorStop(0.1, "rgba(90, 45, 240, 0)");
-    sideFade.addColorStop(0.9, "rgba(90, 45, 240, 0)");
-    sideFade.addColorStop(1, "rgba(90, 45, 240, 0.12)");
-    ctx.fillStyle = sideFade;
-    ctx.fillRect(0, 0, w, h);
 
     // Stars
     const velAbs = Math.abs(scrollVel);
@@ -295,28 +258,39 @@ function drawFrame(
         ctx.fillStyle = star.bright ? `rgba(255,252,235,${alpha.toFixed(3)})` : `rgba(190,205,255,${alpha.toFixed(3)})`;
       }
       ctx.fill();
-
-      if (star.bright && streak < 2) {
-        const halo = ctx.createRadialGradient(nx * w, ny * h, 0, nx * w, ny * h, r * 5);
-        halo.addColorStop(0, `rgba(220,235,255,${(alpha * 0.12).toFixed(3)})`);
-        halo.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = halo; ctx.fill();
-      }
     });
-  } else {
-    // Light mode background
-    ctx.fillStyle = "rgba(255,255,255,0.01)";
+  } else if (mood === "professional") {
+    // Elegant professional background
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, isDark ? "rgba(15, 23, 42, 0.05)" : "rgba(241, 245, 249, 0.05)");
+    bg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
-    
-    // Soft purple fade for light mode too
-    const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
-    edgeFade.addColorStop(0, "rgba(90, 45, 240, 0.05)");
-    edgeFade.addColorStop(0.1, "rgba(90, 45, 240, 0)");
-    edgeFade.addColorStop(0.9, "rgba(90, 45, 240, 0)");
-    edgeFade.addColorStop(1, "rgba(90, 45, 240, 0.05)");
-    ctx.fillStyle = edgeFade;
+  } else if (mood === "minimal") {
+    // Clean minimal background
+    ctx.fillStyle = "transparent";
     ctx.fillRect(0, 0, w, h);
   }
+
+  // ── Edge Fade Gradient (Always applied but varies by mood) ────────────────
+  const fadeColor = mood === "cosmic" ? "90, 45, 240" : mood === "professional" ? "51, 65, 85" : "148, 163, 184";
+  const fadeOpacity = mood === "cosmic" ? 0.18 : 0.08;
+
+  const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+  edgeFade.addColorStop(0, `rgba(${fadeColor}, ${fadeOpacity})`);
+  edgeFade.addColorStop(0.18, `rgba(${fadeColor}, 0)`);
+  edgeFade.addColorStop(0.82, `rgba(${fadeColor}, 0)`);
+  edgeFade.addColorStop(1, `rgba(${fadeColor}, ${fadeOpacity})`);
+  ctx.fillStyle = edgeFade;
+  ctx.fillRect(0, 0, w, h);
+
+  const sideFade = ctx.createLinearGradient(0, 0, w, 0);
+  sideFade.addColorStop(0, `rgba(${fadeColor}, ${fadeOpacity * 0.8})`);
+  sideFade.addColorStop(0.12, `rgba(${fadeColor}, 0)`);
+  sideFade.addColorStop(0.88, `rgba(${fadeColor}, 0)`);
+  sideFade.addColorStop(1, `rgba(${fadeColor}, ${fadeOpacity * 0.8})`);
+  ctx.fillStyle = sideFade;
+  ctx.fillRect(0, 0, w, h);
 }
 
 export default function SkillsSection() {
@@ -332,24 +306,37 @@ export default function SkillsSection() {
 
   const [nodes, setNodes] = useState<PlacedNode[]>([]);
   const [activeNode, setActiveNode] = useState<string | null>(null);
+  const [currentMood, setCurrentMood] = useState("cosmic");
+
   const stateRef = useRef({
     ts: 0,
     scrollVel: 0,
     lastSY: 0,
     isDark: true,
+    mood: "cosmic",
     width: 0,
     height: 0,
     animId: 0,
     smoothVel: 0,
   });
 
-  // Handle Resize & Init Nodes
+  useEffect(() => {
+    const updateMood = () => {
+      const mood = document.documentElement.getAttribute("data-mood") || "cosmic";
+      stateRef.current.mood = mood;
+      setCurrentMood(mood);
+    };
+    updateMood();
+    const obs = new MutationObserver(updateMood);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mood"] });
+    return () => obs.disconnect();
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       if (!containerRef.current || !canvasRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      
       const w = rect.width;
       const h = rect.height;
       
@@ -373,7 +360,6 @@ export default function SkillsSection() {
     return () => window.removeEventListener("resize", handleResize);
   }, [skills, categories]);
 
-  // Animation Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -404,6 +390,7 @@ export default function SkillsSection() {
         stateRef.current.width,
         stateRef.current.height,
         stateRef.current.isDark,
+        stateRef.current.mood,
         time,
         stateRef.current.smoothVel
       );
@@ -448,15 +435,15 @@ export default function SkillsSection() {
 
         <div
           ref={containerRef}
-          className="relative w-full aspect-[4/3] sm:aspect-[21/9] min-h-[450px] sm:min-h-[600px] rounded-3xl border border-border/50 bg-card/30 backdrop-blur-sm overflow-hidden group shadow-2xl"
+          className={`relative w-full aspect-[4/3] sm:aspect-[21/9] min-h-[450px] sm:min-h-[600px] rounded-3xl border border-border/50 backdrop-blur-sm overflow-hidden group shadow-2xl transition-all duration-500 ${
+            currentMood === "cosmic" ? "bg-card/30" : currentMood === "professional" ? "bg-slate-50/50 dark:bg-slate-900/50" : "bg-background/40"
+          }`}
         >
-          {/* Canvas Background */}
           <canvas
             ref={canvasRef}
             className="absolute inset-0 w-full h-full pointer-events-none"
           />
 
-          {/* Interactive Skill Nodes */}
           {nodes.map((node) => {
             const label = getLabel(node.skill.level);
             const isActive = activeNode === node.skill.id;
@@ -480,30 +467,27 @@ export default function SkillsSection() {
                   onMouseEnter={() => setActiveNode(node.skill.id)}
                   onMouseLeave={() => setActiveNode(null)}
                 >
-                  {/* Glow Effect */}
                   <div
                     className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover/node:opacity-40 transition-opacity duration-500"
                     style={{ backgroundColor: `hsl(${node.color.h}, ${node.color.s}%, ${node.color.l}%)` }}
                   />
 
-                  {/* Node Body */}
                   <div
                     className={`relative flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all duration-300 ${
                       isActive 
                         ? "bg-background border-primary shadow-[0_0_20px_rgba(90,45,240,0.3)] scale-110" 
                         : "bg-background/80 border-border/50 backdrop-blur-md"
-                    }`}
+                    } ${currentMood === "professional" ? "rounded-lg" : "rounded-2xl"}`}
                   >
                     <div
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: `hsl(${node.color.h}, ${node.color.s}%, ${node.color.l}%)` }}
                     />
-                    <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+                    <span className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${currentMood === "minimal" ? "font-normal" : ""}`}>
                       {node.skill.name}
                     </span>
                   </div>
 
-                  {/* Tooltip / Level Info */}
                   <div
                     className={`absolute -bottom-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-foreground text-background text-[10px] font-bold whitespace-nowrap transition-all duration-300 pointer-events-none ${
                       isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
@@ -516,7 +500,6 @@ export default function SkillsSection() {
                       <span className="opacity-50">|</span>
                       <span>{node.skill.level}%</span>
                     </div>
-                    {/* Tooltip Arrow */}
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
                   </div>
                 </div>
@@ -524,7 +507,6 @@ export default function SkillsSection() {
             );
           })}
 
-          {/* Floating Instructions */}
           <div className="absolute bottom-6 right-6 flex items-center gap-3 text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest pointer-events-none">
             <div className="w-8 h-px bg-border/50" />
             {lang === "ar" ? "حرك الشاشة لرؤية التفاعل" : "Scroll to see interaction"}

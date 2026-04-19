@@ -240,35 +240,51 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="xl:hidden h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              className="xl:hidden h-10 w-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all bg-muted/20"
               aria-label="Toggle menu"
             >
-              <div className="w-4 flex flex-col gap-1 items-end">
-                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-4 translate-y-1.5 -rotate-45" : "w-4"}`} />
-                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "opacity-0" : "w-2.5"}`} />
-                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-4 -translate-y-1.5 rotate-45" : "w-3.5"}`} />
+              <div className="w-5 flex flex-col gap-1.5 items-end">
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 translate-y-2 -rotate-45" : "w-5"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "opacity-0" : "w-3"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 -translate-y-2 rotate-45" : "w-4"}`} />
               </div>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      {menuOpen && (
+      {/* Mobile Menu Overlay - Side Drawer Effect */}
+      <div
+        className={`fixed inset-0 z-[60] transition-all duration-500 xl:hidden ${menuOpen ? "visible" : "invisible"}`}
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-background/60 backdrop-blur-sm transition-opacity duration-500 ${menuOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setMenuOpen(false)}
+        />
+        
+        {/* Drawer Content */}
         <div
-          className="fixed inset-0 z-[60] bg-background/98 backdrop-blur-xl flex flex-col p-6 animate-fade-in xl:hidden"
-          dir={isRTL ? "rtl" : "ltr"}
+          className={`absolute top-0 bottom-0 w-[85%] max-w-[360px] bg-background border-border shadow-2xl transition-transform duration-500 ease-out flex flex-col ${
+            isRTL 
+              ? `left-0 border-r ${menuOpen ? "translate-x-0" : "-translate-x-full"}` 
+              : `right-0 border-l ${menuOpen ? "translate-x-0" : "translate-x-full"}`
+          }`}
         >
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border border-border overflow-hidden">
+          <div className="p-6 flex items-center justify-between border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full border border-border overflow-hidden ring-2 ring-primary/10">
                 <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
               </div>
-              <span className="font-bold">{personalName}</span>
+              <div>
+                <span className="block font-bold text-base">{personalName}</span>
+                <span className="block text-[10px] text-muted-foreground uppercase tracking-widest">Full Stack Developer</span>
+              </div>
             </div>
             <button
               onClick={() => setMenuOpen(false)}
-              className="h-10 w-10 rounded-full bg-muted flex items-center justify-center"
+              className="h-10 w-10 rounded-full bg-muted/40 flex items-center justify-center hover:bg-muted transition-colors"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -276,66 +292,74 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-1 gap-1 mb-8">
-              {NAV_ITEMS.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={(e) => { e.preventDefault(); scrollTo(item.href); setMenuOpen(false); }}
-                  className="px-4 py-3 rounded-xl text-lg font-medium hover:bg-muted transition-colors flex items-center justify-between group"
-                >
-                  <span>{item.label}</span>
-                  <svg className={`opacity-0 group-hover:opacity-40 transition-opacity ${isRTL ? "rotate-180" : ""}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                </a>
-              ))}
+          <div className="flex-1 overflow-y-auto py-6 px-4">
+            <div className="space-y-1 mb-8">
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeSection === item.href.slice(1);
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => { e.preventDefault(); scrollTo(item.href); setMenuOpen(false); }}
+                    className={`px-4 py-3.5 rounded-2xl text-base font-medium transition-all flex items-center justify-between group ${
+                      isActive 
+                        ? "bg-primary/10 text-primary" 
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    <svg 
+                      className={`transition-all duration-300 ${isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"} ${isRTL ? "rotate-180" : ""}`} 
+                      width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    >
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </a>
+                );
+              })}
             </div>
 
-            {/* Integrated Appearance System (Theme + Mood) */}
+            {/* Integrated Appearance System */}
             <div className="mb-8">
               <div className={`px-4 mb-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
-                {lang === "ar" ? "المظهر والنظام" : "Appearance & System"}
+                {lang === "ar" ? "تخصيص الواجهة" : "Interface Customization"}
               </div>
               
-              <div className="bg-muted/40 rounded-2xl p-2 border border-border/40">
-                {/* Theme Toggle in Menu */}
+              <div className="bg-muted/30 rounded-3xl p-3 border border-border/40 space-y-3">
+                {/* Theme Toggle */}
                 <button
                   onClick={onToggleDark}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${darkMode ? "bg-background shadow-sm" : "hover:bg-muted"}`}
+                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all ${darkMode ? "bg-background shadow-md" : "bg-background/40 hover:bg-background/60"}`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${darkMode ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${darkMode ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {darkMode ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                     ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     )}
                   </div>
-                  <div className={`flex-1 text-sm font-semibold ${isRTL ? "text-right" : "text-left"}`}>
-                    {lang === "ar" ? (darkMode ? "المظهر الليلي" : "المظهر النهاري") : (darkMode ? "Dark Mode" : "Light Mode")}
+                  <div className={`flex-1 text-sm font-bold ${isRTL ? "text-right" : "text-left"}`}>
+                    {lang === "ar" ? (darkMode ? "الوضع الليلي" : "الوضع النهاري") : (darkMode ? "Dark Theme" : "Light Theme")}
                   </div>
-                  <div className={`w-10 h-5 rounded-full relative transition-colors ${darkMode ? "bg-primary" : "bg-muted-foreground/30"}`}>
-                    <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${isRTL ? (darkMode ? "left-1" : "left-6") : (darkMode ? "left-6" : "left-1")}`} />
+                  <div className={`w-12 h-6 rounded-full relative transition-colors p-1 ${darkMode ? "bg-primary" : "bg-muted-foreground/30"}`}>
+                    <div className={`w-4 h-4 rounded-full bg-white transition-all shadow-sm ${isRTL ? (darkMode ? "translate-x-0" : "translate-x-6") : (darkMode ? "translate-x-6" : "translate-x-0")}`} />
                   </div>
                 </button>
 
-                <div className="h-px bg-border/40 mx-4 my-1" />
-
-                {/* Mood Options in Menu */}
-                <div className="grid grid-cols-3 gap-1 mt-1">
+                {/* Mood Selection */}
+                <div className="grid grid-cols-3 gap-2">
                   {MOOD_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => onSetMood(opt.value)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      className={`flex flex-col items-center gap-2.5 p-3.5 rounded-2xl transition-all border ${
                         mood === opt.value
-                          ? "bg-background text-primary shadow-sm ring-1 ring-primary/20"
-                          : "text-muted-foreground hover:bg-muted"
+                          ? "bg-background border-primary/30 text-primary shadow-md ring-1 ring-primary/10"
+                          : "bg-background/20 border-transparent text-muted-foreground hover:bg-background/40"
                       }`}
                     >
-                      <span className={mood === opt.value ? "text-primary" : "opacity-60"}>{opt.icon}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-tighter">
+                      <span className={`transition-transform duration-300 ${mood === opt.value ? "scale-110 text-primary" : "opacity-60"}`}>{opt.icon}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tight">
                         {lang === "ar" ? opt.label_ar : opt.label}
                       </span>
                     </button>
@@ -345,18 +369,18 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             </div>
           </div>
 
-          <div className="mt-auto pt-6 border-t border-border/40">
+          <div className="p-6 border-t border-border/40 bg-muted/10">
             <button
               onClick={handleDownloadPDF}
               disabled={pdfLoading}
-              className="w-full h-12 rounded-xl bg-foreground text-background font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full h-14 rounded-2xl bg-foreground text-background font-bold flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {pdfLoading ? (
-                <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                   <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 </svg>
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
               )}
@@ -364,7 +388,7 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             </button>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }

@@ -1057,6 +1057,21 @@
 /* ═══════════════════════════════════════════════════
    MOOD: MINIMAL
 ═══════════════════════════════════════════════════ */
+[data-mood="minimal"] {
+  --primary: 248 30% 15%;
+  --accent: 248 10% 94%;
+  --radius: 1rem;
+}
+
+.dark [data-mood="minimal"] {
+  --background: 240 10% 4%;
+  --foreground: 240 5% 90%;
+  --card: 240 10% 6%;
+  --border: 240 10% 12%;
+  --primary: 0 0% 100%;
+  --accent: 240 10% 15%;
+}
+
 [data-mood="minimal"] .glow-text { text-shadow: none !important; }
 [data-mood="minimal"] .nebula-orb { opacity: 0 !important; display: none !important; }
 [data-mood="minimal"] .glow-border { border-color: hsl(var(--border)) !important; box-shadow: none !important; animation: none !important; }
@@ -1084,18 +1099,32 @@
    MOOD: PROFESSIONAL
 ═══════════════════════════════════════════════════ */
 [data-mood="professional"] {
-  --background: 0 0% 100%;
-  --foreground: 220 30% 12%;
-  --border: 220 20% 88%;
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --border: 214 32% 91%;
   --card: 0 0% 100%;
-  --card-foreground: 220 30% 12%;
-  --muted: 220 20% 96%;
-  --muted-foreground: 220 15% 45%;
-  --accent: 220 20% 93%;
-  --primary: 220 30% 12%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 20% 96%;
-  --secondary-foreground: 220 30% 12%;
+  --card-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 221 83% 96%;
+  --primary: 221 83% 53%; /* Modern Blue */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --radius: 0.5rem;
+}
+
+.dark [data-mood="professional"] {
+  --background: 222 47% 4%;
+  --foreground: 210 40% 98%;
+  --border: 217 32% 17%;
+  --card: 222 47% 6%;
+  --card-foreground: 210 40% 98%;
+  --muted: 217 32% 12%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 217 91% 15%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 4%;
 }
 [data-mood="professional"] .nebula-orb { display: none !important; }
 [data-mood="professional"] .glow-text { text-shadow: none !important; }
