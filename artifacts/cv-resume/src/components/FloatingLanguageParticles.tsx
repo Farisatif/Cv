@@ -1,21 +1,18 @@
 import { useEffect, useRef, useCallback } from "react";
 
-// ── Language labels ────────────────────────────────────────────────────────
 const LABELS = [
   "JavaScript", "TypeScript", "Python", "React", "Rust", "Go",
   "C++", "Java", "SQL", "Node.js", "Linux", "C#", "Next.js",
-  "Flutter", "CSS", "HTML", "API", "WebAssembly", "Kotlin",
-  "GraphQL", "Figma", "Git", "Docker", "Redis", "MySQL",
-  "JSON", "Bash", "Swift", "PHP", "Tailwind", "Vue", "Svelte",
+  "Flutter", "CSS", "HTML", "API", "Kotlin",
+  "GraphQL", "Git", "Docker", "Redis", "MySQL",
+  "Bash", "Swift", "Tailwind", "Vue",
 ];
 
-// ── Code snippets for the drifting code lines ──────────────────────────────
 const CODE_LINES = [
   "const render = () => { ... }",
   "export default function App()",
   "SELECT * FROM users WHERE id =",
   "git commit -m 'feat: improve UI'",
-  "npm install && npm run build",
   "interface Props { children: ReactNode }",
   "async function fetchData(url: string)",
   "const [state, setState] = useState()",
@@ -24,13 +21,8 @@ const CODE_LINES = [
   "useEffect(() => { /* side effects */ }",
   "const router = express.Router()",
   "await pool.query('SELECT NOW()')",
-  "transform: translateY(-50%) scale(1.1)",
-  "border-radius: 9999px; overflow: hidden",
-  "@keyframes float { 0%, 100% { ... } }",
-  "const PORT = process.env.PORT || 3000",
   "import { useMemo, useCallback } from",
   "flex-direction: row; align-items: center",
-  "fs.readFileSync('./data.json', 'utf-8')",
 ];
 
 type DepthLevel = "FAR" | "MID" | "NEAR";
@@ -97,37 +89,42 @@ const LEVEL_COLORS = {
 } as const;
 
 interface Particle {
-  label:       string;
-  screenX:     number; // 0-1 of viewport width
-  screenY:     number; // 0-1 of viewport height — home position
-  depth:       number; // 0-1
-  depthLevel:  DepthLevel;
-  size:        number;
-  opacity:     number;
-  phase:       number;
-  phaseSpeed:  number;
-  driftAmpX:   number;
-  driftAmpY:   number;
+  label:        string;
+  screenX:      number;
+  screenY:      number;
+  depth:        number;
+  depthLevel:   DepthLevel;
+  size:         number;
+  opacity:      number;
+  phase:        number;
+  phaseSpeed:   number;
+  driftAmpX:    number;
+  driftAmpY:    number;
   baseRotation: number;
-  rotSpeed:    number;
-  // wrapping zone: particles that go off-screen re-enter from opposite side
-  wrapOffsetY: number;
+  rotSpeed:     number;
+  wrapOffsetY:  number;
+  // pre-computed box dimensions (filled on first draw)
+  cachedBoxW:   number;
+  cachedBoxH:   number;
+  cachedPadX:   number;
+  cachedPadY:   number;
 }
 
 interface CodeLine {
-  text:      string;
-  screenY:   number; // 0-1 of viewport height
-  speed:     number; // px per ms (horizontal drift)
-  dir:       1 | -1; // 1 = left-to-right, -1 = right-to-left
-  opacity:   number;
-  size:      number;
-  x:         number; // current x position
-  depth:     number; // 0-1 for parallax
+  text:    string;
+  screenY: number;
+  speed:   number;
+  dir:     1 | -1;
+  opacity: number;
+  size:    number;
+  x:       number;
+  depth:   number;
+  cachedW: number; // pre-computed text width (filled on first draw)
 }
 
 interface StarData {
-  x: number; // 0-1
-  y: number; // 0-1
+  x: number;
+  y: number;
   r: number;
   alpha: number;
   twinkleSpeed: number;
@@ -151,28 +148,24 @@ function seededRng(seed: number) {
 function createParticles(count: number): Particle[] {
   const rng = seededRng(42);
   const result: Particle[] = [];
-
   for (let i = 0; i < count; i++) {
     const li = i % LABELS.length;
     const depth = 0.08 + rng() * 0.88;
     const level = getDepthLevel(depth);
-    const st    = LEVEL_STYLES[level];
-
+    const st = LEVEL_STYLES[level];
     const levelT = level === "FAR"
       ? depth / 0.40
       : level === "MID"
         ? (depth - 0.40) / 0.30
         : (depth - 0.70) / 0.30;
-
     const opacity = lerp(st.opacityRange[0], st.opacityRange[1], levelT);
-    const size    = lerp(st.sizeRange[0],    st.sizeRange[1],    levelT);
+    const size    = lerp(st.sizeRange[0], st.sizeRange[1], levelT);
     const rotSign = rng() < 0.5 ? 1 : -1;
     const rotSpeed = lerp(st.rotSpeedRange[0], st.rotSpeedRange[1], rng()) * rotSign;
-
     result.push({
       label:        LABELS[li],
       screenX:      0.03 + rng() * 0.94,
-      screenY:      rng(),                // spread across full height 0–1
+      screenY:      rng(),
       depth,
       depthLevel:   level,
       size,
@@ -184,6 +177,10 @@ function createParticles(count: number): Particle[] {
       baseRotation: (rng() - 0.5) * 0.25,
       rotSpeed,
       wrapOffsetY:  0,
+      cachedBoxW:   0,
+      cachedBoxH:   0,
+      cachedPadX:   0,
+      cachedPadY:   0,
     });
   }
   return result;
@@ -191,15 +188,16 @@ function createParticles(count: number): Particle[] {
 
 function createCodeLines(): CodeLine[] {
   const rng = seededRng(77);
-  return CODE_LINES.map((text, i) => ({
+  return CODE_LINES.map(text => ({
     text,
     screenY: 0.04 + rng() * 0.92,
-    speed:   0.012 + rng() * 0.018,  // very slow
+    speed:   0.010 + rng() * 0.014,
     dir:     (rng() < 0.5 ? 1 : -1) as 1 | -1,
-    opacity: 0.025 + rng() * 0.025,
+    opacity: 0.022 + rng() * 0.022,
     size:    9 + Math.floor(rng() * 4),
-    x:       rng(),  // initial x fraction 0-1
+    x:       rng(),
     depth:   0.2 + rng() * 0.5,
+    cachedW: 0,
   }));
 }
 
@@ -208,18 +206,15 @@ function createStars(count: number): StarData[] {
   return Array.from({ length: count }, () => ({
     x:           rng(),
     y:           rng(),
-    r:           0.4 + rng() * 2.0,
-    alpha:       0.04 + rng() * 0.22,
+    r:           0.4 + rng() * 1.8,
+    alpha:       0.04 + rng() * 0.20,
     twinkleSpeed: 0.0005 + rng() * 0.0015,
     phase:       rng() * Math.PI * 2,
     bright:      rng() > 0.88,
   }));
 }
 
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number, r: number,
-) {
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   const minR = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
   ctx.moveTo(x + minR, y);
@@ -234,9 +229,10 @@ function roundRect(
   ctx.closePath();
 }
 
-const PARTICLES  = createParticles(55);
+// Reduced count: 48 particles, 60 stars, 14 code lines
+const PARTICLES  = createParticles(48);
 const CODE_CHIPS = createCodeLines();
-const STARS      = createStars(120);
+const STARS      = createStars(65);
 
 export default function FloatingLanguageParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -250,7 +246,8 @@ export default function FloatingLanguageParticles() {
     isDark:        true,
     docHeight:     0,
     lastTime:      0,
-    codeLines:     CODE_CHIPS.map(c => ({ ...c })), // mutable copies
+    codeLines:     CODE_CHIPS.map(c => ({ ...c })),
+    particlesInited: false,
   });
 
   const resize = useCallback(() => {
@@ -267,6 +264,8 @@ export default function FloatingLanguageParticles() {
     if (ctx) ctx.scale(dpr, dpr);
     stateRef.current.width  = w;
     stateRef.current.height = h;
+    // Reset cached widths so they get recomputed for new size
+    stateRef.current.particlesInited = false;
   }, []);
 
   useEffect(() => {
@@ -283,10 +282,10 @@ export default function FloatingLanguageParticles() {
 
     let lastSY = window.scrollY;
     const onScroll = () => {
-      const sy        = window.scrollY;
-      const rawVel    = sy - lastSY;
+      const sy     = window.scrollY;
+      const rawVel = sy - lastSY;
       state.scrollVel = Math.max(-50, Math.min(50, rawVel));
-      lastSY          = sy;
+      lastSY = sy;
       state.targetScrollY = sy;
       state.docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
     };
@@ -301,118 +300,111 @@ export default function FloatingLanguageParticles() {
 
     const draw = (ts: number) => {
       state.animId = requestAnimationFrame(draw);
-
       const { width, height, isDark } = state;
       if (width === 0) return;
 
-      const dt = state.lastTime === 0 ? 16 : ts - state.lastTime;
+      const dt = state.lastTime === 0 ? 16 : Math.min(ts - state.lastTime, 50);
       state.lastTime = ts;
 
-      // Smooth scroll interpolation
-      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * 0.06;
+      // Smooth scroll — decoupled from direct scroll events
+      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * 0.055;
       const scrollFrac = state.smoothScrollY / Math.max(1, state.docHeight - height);
 
       ctx.clearRect(0, 0, width, height);
       const palette = isDark ? LEVEL_COLORS.dark : LEVEL_COLORS.light;
 
-      // ── STARS ────────────────────────────────────────────────────────────
+      // ── PRE-COMPUTE cached sizes on first draw ────────────────────────────
+      if (!state.particlesInited) {
+        state.particlesInited = true;
+        PARTICLES.forEach(p => {
+          const st  = LEVEL_STYLES[p.depthLevel];
+          ctx.font  = `${st.fontWeight} ${p.size}px 'Space Grotesk','Inter',sans-serif`;
+          const tw  = ctx.measureText(p.label).width;
+          const padX = p.depthLevel === "FAR" ? 6 : p.depthLevel === "MID" ? 8 : 9;
+          const padY = p.depthLevel === "FAR" ? 3 : p.depthLevel === "MID" ? 4 : 5;
+          p.cachedBoxW = tw + padX * 2;
+          p.cachedBoxH = p.size * 1.35 + padY * 2;
+          p.cachedPadX = padX;
+          p.cachedPadY = padY;
+        });
+        state.codeLines.forEach(line => {
+          ctx.font = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
+          line.cachedW = ctx.measureText(line.text).width;
+        });
+      }
+
+      // ── STARS (no halo gradients — simple arcs only) ──────────────────────
       if (isDark) {
         STARS.forEach(star => {
           const tw = 0.55 + 0.45 * Math.sin(ts * star.twinkleSpeed + star.phase);
           const alpha = star.alpha * tw;
-          const sx = star.x * width;
-          const sy = star.y * height;
-          const r  = star.r * (star.bright ? 1.6 : 1);
-
+          const r = star.r * (star.bright ? 1.5 : 1);
           ctx.beginPath();
-          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.arc(star.x * width, star.y * height, r, 0, Math.PI * 2);
           ctx.fillStyle = star.bright
             ? `rgba(255,252,235,${alpha.toFixed(3)})`
             : `rgba(190,210,255,${alpha.toFixed(3)})`;
           ctx.fill();
-
-          if (star.bright && r > 1.8) {
-            const halo = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 5);
-            halo.addColorStop(0, `rgba(220,235,255,${(alpha * 0.15).toFixed(3)})`);
-            halo.addColorStop(1, "rgba(0,0,0,0)");
-            ctx.fillStyle = halo;
-            ctx.fillRect(sx - r * 6, sy - r * 6, r * 12, r * 12);
-          }
+          // Removed: expensive createRadialGradient halo for bright stars
         });
       } else {
-        STARS.slice(0, 30).forEach(star => {
+        STARS.slice(0, 25).forEach(star => {
           const tw = 0.5 + 0.5 * Math.sin(ts * star.twinkleSpeed + star.phase);
           ctx.beginPath();
-          ctx.arc(star.x * width, star.y * height, star.r * 0.7, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(80,60,200,${(star.alpha * 0.12 * tw).toFixed(3)})`;
+          ctx.arc(star.x * width, star.y * height, star.r * 0.6, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(80,60,200,${(star.alpha * 0.10 * tw).toFixed(3)})`;
           ctx.fill();
         });
       }
 
-      // ── SLOW CODE LINES ──────────────────────────────────────────────────
-      ctx.font = "300 10px 'JetBrains Mono','Fira Code',monospace";
+      // ── CODE LINES (using cached widths) ─────────────────────────────────
       state.codeLines.forEach(line => {
-        // Advance position
         line.x += line.dir * line.speed * dt / width;
-
-        // Wrap around
-        const textFrac = (ctx.measureText(line.text).width + 40) / width;
-        if (line.dir === 1 && line.x > 1 + textFrac) line.x = -textFrac;
-        if (line.dir === -1 && line.x < -textFrac)   line.x = 1 + textFrac;
+        const textFrac = (line.cachedW + 40) / width;
+        if (line.dir === 1  && line.x > 1 + textFrac) line.x = -textFrac;
+        if (line.dir === -1 && line.x < -textFrac)     line.x = 1 + textFrac;
 
         const px = line.x * width;
-        const py = line.screenY * height;
+        const py = line.screenY * height + scrollFrac * height * 0.06 * (1 - line.depth);
 
-        // parallax — only tiny shift based on scroll
-        const parallaxShift = scrollFrac * height * 0.08 * (1 - line.depth);
-
-        const finalAlpha = line.opacity * (isDark ? 1 : 0.5);
-        if (finalAlpha < 0.008) return;
+        const finalAlpha = line.opacity * (isDark ? 1 : 0.4);
+        if (finalAlpha < 0.006) return;
 
         ctx.save();
-        ctx.globalAlpha = finalAlpha;
-        ctx.fillStyle = isDark ? "hsl(263,70%,75%)" : "hsl(248,55%,40%)";
-        ctx.font = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
-        ctx.textAlign = "left";
+        ctx.globalAlpha  = finalAlpha;
+        ctx.fillStyle    = isDark ? "hsl(263,70%,75%)" : "hsl(248,55%,40%)";
+        ctx.font         = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
+        ctx.textAlign    = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(line.text, px, py + parallaxShift);
+        ctx.fillText(line.text, px, py);
         ctx.restore();
       });
 
-      // ── LANGUAGE PARTICLES ───────────────────────────────────────────────
+      // ── PARTICLES (using cached box dimensions) ───────────────────────────
       PARTICLES.forEach(p => {
         const st    = LEVEL_STYLES[p.depthLevel];
         const color = palette[p.depthLevel];
         const { h, s, l } = color;
 
-        // Home position spread across full viewport height
         const homeY = p.screenY * height;
-
-        // Tiny parallax: deeper particles shift less
-        const parallaxShift = scrollFrac * height * 0.20 * (1 - p.depth * 0.7);
-
-        // Drift
+        const parallaxShift = scrollFrac * height * 0.18 * (1 - p.depth * 0.7);
         const driftX = Math.sin(ts * p.phaseSpeed + p.phase) * p.driftAmpX;
         const driftY = Math.sin(ts * p.phaseSpeed * 0.68 + p.phase + 1.1) * p.driftAmpY;
-
-        // Velocity effect — very subtle
-        const velBoost = state.scrollVel * (1 - p.depth) * 0.15;
+        const velBoost = state.scrollVel * (1 - p.depth) * 0.12;
 
         const px = p.screenX * width + driftX;
         const py = homeY + parallaxShift + driftY + velBoost;
 
-        // Wrap vertically with buffer
         const buf = 100;
         const range = height + buf * 2;
         const wrappedPy = ((py + buf) % range + range) % range - buf;
 
-        // Edge fade
         const edgePad = 80;
         let edgeFade = 1;
         if (wrappedPy < edgePad)              edgeFade = Math.max(0, wrappedPy / edgePad);
         else if (wrappedPy > height - edgePad) edgeFade = Math.max(0, (height - wrappedPy) / edgePad);
 
-        const velOpacity = Math.min(0.3, Math.abs(state.scrollVel) * 0.003);
+        const velOpacity = Math.min(0.28, Math.abs(state.scrollVel) * 0.0025);
         const finalAlpha = (p.opacity + velOpacity * (1 - p.depth)) * edgeFade;
         if (finalAlpha < 0.005) return;
 
@@ -422,14 +414,10 @@ export default function FloatingLanguageParticles() {
         ctx.translate(px, wrappedPy);
         ctx.rotate(totalRot);
 
-        ctx.font = `${st.fontWeight} ${p.size}px 'Space Grotesk','Inter',sans-serif`;
-        const textW = ctx.measureText(p.label).width;
-        const padX  = p.depthLevel === "FAR" ? 6 : p.depthLevel === "MID" ? 8 : 9;
-        const padY  = p.depthLevel === "FAR" ? 3 : p.depthLevel === "MID" ? 4 : 5;
-        const boxW  = textW + padX * 2;
-        const boxH  = p.size * 1.35 + padY * 2;
-        const bx    = -boxW / 2;
-        const by    = -boxH / 2;
+        const boxW = p.cachedBoxW || 60;
+        const boxH = p.cachedBoxH || 20;
+        const bx = -boxW / 2;
+        const by = -boxH / 2;
 
         ctx.globalAlpha = finalAlpha * st.bgAlpha * (1 / p.opacity);
         ctx.fillStyle   = `hsl(${h},${s}%,${l}%)`;
@@ -444,6 +432,7 @@ export default function FloatingLanguageParticles() {
 
         ctx.globalAlpha  = finalAlpha;
         ctx.fillStyle    = `hsl(${h},${s}%,${l}%)`;
+        ctx.font         = `${st.fontWeight} ${p.size}px 'Space Grotesk','Inter',sans-serif`;
         ctx.textAlign    = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(p.label, 0, 0);
@@ -451,8 +440,7 @@ export default function FloatingLanguageParticles() {
         ctx.restore();
       });
 
-      // Velocity decay
-      state.scrollVel *= 0.90;
+      state.scrollVel *= 0.88;
     };
 
     state.animId = requestAnimationFrame(draw);
@@ -476,6 +464,7 @@ export default function FloatingLanguageParticles() {
         height:        "100%",
         pointerEvents: "none",
         zIndex:        0,
+        willChange:    "contents",
       }}
     />
   );

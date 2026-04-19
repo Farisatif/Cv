@@ -74,7 +74,7 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   DARK MODE
+   DARK (shared base — cosmic & night)
 ═══════════════════════════════════════════════════ */
 .dark {
   --background: 237 34% 2.5%;
@@ -105,6 +105,58 @@
 
   --card-shadow: 0 1px 4px hsl(240 40% 2% / 0.55), 0 8px 36px hsl(240 40% 2% / 0.35);
   --card-shadow-hover: 0 0 0 1px hsl(263 82% 70% / 0.16), 0 20px 65px hsl(263 70% 25% / 0.28);
+}
+
+/* ═══════════════════════════════════════════════════
+   NIGHT MODE — pitch-black with faint stars
+   (overrides .dark when data-mood="dark")
+═══════════════════════════════════════════════════ */
+html[data-mood="dark"] {
+  --background: 220 20% 1%;
+  --foreground: 215 22% 90%;
+  --border: 220 25% 8%;
+  --input: 220 20% 5%;
+  --ring: 263 85% 68%;
+
+  --card: 220 18% 2.5%;
+  --card-foreground: 215 22% 90%;
+
+  --primary: 263 85% 72%;
+  --primary-foreground: 220 20% 2%;
+
+  --secondary: 220 20% 4.5%;
+  --secondary-foreground: 215 20% 85%;
+
+  --muted: 220 20% 3.5%;
+  --muted-foreground: 220 16% 40%;
+
+  --accent: 263 48% 9%;
+  --accent-foreground: 215 22% 90%;
+
+  --glow-primary: 263 85% 75%;
+  --glow-secondary: 186 95% 65%;
+  --glow-blue: 218 100% 70%;
+  --glow-rose: 322 82% 68%;
+
+  --card-shadow: 0 2px 10px hsl(220 40% 0% / 0.85), 0 12px 50px hsl(220 35% 0% / 0.65);
+  --card-shadow-hover: 0 0 0 1px hsl(263 85% 72% / 0.20), 0 20px 70px hsl(263 70% 22% / 0.38);
+}
+
+html[data-mood="dark"] body {
+  background-image:
+    radial-gradient(ellipse 80% 45% at 50% -10%, hsl(263 85% 68% / 0.07) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 35% at 78% 94%, hsl(186 95% 62% / 0.04) 0%, transparent 55%);
+}
+
+/* Pitch-black navbar in night mode */
+html[data-mood="dark"] .nav-blur {
+  --tw-backdrop-blur: blur(16px);
+  background-color: hsl(220 20% 1% / 0.92) !important;
+}
+
+/* Extra contrast for buttons in night mode */
+html[data-mood="dark"] .dark\:bg-\[hsl\(240_28\%_6\%\)\] {
+  background-color: hsl(220 20% 2%) !important;
 }
 
 /* ═══════════════════════════════════════════════════

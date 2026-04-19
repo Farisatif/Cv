@@ -130,21 +130,48 @@ function buildNodes(
     i < nFg ? "fg" : i < nFg + nMg ? "mg" : "bg"
   );
 
+  // Interleave skills by category so nodes from the same category aren't all together
+  const byCategory = new Map<string, Skill[]>();
+  pool.forEach(s => {
+    if (!byCategory.has(s.category)) byCategory.set(s.category, []);
+    byCategory.get(s.category)!.push(s);
+  });
+  const interleaved: Skill[] = [];
+  const catArrays = Array.from(byCategory.values());
+  const maxCatLen = Math.max(...catArrays.map(c => c.length));
+  for (let ci = 0; ci < maxCatLen; ci++) {
+    catArrays.forEach(cat => { if (ci < cat.length) interleaved.push(cat[ci]); });
+  }
+  // Replace pool with interleaved
+  pool.splice(0, pool.length, ...interleaved);
+
   let pts = poissonDisc(n, cw, ch, MIN_DIST, MX, MY, 53);
 
+  // Golden angle spiral as primary placement (guarantees even spread across full canvas)
+  const goldenPts = Array.from({ length: n }, (_, i) => {
+    const angle = i * 2.399963229728653; // golden angle ≈ 137.5°
+    const r = Math.sqrt((i + 0.5) / n) * (Math.min(cw - MX * 2, ch - MY * 2) / 2) * 0.88;
+    return {
+      x: cw / 2 + r * Math.cos(angle),
+      y: ch / 2 + r * Math.sin(angle),
+    };
+  });
+
+  // Use Poisson disc pts if we got at least 70% coverage, otherwise use golden spiral
+  if (pts.length < Math.ceil(n * 0.70)) {
+    pts = goldenPts;
+  } else {
+    // Fill any remaining slots with golden spiral positions (guaranteed to not cluster)
+    while (pts.length < n) {
+      pts.push(goldenPts[pts.length]);
+    }
+  }
+
+  // Shuffle using seeded RNG so layout is stable
   const shRng = seededRng(17);
   for (let i = pts.length - 1; i > 0; i--) {
     const j = Math.floor(shRng() * (i + 1));
     [pts[i], pts[j]] = [pts[j], pts[i]];
-  }
-
-  while (pts.length < n) {
-    const i   = pts.length;
-    const col = i % 5, row = Math.floor(i / 5);
-    pts.push({
-      x: MX + col * ((cw - MX * 2) / 4) + (col % 2) * 30,
-      y: MY + row * ((ch - MY * 2) / 3),
-    });
   }
 
   return pool.map((skill, i) => {
@@ -267,13 +294,7 @@ function drawFrame(
       }
       ctx.fill();
 
-      if (star.bright && streak < 2 && r > 1.5) {
-        const halo = ctx.createRadialGradient(nx * w, ny * h, 0, nx * w, ny * h, r * 5);
-        halo.addColorStop(0, `rgba(220,235,255,${(alpha * 0.14).toFixed(3)})`);
-        halo.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = halo;
-        ctx.fillRect(nx * w - r * 6, ny * h - r * 6, r * 12, r * 12);
-      }
+      // Halo removed for performance (no createRadialGradient per star per frame)
     });
 
     // Category connections
@@ -740,10 +761,78 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
 }) {
   const cats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
   const visible = filter === allLabel ? skills : skills.filter(s => s.category === filter);
-  const sorted = [...visible].sort((a, b) => b.level - a.level);
+  const sorted  = [...visible].sort((a, b) => b.level - a.level);
+
+  // Spring-back drag — manipulate DOM directly for 60fps, no React state during drag
+  const cardEls   = useRef<Map<string, HTMLDivElement>>(new Map());
+  const dragRef   = useRef<{ id: string; el: HTMLDivElement; startX: number; startY: number } | null>(null);
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!dragRef.current) return;
+      const { el, startX, startY } = dragRef.current;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      el.style.transform  = `translate(${dx}px, ${dy}px) scale(1.04)`;
+      el.style.transition = "box-shadow 0.15s ease";
+      el.style.boxShadow  = `0 16px 48px rgba(0,0,0,0.35), 0 0 0 2px hsl(263 80% 68% / 0.30)`;
+      el.style.zIndex     = "20";
+    };
+
+    const onUp = () => {
+      if (!dragRef.current) return;
+      const { id, el } = dragRef.current;
+      dragRef.current = null;
+
+      // Check collision with overlapping cards
+      const rect = el.getBoundingClientRect();
+      const hitIds: string[] = [];
+      cardEls.current.forEach((otherEl, otherId) => {
+        if (otherId === id) return;
+        const or = otherEl.getBoundingClientRect();
+        const cx = (rect.left + rect.right) / 2;
+        const cy = (rect.top + rect.bottom) / 2;
+        if (cx > or.left && cx < or.right && cy > or.top && cy < or.bottom) {
+          hitIds.push(otherId);
+        }
+      });
+
+      // Spring back
+      el.style.transition = "transform 0.65s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.5s ease, z-index 0s 0.65s";
+      el.style.transform  = "translate(0px, 0px) scale(1)";
+      el.style.zIndex     = "";
+
+      if (hitIds.length > 0) {
+        // Collision glow on dragged card
+        el.style.boxShadow = "0 0 40px hsl(263 82% 68% / 0.75), 0 0 80px hsl(263 82% 68% / 0.35), inset 0 0 20px hsl(263 82% 68% / 0.12)";
+        setTimeout(() => { el.style.boxShadow = ""; }, 1000);
+
+        // Collision glow on hit cards
+        hitIds.forEach(hitId => {
+          const hitEl = cardEls.current.get(hitId);
+          if (!hitEl) return;
+          hitEl.style.transition = "box-shadow 0.12s ease";
+          hitEl.style.boxShadow  = "0 0 35px hsl(186 90% 60% / 0.70), 0 0 60px hsl(186 90% 60% / 0.30), inset 0 0 16px hsl(186 90% 60% / 0.10)";
+          setTimeout(() => {
+            hitEl.style.transition = "box-shadow 1s ease";
+            hitEl.style.boxShadow  = "";
+          }, 180);
+        });
+      } else {
+        el.style.boxShadow = "";
+      }
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {sorted.map((skill, i) => {
         const catIdx = Math.max(0, cats.indexOf(skill.category));
         const color  = PALETTE[catIdx % PALETTE.length];
@@ -753,8 +842,27 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
         return (
           <div
             key={skill.id}
-            className="group rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 hover:border-[hsl(263_60%_65%/0.35)] transition-all duration-200 hover:shadow-lg"
-            style={{ animationDelay: `${i * 35}ms` }}
+            ref={(el) => { if (el) cardEls.current.set(skill.id, el); else cardEls.current.delete(skill.id); }}
+            className="group rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 hover:border-[hsl(263_60%_65%/0.35)] hover:shadow-lg select-none"
+            style={{
+              animationDelay: `${i * 30}ms`,
+              cursor: "grab",
+              willChange: "transform",
+              transition: "border-color 0.2s, box-shadow 0.2s",
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              const el = cardEls.current.get(skill.id);
+              if (!el) return;
+              dragRef.current = { id: skill.id, el, startX: e.clientX, startY: e.clientY };
+              el.style.transition = "none";
+              el.style.cursor = "grabbing";
+              el.setPointerCapture(e.pointerId);
+            }}
+            onPointerUp={() => {
+              const el = cardEls.current.get(skill.id);
+              if (el) el.style.cursor = "";
+            }}
           >
             <div className={`flex items-center gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
               <div

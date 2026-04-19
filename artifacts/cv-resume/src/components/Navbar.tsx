@@ -24,8 +24,8 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_a
   },
   {
     value: "dark",
-    label: "Dark",
-    label_ar: "أسود",
+    label: "Night",
+    label_ar: "ليل",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -35,7 +35,7 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_a
   {
     value: "light",
     label: "Light",
-    label_ar: "أبيض",
+    label_ar: "نهار",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="5"/>
@@ -44,6 +44,17 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_a
     ),
   },
 ];
+
+// Globe icon SVG (language toggle)
+function GlobeIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+    </svg>
+  );
+}
 
 export default function Navbar({ mood, onSetMood }: NavbarProps) {
   const { lang, setLang, isRTL } = useLanguage();
@@ -102,7 +113,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
 
   const handleDownloadPDF = async () => {
     setPdfLoading(true);
-    try { await downloadPDF(lang); }
+    try { await downloadPDF(lang, data); }
     finally { setPdfLoading(false); }
   };
 
@@ -160,14 +171,14 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
             })}
           </ul>
 
-          {/* Right actions */}
-          <div className={`flex items-center gap-1 flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+          {/* Right actions — NO flex-row-reverse; dir="rtl" on parent handles layout */}
+          <div className="flex items-center gap-1 flex-shrink-0">
 
             {/* Mood switcher (Desktop) */}
             <div ref={moodRef} className="relative hidden sm:block">
               <button
                 onClick={() => setMoodOpen(!moodOpen)}
-                title={`Mood: ${currentMood?.label}`}
+                title={`Theme: ${currentMood?.label}`}
                 className={`h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-medium border transition-all duration-200 ${
                   moodOpen
                     ? "bg-muted text-foreground border-border"
@@ -185,7 +196,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
 
               {moodOpen && (
                 <div
-                  className={`absolute top-10 z-50 py-1 rounded-xl border border-border bg-background dark:bg-[hsl(240_28%_6%)] shadow-xl overflow-hidden min-w-[140px] ${isRTL ? "left-0" : "right-0"}`}
+                  className={`absolute top-10 z-50 py-1 rounded-xl border border-border bg-background dark:bg-[hsl(240_28%_6%)] shadow-xl overflow-hidden min-w-[140px] ${isRTL ? "right-0" : "right-0"}`}
                   style={{ animation: "scale-in 0.15s cubic-bezier(0.16,1,0.3,1)" }}
                 >
                   {MOOD_OPTIONS.map((opt) => (
@@ -211,11 +222,17 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
               )}
             </div>
 
+            {/* Language toggle — Globe icon + language abbr */}
             <button
               onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="flex h-8 px-2.5 rounded-lg items-center justify-center text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 font-mono border border-border/60"
+              title={lang === "en" ? "التبديل للعربية" : "Switch to English"}
+              className="flex h-8 w-8 rounded-lg items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 border border-border/60 relative group"
             >
-              {lang === "en" ? "عربي" : "EN"}
+              <GlobeIcon />
+              {/* Language badge */}
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-foreground text-background text-[7px] font-black flex items-center justify-center leading-none pointer-events-none select-none">
+                {lang === "en" ? "ع" : "E"}
+              </span>
             </button>
 
             {/* Mobile Menu Toggle */}
@@ -224,7 +241,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
               className="xl:hidden h-10 w-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all bg-muted/20"
               aria-label="Toggle menu"
             >
-              <div className="w-5 flex flex-col gap-1.5 items-end">
+              <div className="w-5 flex flex-col gap-1.5">
                 <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 translate-y-2 -rotate-45" : "w-5"}`} />
                 <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-0 opacity-0" : "w-4"}`} />
                 <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 -translate-y-2 rotate-45" : "w-3"}`} />
@@ -253,14 +270,16 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
               : `right-0 border-l ${menuOpen ? "translate-x-0" : "translate-x-full"}`
           }`}
         >
-          <div className="p-6 flex items-center justify-between border-b border-border/40">
-            <div className="flex items-center gap-3">
+          <div className={`p-6 flex items-center justify-between border-b border-border/40 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <div className={`flex items-center gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
               <div className="w-10 h-10 rounded-full border border-border overflow-hidden ring-2 ring-primary/10">
                 <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
               </div>
-              <div>
+              <div className={isRTL ? "text-right" : ""}>
                 <span className="block font-bold text-base">{personalName}</span>
-                <span className="block text-[10px] text-muted-foreground uppercase tracking-widest">Full Stack Developer</span>
+                <span className="block text-[10px] text-muted-foreground uppercase tracking-widest">
+                  {lang === "ar" ? "مطور متكامل" : "Full Stack Developer"}
+                </span>
               </div>
             </div>
             <button
@@ -286,11 +305,11 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                       isActive 
                         ? "bg-primary/10 text-primary" 
                         : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
+                    } ${isRTL ? "flex-row-reverse" : ""}`}
                   >
                     <span>{item.label}</span>
                     <svg 
-                      className={`transition-all duration-300 ${isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"} ${isRTL ? "rotate-180" : ""}`} 
+                      className={`transition-all duration-300 ${isActive ? "opacity-100" : "opacity-0"} ${isRTL ? "rotate-180" : ""}`} 
                       width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                     >
                       <polyline points="9 18 15 12 9 6"/>
@@ -300,14 +319,13 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
               })}
             </div>
 
-            {/* Integrated Appearance System */}
+            {/* Appearance */}
             <div className="mb-8">
               <div className={`px-4 mb-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
                 {lang === "ar" ? "اختر المظهر" : "Choose Theme"}
               </div>
               
               <div className="bg-muted/30 rounded-3xl p-3 border border-border/40 space-y-3">
-                {/* Mood Selection */}
                 <div className="grid grid-cols-3 gap-2">
                   {MOOD_OPTIONS.map((opt) => (
                     <button
@@ -328,13 +346,27 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                 </div>
               </div>
             </div>
+
+            {/* Language switcher in drawer */}
+            <div className="mb-4">
+              <div className={`px-4 mb-3 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
+                {lang === "ar" ? "اللغة" : "Language"}
+              </div>
+              <button
+                onClick={() => { setLang(lang === "en" ? "ar" : "en"); setMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-muted/30 border border-border/40 text-sm font-medium hover:bg-muted/50 transition-all ${isRTL ? "flex-row-reverse" : ""}`}
+              >
+                <GlobeIcon />
+                <span>{lang === "en" ? "التبديل إلى العربية" : "Switch to English"}</span>
+              </button>
+            </div>
           </div>
 
           <div className="p-6 border-t border-border/40 bg-muted/10">
             <button
               onClick={handleDownloadPDF}
               disabled={pdfLoading}
-              className="w-full h-14 rounded-2xl bg-foreground text-background font-bold flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all disabled:opacity-50"
+              className={`w-full h-14 rounded-2xl bg-foreground text-background font-bold flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 ${isRTL ? "flex-row-reverse" : ""}`}
             >
               {pdfLoading ? (
                 <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">

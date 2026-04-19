@@ -28,25 +28,25 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - Projects have `tags_en`, `tags_ar`, and `en`/`ar` descriptions.
 - **Translations**: UI strings in `src/data/translations.ts` (both languages).
 - **Language context**: `src/context/LanguageContext.tsx` — RTL/LTR support, persisted to localStorage.
-- **PDF download**: `src/lib/downloadPDF.ts` — html2canvas + jspdf.
+- **PDF download**: `src/lib/downloadPDF.ts` — pure jsPDF (no html2canvas): all CV sections, bilingual labels, skill bars, pagination, footer.
 - **Features**:
-  - Bilingual EN/AR with RTL layout support (toggle in navbar)
-  - PDF download via html2canvas + jspdf
+  - Bilingual EN/AR with RTL layout support (globe icon + ع/E badge in navbar)
+  - PDF download (pure jsPDF): full sections, bilingual, skill bars, pagination
   - Premium design system: `cosmic-card`, `premium-card`, `highlight-card`, `btn-primary`, `btn-secondary`, `cosmic-input`, `section-label`
   - Space Grotesk + Inter + Noto Sans Arabic typography
   - Animated particle background on hero with twinkling + constellation lines
   - Achievement chips on hero (years coding, commits, repos)
   - Typewriter effect for role titles (bilingual)
   - Animated stat counters (count-up on scroll)
-  - Draggable skill badges with physics-based drop behavior
+  - Galaxy Skills: golden-angle spiral placement, category-interleaved, no clustering; 2-col grid with spring-back drag + collision glow
   - Interactive language bar with draggable dividers
-  - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated)
+  - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated); scroll-driven emerald circular glow
   - Real GitHub stats (followers, repos, stars) in contribution section
   - Scroll-reveal animations on all sections with stagger children
   - Accordion experience timeline with company initials avatars + duration badges
   - Project cards (first featured full-width) with language dot + star/fork counts
   - New AchievementsSection with 6 highlight cards + accent colors (id: `achievements`)
-  - 3 site moods: Cosmic (dark glow), Minimal (no glows), Professional (blue/white)
+  - 3 site moods: Cosmic (dim purple stars), Night (pitch-black, data-mood="dark"), Light (clean white)
   - Sticky navbar with active section tracking + "Highlights" nav item
   - Multi-section footer with quick links + connect section
   - Guestbook backed by PostgreSQL (comments + likes + char counter + trust signals)
