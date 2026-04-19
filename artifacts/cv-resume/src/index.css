@@ -94,11 +94,14 @@
 
   html {
     scroll-behavior: smooth;
+    background-color: hsl(var(--background));
+    transition: background-color 0.3s ease;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
     overflow-x: hidden;
+    background-color: hsl(var(--background));
   }
 
   /* Arabic font override */
@@ -160,23 +163,6 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-
-  /* ===== SKILL BADGES ===== */
-  .skill-badge {
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-  }
-
-  .skill-badge:active {
-    cursor: grabbing;
-  }
-
-  .skill-badge.dragging {
-    cursor: grabbing;
-    z-index: 9999;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   }
 
   /* ===== CONTRIBUTION CELLS ===== */
@@ -269,12 +255,6 @@
     box-shadow: 0 8px 30px rgba(0,0,0,0.3);
   }
 
-  /* ===== SKILLS FRAME — no height restriction ===== */
-  .scroll-frame {
-    position: relative;
-    overflow: visible;
-  }
-
   /* ===== RTL / ARABIC ADJUSTMENTS ===== */
   [dir="rtl"] .font-mono {
     font-family: var(--app-font-mono);
@@ -292,11 +272,6 @@
   [dir="rtl"] canvas,
   [dir="rtl"] svg:not(.rtl-icon) {
     direction: ltr;
-  }
-
-  /* Arabic: skill badges respect RTL flow */
-  [dir="rtl"] .skill-badge {
-    text-align: right;
   }
 
   /* Arabic: numeric values stay LTR */
@@ -386,15 +361,6 @@
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-  }
-
-  .scroll-frame {
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  .scroll-frame::after {
-    display: none !important;
   }
 
   a[href]::after {
