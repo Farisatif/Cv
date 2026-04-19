@@ -352,7 +352,7 @@ export default function HeroSection() {
               <div className="relative">
                 <div className="aspect-[4/3] overflow-hidden bg-muted dark:bg-[hsl(237_30%_6%)] relative">
                   <img
-                    src="/Fares.jpg"
+                    src="/Fares2.jpg"
                     alt={personal.name}
                     className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105"
                   />
