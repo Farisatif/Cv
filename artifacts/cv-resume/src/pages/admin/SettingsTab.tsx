@@ -11,6 +11,48 @@ type Stats = {
   serverTime: string | null;
 };
 
+const STAT_CARDS = [
+  {
+    key: "visitors" as const,
+    label: "Visitors",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+  },
+  {
+    key: "totalComments" as const,
+    label: "Comments",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+  },
+  {
+    key: "pendingComments" as const,
+    label: "Pending",
+    warn: true,
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    ),
+  },
+  {
+    key: "approvedComments" as const,
+    label: "Approved",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    ),
+  },
+];
+
 export function SettingsTab({ onLogout }: { onLogout: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -100,29 +142,40 @@ export function SettingsTab({ onLogout }: { onLogout: () => void }) {
       <div>
         <div className="flex items-center justify-between">
           <SectionHeader title="Site Statistics" />
-          <button onClick={fetchStats} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-lg mb-4">
-            Refresh ↻
+          <button onClick={fetchStats} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-lg mb-4 flex items-center gap-1">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Refresh
           </button>
         </div>
 
         {statsLoading ? (
           <div className="text-sm text-muted-foreground py-4 text-center">Loading stats…</div>
         ) : statsError ? (
-          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">⚠ {statsError}</div>
+          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {statsError}
+          </div>
         ) : stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Visitors", value: stats.visitors, icon: "👁" },
-              { label: "Comments", value: stats.totalComments, icon: "💬" },
-              { label: "Pending", value: stats.pendingComments, icon: "⏳", warn: stats.pendingComments > 0 },
-              { label: "Approved", value: stats.approvedComments, icon: "✅" },
-            ].map(({ label, value, icon, warn }) => (
-              <div key={label} className={`border rounded-xl p-4 text-center ${warn ? "border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20" : "border-border bg-card"}`}>
-                <div className="text-2xl mb-1">{icon}</div>
-                <div className={`text-2xl font-bold tabular-nums ${warn ? "text-amber-600 dark:text-amber-400" : ""}`}>{value}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
-              </div>
-            ))}
+            {STAT_CARDS.map(({ key, label, icon, warn }) => {
+              const value = stats[key];
+              const isWarn = warn && (value as number) > 0;
+              return (
+                <div key={label} className={`border rounded-xl p-4 text-center ${isWarn ? "border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20" : "border-border bg-card"}`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2 ${
+                    isWarn ? "bg-amber-500/15 text-amber-500" : "bg-foreground/8 text-muted-foreground"
+                  }`}>
+                    {icon}
+                  </div>
+                  <div className={`text-2xl font-bold tabular-nums ${isWarn ? "text-amber-600 dark:text-amber-400" : ""}`}>{value}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -132,8 +185,12 @@ export function SettingsTab({ onLogout }: { onLogout: () => void }) {
               <span className={`w-1.5 h-1.5 rounded-full ${stats.dbStatus === "ok" ? "bg-emerald-500" : "bg-red-500"}`} />
               Database: {stats.dbStatus}
             </span>
-            {stats.resumeLastSaved && <span>CV last saved: {new Date(stats.resumeLastSaved).toLocaleString()}</span>}
-            {stats.serverTime && <span>Server time: {new Date(stats.serverTime).toLocaleString()}</span>}
+            {stats.resumeLastSaved && (
+              <span>CV last saved: {new Date(stats.resumeLastSaved).toLocaleString()}</span>
+            )}
+            {stats.serverTime && (
+              <span>Server time: {new Date(stats.serverTime).toLocaleString()}</span>
+            )}
           </div>
         )}
       </div>
@@ -156,12 +213,21 @@ export function SettingsTab({ onLogout }: { onLogout: () => void }) {
               ))}
 
               {pwMsg && (
-                <div className={`text-xs px-3 py-2 rounded-lg border ${
+                <div className={`text-xs px-3 py-2 rounded-lg border flex items-center gap-2 ${
                   pwMsg.type === "success"
                     ? "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-800"
                     : "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-800"
                 }`}>
-                  {pwMsg.type === "success" ? "✓ " : "⚠ "}{pwMsg.text}
+                  {pwMsg.type === "success" ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  )}
+                  {pwMsg.text}
                 </div>
               )}
 

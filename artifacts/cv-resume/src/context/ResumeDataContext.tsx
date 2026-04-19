@@ -17,6 +17,7 @@ type ResumeData = typeof rawData;
 
 interface ResumeDataContextType {
   data: ResumeData;
+  savedData: ResumeData;
   setData: Dispatch<SetStateAction<ResumeData>>;
   saveData: (data: ResumeData) => Promise<void>;
   resetData: () => Promise<void>;
@@ -26,6 +27,7 @@ interface ResumeDataContextType {
 
 const ResumeDataContext = createContext<ResumeDataContextType>({
   data: rawData,
+  savedData: rawData,
   setData: () => {},
   saveData: async () => {},
   resetData: async () => {},
@@ -42,10 +44,11 @@ function getAdminKey(): string {
 }
 
 export function ResumeDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData]       = useState<ResumeData>(rawData);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving]   = useState(false);
-  const updatedAtRef          = useRef<string | null>(null);
+  const [data, setData]         = useState<ResumeData>(rawData);
+  const [savedData, setSavedData] = useState<ResumeData>(rawData);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const updatedAtRef            = useRef<string | null>(null);
 
   // ── Initial load ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -59,6 +62,7 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
             // Merge DB data with rawData defaults so new keys are never missing
             const merged = { ...rawData, ...json.data } as ResumeData;
             setData(merged);
+            setSavedData(merged);
           }
           if (json.updatedAt) updatedAtRef.current = json.updatedAt;
         }
@@ -90,6 +94,7 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
           updatedAtRef.current = serverTs;
           const merged = { ...rawData, ...json.data } as ResumeData;
           setData(merged);
+          setSavedData(merged);
         }
       } catch {
         // ignore poll errors
@@ -115,6 +120,7 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
       const json = await res.json();
       if (json.updatedAt) updatedAtRef.current = json.updatedAt;
       setData(d);
+      setSavedData(d);
     } finally {
       setSaving(false);
     }
@@ -136,13 +142,14 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
       const json = await res.json();
       if (json.updatedAt) updatedAtRef.current = json.updatedAt;
       setData(rawData);
+      setSavedData(rawData);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <ResumeDataContext.Provider value={{ data, setData, saveData, resetData, saving, loading }}>
+    <ResumeDataContext.Provider value={{ data, savedData, setData, saveData, resetData, saving, loading }}>
       {children}
     </ResumeDataContext.Provider>
   );

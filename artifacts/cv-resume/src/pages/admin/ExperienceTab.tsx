@@ -1,8 +1,17 @@
-import { Field, SectionHeader, BilingualFields, HighlightsEditor, ADD_BTN, type ResumeData, type SetData } from "./adminShared";
+import { Field, SectionHeader, BilingualFields, HighlightsEditor, ADD_BTN, ReorderButtons, type ResumeData, type SetData } from "./adminShared";
 
 export function ExperienceTab({ data, setData }: { data: ResumeData; setData: SetData }) {
   const up = (i: number, patch: Partial<ResumeData["experience"][0]>) =>
     setData((p) => ({ ...p, experience: p.experience.map((e, idx) => idx === i ? { ...e, ...patch } : e) }));
+
+  const move = (i: number, dir: -1 | 1) =>
+    setData((p) => {
+      const arr = [...p.experience];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return p;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...p, experience: arr };
+    });
 
   return (
     <div className="space-y-4">
@@ -10,7 +19,11 @@ export function ExperienceTab({ data, setData }: { data: ResumeData; setData: Se
       {data.experience.map((exp, i) => (
         <div key={i} className="border border-border rounded-xl p-5 bg-card space-y-4">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-sm">{exp.company}</span>
+            <div className="flex items-center gap-2">
+              <ReorderButtons index={i} total={data.experience.length} onMove={(dir) => move(i, dir)} />
+              <span className="font-semibold text-sm">{exp.company}</span>
+              <span className="text-xs text-muted-foreground font-mono">{exp.period}</span>
+            </div>
             <button onClick={() => setData((p) => ({ ...p, experience: p.experience.filter((_, idx) => idx !== i) }))}
               className="text-xs text-red-500 hover:text-red-700 transition-colors">Delete</button>
           </div>

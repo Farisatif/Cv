@@ -1,8 +1,17 @@
-import { Field, SectionHeader, BilingualFields, TagsEditor, ADD_BTN, type ResumeData, type SetData } from "./adminShared";
+import { Field, SectionHeader, BilingualFields, TagsEditor, ADD_BTN, ReorderButtons, type ResumeData, type SetData } from "./adminShared";
 
 export function ProjectsTab({ data, setData }: { data: ResumeData; setData: SetData }) {
   const up = (i: number, patch: Partial<ResumeData["projects"][0]>) =>
     setData((p) => ({ ...p, projects: p.projects.map((e, idx) => idx === i ? { ...e, ...patch } : e) }));
+
+  const move = (i: number, dir: -1 | 1) =>
+    setData((p) => {
+      const arr = [...p.projects];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return p;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...p, projects: arr };
+    });
 
   return (
     <div className="space-y-4">
@@ -10,7 +19,11 @@ export function ProjectsTab({ data, setData }: { data: ResumeData; setData: SetD
       {data.projects.map((proj, i) => (
         <div key={i} className="border border-border rounded-xl p-5 bg-card space-y-4">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-sm">{proj.name}</span>
+            <div className="flex items-center gap-2">
+              <ReorderButtons index={i} total={data.projects.length} onMove={(dir) => move(i, dir)} />
+              <span className="font-semibold text-sm">{proj.name}</span>
+              <span className="text-xs text-muted-foreground font-mono">{proj.language}</span>
+            </div>
             <button onClick={() => setData((p) => ({ ...p, projects: p.projects.filter((_, idx) => idx !== i) }))}
               className="text-xs text-red-500 hover:text-red-700 transition-colors">Delete</button>
           </div>
