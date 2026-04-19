@@ -241,8 +241,19 @@ export default function ProjectsSection() {
             : `${filtered.length} project${filtered.length !== 1 ? "s" : ""}${filtered.length !== projects.length ? ` of ${projects.length}` : ""}`}
         </p>
 
-        {/* Tag filters */}
-        <div className={`flex flex-wrap gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+        {/* Tag filters — horizontal scroll on mobile, flex-wrap on desktop */}
+        <div className={`hidden sm:flex flex-wrap gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              className={`tag-filter ${activeTag === tag ? "active" : ""}`}
+            >
+              {tag === "all" ? (lang === "ar" ? "الكل" : "All") : tag}
+            </button>
+          ))}
+        </div>
+        <div className="filters-scroll sm:hidden">
           {allTags.map(tag => (
             <button
               key={tag}

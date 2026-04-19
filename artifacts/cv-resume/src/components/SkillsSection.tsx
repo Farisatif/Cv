@@ -75,28 +75,25 @@ interface GNode extends Skill {
   color: typeof PALETTE[number];
   catIdx: number;
   orbPx: number;
-  // dragged offset (in px, relative to canvas container)
   dragDx: number;
   dragDy: number;
 }
 
-// Build nodes scattered organically across full canvas
-function buildNodes(skills: Skill[], cats: string[]): GNode[] {
+// Build nodes — more compact spread on mobile
+function buildNodes(skills: Skill[], cats: string[], isMobile: boolean): GNode[] {
   const numCats = Math.max(1, cats.length);
   return skills.map(sk => {
     const catIdx = Math.max(0, cats.indexOf(sk.category));
     const rng    = seededRng(strHash(sk.id));
     const [r1, r2, r3, r4, r5] = [rng(), rng(), rng(), rng(), rng()];
 
-    // Weighted scatter: each category gets a soft zone but nodes spread wide
     const angle = (catIdx / numCats) * Math.PI * 2 + 0.42 * catIdx;
-    // Center of gravity for this category (mild pull, not cage)
-    const cx = 0.50 + 0.26 * Math.cos(angle);
-    const cy = 0.48 + 0.22 * Math.sin(angle);
-    // Wide spread with natural randomness
-    const spread = 0.34;
-    const bx = Math.max(0.04, Math.min(0.94, cx + (r1 - 0.5) * spread * 2.6));
-    const by = Math.max(0.05, Math.min(0.92, cy + (r2 - 0.5) * spread * 2.2));
+    const cx = 0.50 + 0.24 * Math.cos(angle);
+    const cy = 0.48 + 0.20 * Math.sin(angle);
+    // Tighter spread on mobile to prevent nodes from touching edges
+    const spread = isMobile ? 0.22 : 0.34;
+    const bx = Math.max(0.07, Math.min(0.90, cx + (r1 - 0.5) * spread * 2.6));
+    const by = Math.max(0.07, Math.min(0.90, cy + (r2 - 0.5) * spread * 2.0));
 
     return {
       ...sk,
@@ -107,7 +104,9 @@ function buildNodes(skills: Skill[], cats: string[]): GNode[] {
       speed:  0.00018 + r5 * 0.00028,
       color:  PALETTE[catIdx % PALETTE.length],
       catIdx,
-      orbPx:  sk.level >= 85 ? 16 : sk.level >= 70 ? 13 : sk.level >= 50 ? 10 : 8,
+      orbPx:  isMobile
+        ? (sk.level >= 85 ? 13 : sk.level >= 70 ? 10 : 8)
+        : (sk.level >= 85 ? 16 : sk.level >= 70 ? 13 : sk.level >= 50 ? 10 : 8),
       dragDx: 0,
       dragDy: 0,
     };
@@ -126,19 +125,18 @@ function getCatCentroids(nodes: GNode[]) {
 
 // ── Canvas rendering ───────────────────────────────────────────────────────
 function drawFrame(
-  ctx:       CanvasRenderingContext2D,
-  nodes:     GNode[],
-  w:         number,
-  h:         number,
-  isDark:    boolean,
-  ts:        number,
+  ctx: CanvasRenderingContext2D,
+  nodes: GNode[],
+  w: number,
+  h: number,
+  isDark: boolean,
+  ts: number,
   scrollVel: number,
 ) {
   ctx.clearRect(0, 0, w, h);
   const byCat = getCatCentroids(nodes);
 
   if (isDark) {
-    // ── Deep space base gradient ──────────────────────────────────────────
     const base = ctx.createRadialGradient(w * 0.5, h * 0.46, 0, w * 0.5, h * 0.46, Math.max(w, h) * 0.80);
     base.addColorStop(0,    "rgba(14,8,38,0.55)");
     base.addColorStop(0.55, "rgba(4,2,18,0.28)");
@@ -146,46 +144,41 @@ function drawFrame(
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, w, h);
 
-    // ── Category nebula clouds (large, diffuse, overlapping) ─────────────
     const breathe = 0.025 * Math.sin(ts * 0.00028);
     byCat.forEach((catNodes, catIdx) => {
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       const cx  = catNodes.reduce((a, n) => a + n.bx, 0) / catNodes.length * w;
       const cy  = catNodes.reduce((a, n) => a + n.by, 0) / catNodes.length * h;
-      // Large, very diffuse halos — no hard boundary
-      const rad = 220 + catNodes.length * 32 + Math.sin(ts * 0.00024 + catIdx * 1.1) * 26;
-      const a0  = Math.max(0, 0.17 + breathe);
-      const a1  = Math.max(0, 0.06 + breathe * 0.4);
+      const rad = 200 + catNodes.length * 28 + Math.sin(ts * 0.00024 + catIdx * 1.1) * 22;
+      const a0  = Math.max(0, 0.15 + breathe);
+      const a1  = Math.max(0, 0.055 + breathe * 0.4);
 
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
       g.addColorStop(0,    `hsla(${ch},${s}%,${l}%,${a0})`);
-      g.addColorStop(0.40, `hsla(${ch},${s}%,${l}%,${a1})`);
-      g.addColorStop(0.75, `hsla(${ch},${s}%,${l}%,${(a1 * 0.3).toFixed(3)})`);
+      g.addColorStop(0.42, `hsla(${ch},${s}%,${l}%,${a1})`);
+      g.addColorStop(0.78, `hsla(${ch},${s}%,${l}%,${(a1 * 0.28).toFixed(3)})`);
       g.addColorStop(1,    `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
 
-      // Secondary offset nebula for volume
-      const ox = cx + 60 * Math.cos(ts * 0.000095 + catIdx);
-      const oy = cy + 45 * Math.sin(ts * 0.000075 + catIdx + 0.9);
-      const g2 = ctx.createRadialGradient(ox, oy, 0, ox, oy, rad * 0.65);
-      g2.addColorStop(0, `hsla(${ch},${s}%,${Math.min(l + 10, 90)}%,${(a0 * 0.55).toFixed(3)})`);
+      const ox = cx + 55 * Math.cos(ts * 0.000095 + catIdx);
+      const oy = cy + 42 * Math.sin(ts * 0.000075 + catIdx + 0.9);
+      const g2 = ctx.createRadialGradient(ox, oy, 0, ox, oy, rad * 0.60);
+      g2.addColorStop(0, `hsla(${ch},${s}%,${Math.min(l + 10, 90)}%,${(a0 * 0.50).toFixed(3)})`);
       g2.addColorStop(1, `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, w, h);
     });
 
-    // ── Central galactic glow ─────────────────────────────────────────────
     const gx = w * (0.50 + 0.035 * Math.cos(ts * 0.000148));
     const gy = h * (0.44 + 0.025 * Math.sin(ts * 0.000188));
     const gc = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.min(w, h) * 0.72);
-    gc.addColorStop(0,    "rgba(90,45,240,0.09)");
+    gc.addColorStop(0,    "rgba(90,45,240,0.08)");
     gc.addColorStop(0.38, "rgba(38,20,160,0.04)");
     gc.addColorStop(1,    "rgba(0,0,0,0)");
     ctx.fillStyle = gc;
     ctx.fillRect(0, 0, w, h);
 
-    // ── Animated star field ───────────────────────────────────────────────
     const velAbs = Math.abs(scrollVel);
     const streak = Math.min(velAbs * 0.60, 18);
 
@@ -219,12 +212,11 @@ function drawFrame(
       }
     });
 
-    // ── Constellation lines ───────────────────────────────────────────────
     byCat.forEach((catNodes, catIdx) => {
       if (catNodes.length < 2) return;
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.07)`;
+      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.065)`;
       ctx.lineWidth   = 0.5;
       ctx.setLineDash([1.5, 22]);
       for (let i = 0; i < catNodes.length - 1; i++) {
@@ -237,28 +229,27 @@ function drawFrame(
     });
 
   } else {
-    // ── Light mode — warm auroras ─────────────────────────────────────────
     const breathe = 0.018 * Math.sin(ts * 0.00028);
     byCat.forEach((catNodes, catIdx) => {
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       const cx  = catNodes.reduce((a, n) => a + n.bx, 0) / catNodes.length * w;
       const cy  = catNodes.reduce((a, n) => a + n.by, 0) / catNodes.length * h;
-      const rad = 170 + catNodes.length * 24;
+      const rad = 160 + catNodes.length * 22;
       const g   = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-      g.addColorStop(0, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.07 + breathe)})`);
-      g.addColorStop(0.6, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.025 + breathe * 0.4)})`);
+      g.addColorStop(0, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.065 + breathe)})`);
+      g.addColorStop(0.6, `hsla(${ch},${s}%,${l}%,${Math.max(0, 0.022 + breathe * 0.4)})`);
       g.addColorStop(1, `hsla(${ch},${s}%,${l}%,0)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
     });
 
-    STAR_FIELD.slice(0, 70).forEach(star => {
+    STAR_FIELD.slice(0, 60).forEach(star => {
       const nx = ((star.x0 + ts * star.vx) % 1 + 1) % 1;
       const ny = ((star.y0 + ts * star.vy) % 1 + 1) % 1;
       const tw = 0.55 + 0.45 * Math.sin(ts * star.twinkleSpeed + star.phase);
       ctx.beginPath();
       ctx.arc(nx * w, ny * h, star.r * 0.85, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(60,40,190,${(0.018 + star.a * 0.038) * tw})`;
+      ctx.fillStyle = `rgba(60,40,190,${(0.018 + star.a * 0.035) * tw})`;
       ctx.fill();
     });
 
@@ -266,7 +257,7 @@ function drawFrame(
       if (catNodes.length < 2) return;
       const { h: ch, s, l } = PALETTE[catIdx % PALETTE.length];
       ctx.save();
-      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.09)`;
+      ctx.strokeStyle = `hsla(${ch},${s}%,${l}%,0.085)`;
       ctx.lineWidth   = 0.5;
       ctx.setLineDash([1.5, 22]);
       for (let i = 0; i < catNodes.length - 1; i++) {
@@ -283,10 +274,10 @@ function drawFrame(
 // ── Drag state ────────────────────────────────────────────────────────────
 interface DragState {
   id:    string;
-  startX: number;  // pointer start X (page)
-  startY: number;  // pointer start Y (page)
-  origDx: number;  // dragDx at drag start
-  origDy: number;  // dragDy at drag start
+  startX: number;
+  startY: number;
+  origDx: number;
+  origDy: number;
 }
 
 // ── Galaxy component ──────────────────────────────────────────────────────
@@ -295,11 +286,12 @@ interface GalaxyProps {
   filter: string;
   allLabel: string;
   lang: "en" | "ar";
+  isMobile: boolean;
 }
 
 interface Spring { pos: number; vel: number; }
 
-function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
+function SkillGalaxy({ skills, filter, allLabel, lang, isMobile }: GalaxyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef    = useRef<HTMLCanvasElement>(null);
   const dprRef       = useRef(1);
@@ -316,18 +308,17 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
   const isDarkRef    = useRef(true);
   const mouseRef     = useRef({ x: 0.5, y: 0.5 });
 
-  // Dragging
   const dragRef      = useRef<DragState | null>(null);
   const [dragId, setDragId]   = useState<string | null>(null);
   const nodesRef     = useRef<GNode[]>([]);
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [cw, setCw]               = useState(900);
-  const [ch, setCh]               = useState(640);
-  const [, forceUpdate]           = useState(0);
+  const [cw, setCw] = useState(900);
+  const [ch, setCh] = useState(600);
+  const [, forceUpdate] = useState(0);
 
   const orderedCats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
-  const baseNodes   = useMemo(() => buildNodes(skills, orderedCats), [skills, orderedCats]);
+  const baseNodes   = useMemo(() => buildNodes(skills, orderedCats, isMobile), [skills, orderedCats, isMobile]);
 
   // Sync nodes into ref, preserving drag offsets
   useEffect(() => {
@@ -344,25 +335,29 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
     if (!el) return;
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
-      // Tall enough to feel like open space — responsive but generous
-      const h = Math.min(720, Math.max(500, w * 0.70));
+      // Mobile: shorter and tighter; Desktop: tall open space
+      const minH = isMobile ? 340 : 480;
+      const maxH = isMobile ? 460 : 700;
+      const ratio = isMobile ? 0.78 : 0.68;
+      const h = Math.min(maxH, Math.max(minH, w * ratio));
       setCw(w); setCh(h);
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [isMobile]);
 
   // ── Canvas HiDPI setup ───────────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Cap DPR at 2 for performance, 1.5 on mobile
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
     dprRef.current = dpr;
     canvas.width   = Math.round(cw * dpr);
     canvas.height  = Math.round(ch * dpr);
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }, [cw, ch]);
+  }, [cw, ch, isMobile]);
 
   // ── Scroll & mouse ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -373,6 +368,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
       scrollTarget.current = window.scrollY - sectionMidY.current;
     };
     const onMouse = (e: MouseEvent) => {
+      if (isMobile) return; // No mouse parallax on mobile
       const el = containerRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -387,20 +383,14 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
       window.removeEventListener("scroll",    onScroll);
       window.removeEventListener("mousemove", onMouse);
     };
-  }, []);
+  }, [isMobile]);
 
   // ── Drag handlers ────────────────────────────────────────────────────────
   const startDrag = useCallback((id: string, e: React.PointerEvent) => {
     e.preventDefault();
     const node = nodesRef.current.find(n => n.id === id);
     if (!node) return;
-    dragRef.current = {
-      id,
-      startX: e.pageX,
-      startY: e.pageY,
-      origDx: node.dragDx,
-      origDy: node.dragDy,
-    };
+    dragRef.current = { id, startX: e.pageX, startY: e.pageY, origDx: node.dragDx, origDy: node.dragDy };
     setDragId(id);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
@@ -433,14 +423,13 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
     window.addEventListener("scroll", updateMid, { passive: true });
     window.addEventListener("resize", updateMid, { passive: true });
 
-    // Critically damped spring (ζ=1)
     const STIFFNESS = 180;
     const DAMPING   = 26.8;
 
-    const P_NEAR   = 0.28;
-    const P_FAR    = 0.030;
-    const DRIFT    = 20;      // px
-    const MX_MOUSE = 16;      // px
+    const P_NEAR  = isMobile ? 0.18 : 0.28;
+    const P_FAR   = isMobile ? 0.018 : 0.030;
+    const DRIFT   = isMobile ? 12 : 20;
+    const MX_MOUSE = isMobile ? 0 : 16;
 
     const tick = (ts: number) => {
       animId.current = requestAnimationFrame(tick);
@@ -448,14 +437,12 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
       lastTsRef.current = ts;
       if (dt <= 0) return;
 
-      // Spring dynamics
       const sp  = spring.current;
       const err = scrollTarget.current - sp.pos;
       const acc = err * STIFFNESS - sp.vel * DAMPING;
       sp.vel += acc * dt;
       sp.pos += sp.vel * dt;
 
-      // Canvas redraw
       const canvas = canvasRef.current;
       const ctx    = canvas?.getContext("2d");
       if (ctx && canvas) {
@@ -473,7 +460,6 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
 
       scrollVelRef.current *= 0.86;
 
-      // Node positioning
       const mx = mouseRef.current.x - 0.5;
       const my = mouseRef.current.y - 0.5;
 
@@ -482,20 +468,16 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
         if (!el) return;
         const isDragging = dragRef.current?.id === node.id;
 
-        // Organic float
         const dX = Math.sin(ts * node.speed + node.phase)        * DRIFT;
-        const dY = Math.cos(ts * node.speed * 0.70 + node.phase + 1.3) * DRIFT * 0.68;
+        const dY = Math.cos(ts * node.speed * 0.70 + node.phase + 1.3) * DRIFT * 0.65;
 
-        // Parallax — suspended on scroll
         const pFactor = P_FAR + node.depth * (P_NEAR - P_FAR);
         const pY      = sp.pos * pFactor;
 
-        // Mouse parallax
         const mxShift = mx * MX_MOUSE * (0.28 + node.depth * 0.72);
         const myShift = my * MX_MOUSE * (0.28 + node.depth * 0.72) * 0.52;
 
         if (isDragging) {
-          // While dragging: float still, only drag offset applies
           el.style.transform = `translate(calc(-50% + ${node.dragDx.toFixed(1)}px), calc(-50% + ${node.dragDy.toFixed(1)}px))`;
         } else {
           el.style.transform =
@@ -514,7 +496,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
       window.removeEventListener("scroll", updateMid);
       window.removeEventListener("resize", updateMid);
     };
-  }, [ch, cw]);
+  }, [ch, cw, isMobile]);
 
   const nodeRef = useCallback(
     (id: string) => (el: HTMLDivElement | null) => {
@@ -526,22 +508,32 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
 
   const nodes = nodesRef.current.length ? nodesRef.current : baseNodes;
 
+  // On mobile, reduce node count to top-level skills only (by level, descending)
+  const visibleNodes = useMemo(() => {
+    if (!isMobile) return nodes;
+    const sorted = [...nodes].sort((a, b) => b.level - a.level);
+    return sorted.slice(0, 18); // max 18 on mobile
+  }, [nodes, isMobile]);
+
+  // Bleed inset: narrower on mobile to prevent horizontal scroll
+  const bleedX = isMobile ? 16 : 40;
+  const bleedY = isMobile ? 40 : 80;
+
   return (
     <div
       ref={containerRef}
       className="relative w-full"
-      style={{ height: ch, overflow: "visible" }}
+      style={{ height: ch, overflow: "hidden" }}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      {/* Full-bleed atmospheric canvas — no borders, no containers */}
+      {/* Atmospheric canvas */}
       <div
         className="absolute pointer-events-none"
         aria-hidden="true"
         style={{
-          // Extend canvas beyond the section boundary so nebulae bleed into adjacent sections
-          inset: "-80px -40px",
+          inset: `-${bleedY}px -${bleedX}px`,
           overflow: "hidden",
         }}
       >
@@ -549,33 +541,31 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
           ref={canvasRef}
           style={{
             position: "absolute",
-            top: "80px",
-            left: "40px",
+            top: bleedY,
+            left: bleedX,
             width:  cw,
             height: ch,
           }}
         />
-        {/* Feathered edge dissolve — smooth atmospheric fade, no hard rect */}
+        {/* Feathered edge dissolve */}
         <div
           style={{
             position: "absolute",
-            top: "80px", left: "40px",
+            top: bleedY, left: bleedX,
             width: cw, height: ch,
-            background: `
-              radial-gradient(ellipse 108% 100% at 50% 50%,
-                transparent 28%,
-                hsl(var(--background)/0.38) 58%,
-                hsl(var(--background)/0.72) 78%,
-                hsl(var(--background)/0.94) 94%,
-                hsl(var(--background)) 100%
-              )
-            `,
+            background: `radial-gradient(ellipse 108% 100% at 50% 50%,
+              transparent 28%,
+              hsl(var(--background)/0.32) 55%,
+              hsl(var(--background)/0.66) 76%,
+              hsl(var(--background)/0.90) 92%,
+              hsl(var(--background)) 100%
+            )`,
           }}
         />
       </div>
 
       {/* Floating skill nodes */}
-      {nodes.map(node => {
+      {visibleNodes.map(node => {
         const hidden   = filter !== allLabel && node.category !== filter;
         const isHov    = hoveredId === node.id;
         const isDraggingThis = dragId === node.id;
@@ -598,7 +588,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
               willChange:   "transform",
               zIndex:       isDraggingThis ? 100 : isHov ? 50 : 4,
               opacity:      hidden ? 0 : 1,
-              transition:   "opacity 0.42s ease",
+              transition:   "opacity 0.38s ease",
               pointerEvents: hidden ? "none" : "auto",
               cursor:       isDraggingThis ? "grabbing" : "grab",
               touchAction:  "none",
@@ -607,10 +597,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
             onMouseEnter={() => !dragRef.current && setHoveredId(node.id)}
             onMouseLeave={() => setHoveredId(null)}
           >
-            <div
-              className="flex items-center"
-              style={{ gap: 10, userSelect: "none" }}
-            >
+            <div className="flex items-center" style={{ gap: 8, userSelect: "none" }}>
               {/* Glowing orb */}
               <div
                 style={{
@@ -621,16 +608,18 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
                   background:   `radial-gradient(circle at 32% 32%, ${hlColor} 0%, ${glowInner} 52%, hsl(${h},${s}%,${Math.max(l - 16, 16)}%) 100%)`,
                   boxShadow:    isHov || isDraggingThis
                     ? `0 0 ${o * 2.2}px ${glowInner}, 0 0 ${o * 5.5}px ${glowOuter}, 0 0 ${o * 14}px ${glowFarOut}`
-                    : `0 0 ${o * 1.6}px ${glowInner}, 0 0 ${o * 4}px ${glowOuter}`,
-                  transition:   "box-shadow 0.32s ease, transform 0.32s ease",
+                    : `0 0 ${o * 1.5}px ${glowInner}, 0 0 ${o * 3.5}px ${glowOuter}`,
+                  transition:   "box-shadow 0.3s ease, transform 0.3s ease",
                   transform:    isHov || isDraggingThis ? "scale(2.0)" : "scale(1)",
                 }}
               />
 
-              {/* Pure glow label — no background, no pill */}
+              {/* Pure glow label */}
               <span
                 style={{
-                  fontSize:      node.level >= 72 ? "12.5px" : "11px",
+                  fontSize:      isMobile
+                    ? (node.level >= 72 ? "11px" : "10px")
+                    : (node.level >= 72 ? "12.5px" : "11px"),
                   fontWeight:    node.level >= 65 ? 700 : 600,
                   letterSpacing: "0.015em",
                   whiteSpace:    "nowrap",
@@ -641,8 +630,8 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
                     ? `hsl(${h},${s}%,${Math.min(l + 20, 94)}%)`
                     : "hsl(var(--foreground)/0.80)",
                   textShadow:    isHov || isDraggingThis
-                    ? `0 0 16px hsl(${h},${s}%,${l}%/0.90), 0 0 32px hsl(${h},${s}%,${l}%/0.42)`
-                    : `0 0 10px hsl(${h},${s}%,${l}%/0.38)`,
+                    ? `0 0 16px hsl(${h},${s}%,${l}%/0.88), 0 0 32px hsl(${h},${s}%,${l}%/0.40)`
+                    : `0 0 10px hsl(${h},${s}%,${l}%/0.36)`,
                   transition:    "color 0.28s ease, text-shadow 0.28s ease",
                 }}
               >
@@ -650,28 +639,28 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
               </span>
             </div>
 
-            {/* Hover tooltip — glassmorphic, floating above orb */}
+            {/* Hover tooltip */}
             {isHov && !isDraggingThis && (
               <div
                 style={{
                   position:       "absolute",
-                  bottom:         "calc(100% + 14px)",
+                  bottom:         "calc(100% + 12px)",
                   left:           "50%",
                   transform:      "translateX(-50%)",
-                  width:          "164px",
-                  padding:        "10px 13px",
-                  borderRadius:   "16px",
-                  background:     "hsl(var(--card)/0.88)",
-                  backdropFilter: "blur(24px)",
-                  border:         `1px solid hsl(${h},${s}%,${l}%/0.28)`,
-                  boxShadow:      `0 8px 44px rgba(0,0,0,0.40), 0 0 26px hsl(${h},${s}%,${l}%/0.12)`,
+                  width:          "158px",
+                  padding:        "10px 12px",
+                  borderRadius:   "14px",
+                  background:     "hsl(var(--card)/0.90)",
+                  backdropFilter: "blur(20px)",
+                  border:         `1px solid hsl(${h},${s}%,${l}%/0.25)`,
+                  boxShadow:      `0 8px 40px rgba(0,0,0,0.38), 0 0 22px hsl(${h},${s}%,${l}%/0.10)`,
                   zIndex:         60,
                   pointerEvents:  "none",
                 }}
               >
                 <div style={{
                   fontSize: "9px", fontWeight: 700, textTransform: "uppercase",
-                  letterSpacing: "0.13em", opacity: 0.48, marginBottom: 7,
+                  letterSpacing: "0.13em", opacity: 0.45, marginBottom: 7,
                 }}>
                   {node.category}
                 </div>
@@ -683,7 +672,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
                     height: "100%", width: `${node.level}%`,
                     background: `linear-gradient(90deg, hsl(${h},${s}%,${l}%), hsl(${h},${s}%,${Math.min(l + 18, 90)}%))`,
                     borderRadius: 3,
-                    boxShadow: `0 0 8px hsl(${h},${s}%,${l}%/0.80)`,
+                    boxShadow: `0 0 8px hsl(${h},${s}%,${l}%/0.75)`,
                   }} />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -694,7 +683,7 @@ function SkillGalaxy({ skills, filter, allLabel, lang }: GalaxyProps) {
                   }}>
                     {lang === "ar" ? lbl.ar : lbl.en}
                   </span>
-                  <span style={{ fontSize: "11px", fontFamily: "monospace", opacity: 0.52 }}>
+                  <span style={{ fontSize: "11px", fontFamily: "monospace", opacity: 0.50 }}>
                     {node.level}%
                   </span>
                 </div>
@@ -718,6 +707,16 @@ export default function SkillsSection() {
   const [filter, setFilter] = useState("All");
   const allLabel = t.skills.all;
 
+  // Track mobile state for responsive behavior
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    setIsMobile(mq.matches);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   const categories = useMemo(
     () => [allLabel, ...Array.from(new Set(skills.map(s => s.category)))],
     [skills, allLabel],
@@ -732,38 +731,48 @@ export default function SkillsSection() {
       className="section-reveal py-20 sm:py-28 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
+      {/* Header */}
       <div className={`mb-10 ${isRTL ? "text-right" : ""}`}>
         <span className="section-label">{t.skills.title}</span>
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mb-2">
+        <h2 className="section-title mb-3">
           {lang === "ar" ? "مجرة المهارات" : "Skill Galaxy"}
         </h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           {lang === "ar"
             ? "مهاراتي التقنية تطفو في الفضاء المفتوح — مرر أو اسحب أي كوكب"
             : "Technical skills drifting in open space — hover or drag any star"}
         </p>
       </div>
 
-      {/* Category filters */}
-      <div className={`flex flex-wrap gap-2 mb-8 ${isRTL ? "flex-row-reverse" : ""}`}>
+      {/* Category filters — horizontal scroll on mobile */}
+      <div
+        className={`mb-8 ${isMobile ? "filters-scroll" : `flex flex-wrap gap-2 ${isRTL ? "flex-row-reverse" : ""}`}`}
+      >
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
             className={`tag-filter ${filter === cat ? "active" : ""}`}
           >
-            {cat}
+            {cat === allLabel ? allLabel : cat}
           </button>
         ))}
       </div>
 
-      {/* Galaxy — overflow visible so nebulae can bleed beyond the section */}
-      <div style={{ overflow: "visible" }}>
-        <SkillGalaxy key={lang} skills={skills} filter={filter} allLabel={allLabel} lang={lang} />
+      {/* Galaxy — overflow clipped on mobile via CSS */}
+      <div className="galaxy-wrapper">
+        <SkillGalaxy
+          key={`${lang}-${isMobile}`}
+          skills={skills}
+          filter={filter}
+          allLabel={allLabel}
+          lang={lang}
+          isMobile={isMobile}
+        />
       </div>
 
       {/* Legend */}
-      <div className={`mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
+      <div className={`mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
         {LEVEL_LABELS.map(lvl => (
           <span key={lvl.en} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
             <span
@@ -773,7 +782,7 @@ export default function SkillsSection() {
             {lang === "ar" ? lvl.ar : lvl.en}
           </span>
         ))}
-        <span className={`flex items-center gap-1.5 opacity-40 ${isRTL ? "mr-auto" : "ml-auto"}`}>
+        <span className={`flex items-center gap-1.5 opacity-38 ${isRTL ? "mr-auto" : "ml-auto"}`}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
           </svg>
