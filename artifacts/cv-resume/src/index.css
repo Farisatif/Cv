@@ -1133,7 +1133,14 @@ html[data-mood="dark"] .dark\:bg-\[hsl\(240_28\%_6\%\)\] {
 
 [data-mood="cosmic"] .glow-text { text-shadow: 0 0 20px hsl(263 82% 70% / 0.5); }
 [data-mood="cosmic"] .nebula-orb { opacity: 1 !important; display: block !important; }
-[data-mood="cosmic"] .glow-border { border-color: hsl(263 82% 70% / 0.3) !important; box-shadow: 0 0 20px hsl(263 82% 70% / 0.2) !important; animation: border-glow-pulse 3s ease-in-out infinite !important; }
+[data-mood="cosmic"] .glow-border {
+  border-color: hsl(263 82% 70% / 0.22) !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+[data-mood="cosmic"] {
+  --card-shadow-hover: 0 4px 18px hsl(240 40% 2% / 0.65), 0 12px 48px hsl(240 38% 4% / 0.45);
+}
 [data-mood="cosmic"] .glow-divider {
   background: linear-gradient(90deg,
     transparent 0%,

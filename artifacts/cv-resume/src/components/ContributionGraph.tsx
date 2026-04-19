@@ -57,8 +57,8 @@ export default function ContributionGraph() {
       const dist       = Math.abs(sectionMid - viewMid);
       const progress   = Math.max(0, Math.min(1, 1 - dist / maxDist));
 
-      const scale   = 0.3 + progress * 1.0;
-      const opacity = progress * 0.75;
+      const scale   = 0.05 + progress * 0.95;
+      const opacity = progress * 0.95;
 
       glow.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       glow.style.opacity   = opacity.toFixed(3);
@@ -140,35 +140,38 @@ export default function ContributionGraph() {
       className="section-reveal py-10 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      {/* Wrapper holds the glow + card */}
+      {/* Wrapper holds the card */}
       <div ref={wrapperRef} className="relative">
 
-        {/* ── Circular glow ──────────────────────────────────────────────── */}
-        <div
-          ref={glowRef}
-          aria-hidden="true"
-          style={{
-            position:      "absolute",
-            top:           "50%",
-            left:          "50%",
-            width:         "140%",
-            aspectRatio:   "1",
-            borderRadius:  "50%",
-            background:    `radial-gradient(circle,
-              hsl(152 72% 50% / 0.13) 0%,
-              hsl(152 72% 50% / 0.07) 30%,
-              hsl(160 80% 42% / 0.04) 55%,
-              transparent 72%)`,
-            transform:     "translate(-50%, -50%) scale(0.3)",
-            opacity:       0,
-            transition:    "transform 0.35s ease, opacity 0.35s ease",
-            pointerEvents: "none",
-            zIndex:        0,
-          }}
-        />
-
         {/* ── Contribution card ──────────────────────────────────────────── */}
-        <div className="relative z-[1] border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+        <div className="relative border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+
+          {/* ── Circular glow — inside card, behind content ────────────── */}
+          <div
+            ref={glowRef}
+            aria-hidden="true"
+            style={{
+              position:      "absolute",
+              top:           "50%",
+              left:          "50%",
+              width:         "220%",
+              aspectRatio:   "1",
+              borderRadius:  "50%",
+              background:    `radial-gradient(circle,
+                hsl(152 72% 45% / 0.28) 0%,
+                hsl(152 72% 45% / 0.18) 35%,
+                hsl(160 80% 38% / 0.10) 58%,
+                transparent 78%)`,
+              transform:     "translate(-50%, -50%) scale(0.05)",
+              opacity:       0,
+              transition:    "transform 0.4s ease, opacity 0.4s ease",
+              pointerEvents: "none",
+              zIndex:        0,
+            }}
+          />
+
+          {/* Content sits above the glow */}
+          <div className="relative z-[1]">
           {/* Header */}
           <div className={`px-6 py-4 border-b border-border flex items-center justify-between gap-4 flex-wrap ${isRTL ? "flex-row-reverse" : ""}`}>
             <div className={`flex items-center gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -282,6 +285,7 @@ export default function ContributionGraph() {
               </div>
             </div>
           </div>
+          </div>{/* /z-[1] content wrapper */}
         </div>
       </div>
 
