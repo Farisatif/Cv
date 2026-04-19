@@ -4,22 +4,15 @@ import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-const LANGUAGE_COLORS = [
-  { bar: "bg-emerald-500",  border: "border-emerald-500"  },
-  { bar: "bg-blue-500",     border: "border-blue-500"     },
-  { bar: "bg-violet-500",   border: "border-violet-500"   },
-  { bar: "bg-amber-500",    border: "border-amber-500"    },
-  { bar: "bg-rose-500",     border: "border-rose-500"     },
-  { bar: "bg-cyan-500",     border: "border-cyan-500"     },
-  { bar: "bg-orange-500",   border: "border-orange-500"   },
-  { bar: "bg-pink-500",     border: "border-pink-500"     },
-  { bar: "bg-teal-500",     border: "border-teal-500"     },
-  { bar: "bg-indigo-500",   border: "border-indigo-500"   },
+const COLORS = [
+  { bar: "hsl(160 80% 45%)", light: "hsl(160 80% 45% / 0.15)", border: "hsl(160 80% 45% / 0.4)" },
+  { bar: "hsl(220 90% 60%)", light: "hsl(220 90% 60% / 0.15)", border: "hsl(220 90% 60% / 0.4)" },
+  { bar: "hsl(263 80% 65%)", light: "hsl(263 80% 65% / 0.15)", border: "hsl(263 80% 65% / 0.4)" },
+  { bar: "hsl(38 95% 55%)",  light: "hsl(38 95% 55% / 0.15)",  border: "hsl(38 95% 55% / 0.4)"  },
+  { bar: "hsl(0 85% 62%)",   light: "hsl(0 85% 62% / 0.15)",   border: "hsl(0 85% 62% / 0.4)"   },
+  { bar: "hsl(192 100% 52%)",light: "hsl(192 100% 52% / 0.15)",border: "hsl(192 100% 52% / 0.4)" },
 ];
-
-function getLangColor(i: number) {
-  return LANGUAGE_COLORS[i % LANGUAGE_COLORS.length];
-}
+function getColor(i: number) { return COLORS[i % COLORS.length]; }
 
 export default function LanguagesSection() {
   const sectionRef = useScrollReveal();
@@ -28,27 +21,20 @@ export default function LanguagesSection() {
   const { data } = useResumeData();
   const languages = data.languages;
 
-  const [started, setStarted] = useState(false);
+  const [started, setStarted]   = useState(false);
   const [dragging, setDragging] = useState<number | null>(null);
-  const [widths, setWidths] = useState(languages.map((l) => l.percent));
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [widths, setWidths]     = useState(languages.map(l => l.percent));
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const barRef        = useRef<HTMLDivElement>(null);
+  const dragStartRef  = useRef({ x: 0, startWidth: 0, index: 0 });
 
-  useEffect(() => {
-    setWidths(languages.map((l) => l.percent));
-  }, [data]);
-  const dragStartRef = useRef({ x: 0, startWidth: 0, index: 0 });
-  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { setWidths(languages.map(l => l.percent)); }, [data]);
 
   useEffect(() => {
     const el = barRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setTimeout(() => setStarted(true), 200);
-          observer.disconnect();
-        }
-      },
+      (entries) => { if (entries[0].isIntersecting) { setTimeout(() => setStarted(true), 200); observer.disconnect(); } },
       { threshold: 0.4 }
     );
     observer.observe(el);
@@ -68,49 +54,45 @@ export default function LanguagesSection() {
       const containerWidth = containerRef.current.offsetWidth;
       const rawDx = e.clientX - dragStartRef.current.x;
       const dx = isRTL ? -rawDx : rawDx;
-      const deltaPercent = (dx / containerWidth) * 100;
-      const newWidth = Math.max(5, Math.min(80, dragStartRef.current.startWidth + deltaPercent));
+      const delta = (dx / containerWidth) * 100;
+      const newWidth = Math.max(5, Math.min(80, dragStartRef.current.startWidth + delta));
       const diff = newWidth - dragStartRef.current.startWidth;
-      setWidths((prev) => {
+      setWidths(prev => {
         const next = [...prev];
         next[dragging] = newWidth;
-        if (dragging + 1 < next.length) {
-          next[dragging + 1] = Math.max(3, prev[dragging + 1] - diff);
-        }
+        if (dragging + 1 < next.length) next[dragging + 1] = Math.max(3, prev[dragging + 1] - diff);
         const sum = next.reduce((a, b) => a + b, 0);
-        return next.map((w) => (w / sum) * 100);
+        return next.map(w => (w / sum) * 100);
       });
     };
     const handleMouseUp = () => setDragging(null);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
+    return () => { window.removeEventListener("mousemove", handleMouseMove); window.removeEventListener("mouseup", handleMouseUp); };
   }, [dragging, widths, isRTL]);
 
-  const resetWidths = () => setWidths(languages.map((l) => l.percent));
+  const reset = () => setWidths(languages.map(l => l.percent));
 
   return (
     <section
       id="languages-bar"
       ref={sectionRef as React.RefObject<HTMLElement>}
-      className="section-reveal py-8 max-w-5xl mx-auto px-4 sm:px-6"
+      className="section-reveal py-6 max-w-5xl mx-auto px-4 sm:px-6"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="border border-border rounded-2xl bg-card overflow-hidden">
+      <div className="cosmic-card glow-border rounded-2xl overflow-hidden">
         <div className={`px-6 py-4 border-b border-border flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 18 22 12 16 6"/>
-              <polyline points="8 6 2 12 8 18"/>
-            </svg>
+          <div className={`flex items-center gap-2.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <div className="icon-btn w-8 h-8 rounded-lg flex-shrink-0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
             <span className="text-sm font-semibold">{t.languages.title}</span>
           </div>
           <button
-            onClick={resetWidths}
-            className={`text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}
+            onClick={reset}
+            className={`text-xs text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""} hover:dark:text-[hsl(263_80%_75%)]`}
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -121,61 +103,75 @@ export default function LanguagesSection() {
         </div>
 
         <div className="px-6 py-5">
-          {/* Hint */}
-          <div className={`flex items-center gap-1.5 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground flex-shrink-0">
+          <div className={`flex items-center gap-1.5 mb-5 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/60 flex-shrink-0">
               <path d="M5 9l4-4 4 4M5 15l4 4 4-4"/>
             </svg>
-            <p className={`text-xs text-muted-foreground ${isRTL ? "text-right" : ""}`}>
+            <p className={`text-xs text-muted-foreground/70 ${isRTL ? "text-right" : ""}`}>
               {t.languages.subtitle}
             </p>
           </div>
 
-          {/* Language bar */}
+          {/* Segmented bar */}
           <div
             ref={containerRef}
-            className="relative flex h-5 rounded-full overflow-hidden mb-5 select-none border border-border/50 cursor-col-resize"
+            className="relative flex h-6 rounded-xl overflow-hidden mb-5 select-none cursor-col-resize border border-border/50 dark:border-[hsl(263_80%_68%/0.12)]"
           >
-            {languages.map((language, i) => (
-              <div
-                key={language.name}
-                className={`relative h-full ${getLangColor(i).bar} transition-opacity`}
-                style={{
-                  width: `${started ? widths[i] : 0}%`,
-                  transition: started && dragging === null ? "width 0.5s cubic-bezier(0.25, 1, 0.5, 1)" : "none",
-                  opacity: dragging === i || dragging === null ? 1 : 0.85,
-                }}
-              >
-                {i < languages.length - 1 && (
-                  <div
-                    onMouseDown={(e) => handleDividerMouseDown(e, i)}
-                    className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-3 z-10 cursor-col-resize flex items-center justify-center group`}
-                    style={{ transform: isRTL ? "translateX(-50%)" : "translateX(50%)" }}
-                  >
-                    <div className={`w-0.5 h-full bg-background transition-all ${
-                      dragging === i
-                        ? "opacity-100 scale-x-150"
-                        : "opacity-80 group-hover:opacity-100 group-hover:scale-x-150"
-                    }`} />
-                    <div className={`absolute w-4 h-4 rounded-full bg-background border-2 ${getLangColor(i).border} shadow-md transition-transform ${
-                      dragging === i ? "scale-100" : "scale-0 group-hover:scale-100"
-                    }`} />
-                  </div>
-                )}
-              </div>
-            ))}
+            {languages.map((language, i) => {
+              const color = getColor(i);
+              return (
+                <div
+                  key={language.name}
+                  className="relative h-full transition-opacity"
+                  style={{
+                    width: `${started ? widths[i] : 0}%`,
+                    background: color.bar,
+                    transition: started && dragging === null ? "width 0.6s cubic-bezier(0.16,1,0.3,1)" : "none",
+                    opacity: dragging === i || dragging === null ? 1 : 0.7,
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2)`,
+                  }}
+                >
+                  {i < languages.length - 1 && (
+                    <div
+                      onMouseDown={(e) => handleDividerMouseDown(e, i)}
+                      className={`absolute ${isRTL ? "left-0" : "right-0"} top-0 bottom-0 w-4 z-10 cursor-col-resize flex items-center justify-center group`}
+                      style={{ transform: isRTL ? "translateX(-50%)" : "translateX(50%)" }}
+                    >
+                      <div className={`w-0.5 h-full bg-background/80 transition-all ${dragging === i ? "opacity-100 scale-x-150" : "opacity-60 group-hover:opacity-100 group-hover:scale-x-150"}`} />
+                      <div className={`absolute w-4 h-4 rounded-full bg-background border-2 shadow-md transition-transform ${dragging === i ? "scale-100" : "scale-0 group-hover:scale-100"}`}
+                        style={{ borderColor: color.bar }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div ref={barRef} />
 
-          {/* Legend */}
-          <div className={`flex flex-wrap gap-x-5 gap-y-2 ${isRTL ? "flex-row-reverse" : ""}`}>
-            {languages.map((language, i) => (
-              <div key={language.name} className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-                <span className={`w-3 h-3 rounded-sm ${getLangColor(i).bar}`} />
-                <span className="text-xs text-foreground font-medium">{language.name}</span>
-                <span className="text-xs text-muted-foreground font-mono">{widths[i].toFixed(1)}%</span>
-              </div>
-            ))}
+          {/* Legend with individual cards */}
+          <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${isRTL ? "direction-rtl" : ""}`}>
+            {languages.map((language, i) => {
+              const color = getColor(i);
+              return (
+                <div
+                  key={language.name}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all ${isRTL ? "flex-row-reverse" : ""}`}
+                  style={{
+                    background: color.light,
+                    borderColor: color.border,
+                  }}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                    style={{ background: color.bar, boxShadow: `0 0 6px ${color.bar}` }}
+                  />
+                  <div className={`min-w-0 ${isRTL ? "text-right" : ""}`}>
+                    <div className="text-xs font-semibold truncate">{language.name}</div>
+                    <div className="text-[10px] text-muted-foreground font-mono">{widths[i].toFixed(1)}%</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

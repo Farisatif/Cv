@@ -617,6 +617,154 @@
   }
 }
 
+/* ─── ACHIEVEMENT BADGE ── */
+  .achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted) / 0.5);
+    color: hsl(var(--muted-foreground));
+    transition: all 0.2s ease;
+  }
+  .dark .achievement-badge {
+    background: hsl(263 80% 68% / 0.08);
+    border-color: hsl(263 80% 68% / 0.2);
+    color: hsl(263 80% 80%);
+  }
+  .achievement-badge:hover {
+    background: hsl(var(--muted));
+    border-color: hsl(var(--foreground) / 0.2);
+    color: hsl(var(--foreground));
+  }
+  .dark .achievement-badge:hover {
+    background: hsl(263 80% 68% / 0.15);
+    box-shadow: 0 0 14px hsl(263 80% 68% / 0.2);
+  }
+
+  /* ─── FEATURED PROJECT CARD ── */
+  .project-featured {
+    position: relative;
+    overflow: hidden;
+  }
+  .project-featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, hsl(263 80% 68%), hsl(192 100% 62%), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .project-featured:hover::before { opacity: 1; }
+  .dark .project-featured::before { opacity: 0.6; }
+  .dark .project-featured:hover::before { opacity: 1; }
+
+  /* ─── MOOD SWITCHER ── */
+  .mood-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    transition: all 0.2s ease;
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+  }
+  .mood-btn:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+  .mood-btn.active {
+    background: hsl(var(--foreground) / 0.1);
+    border-color: hsl(var(--foreground) / 0.2);
+    color: hsl(var(--foreground));
+  }
+  .dark .mood-btn.active {
+    background: hsl(263 80% 68% / 0.12);
+    border-color: hsl(263 80% 68% / 0.3);
+    color: hsl(263 80% 78%);
+    box-shadow: 0 0 12px hsl(263 80% 68% / 0.2);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   MOOD: MINIMAL — suppress glows, simpler aesthetic
+═══════════════════════════════════════════════════ */
+[data-mood="minimal"] .glow-text { text-shadow: none !important; }
+[data-mood="minimal"] .nebula-orb { opacity: 0 !important; display: none !important; }
+[data-mood="minimal"] .glow-border { border-color: hsl(var(--border)) !important; box-shadow: none !important; animation: none !important; }
+[data-mood="minimal"] .dark .cosmic-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2) !important;
+  border-color: hsl(240 30% 22%) !important;
+  transform: translateY(-2px) !important;
+}
+[data-mood="minimal"] .dark .section-label {
+  text-shadow: none !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+[data-mood="minimal"] .dark .glow-divider {
+  background: hsl(var(--border)) !important;
+}
+[data-mood="minimal"] .dark .btn-primary {
+  background: hsl(220 20% 92%) !important;
+  color: hsl(240 25% 4%) !important;
+  box-shadow: none !important;
+}
+[data-mood="minimal"] .dark .btn-primary:hover {
+  box-shadow: none !important;
+  opacity: 0.9 !important;
+}
+[data-mood="minimal"] .dark .icon-btn:hover { box-shadow: none !important; }
+[data-mood="minimal"] .dark .tag-filter.active { box-shadow: none !important; }
+[data-mood="minimal"] .dark .terminal-cursor { text-shadow: none !important; color: hsl(var(--foreground)) !important; }
+[data-mood="minimal"] canvas { opacity: 0.3 !important; }
+[data-mood="minimal"] .section-reveal { transition-duration: 0.4s !important; }
+
+/* ═══════════════════════════════════════════════════
+   MOOD: PROFESSIONAL — light, formal, corporate
+═══════════════════════════════════════════════════ */
+[data-mood="professional"] {
+  --background: 0 0% 98% !important;
+  --foreground: 222 47% 11% !important;
+  --card: 0 0% 100% !important;
+  --border: 214 32% 91% !important;
+  --muted: 210 40% 96% !important;
+  --muted-foreground: 215 16% 47% !important;
+}
+[data-mood="professional"].dark {
+  --background: 0 0% 98% !important;
+  --foreground: 222 47% 11% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222 47% 11% !important;
+  --border: 214 32% 91% !important;
+  --muted: 210 40% 96% !important;
+  --muted-foreground: 215 16% 47% !important;
+}
+[data-mood="professional"] .nebula-orb { display: none !important; }
+[data-mood="professional"] .glow-text { text-shadow: none !important; color: inherit !important; }
+[data-mood="professional"] .glow-border { border-color: hsl(214 32% 91%) !important; box-shadow: none !important; animation: none !important; }
+[data-mood="professional"] .dark .cosmic-card { background: white !important; border-color: hsl(214 32% 91%) !important; }
+[data-mood="professional"] .dark .cosmic-card:hover { border-color: hsl(215 16% 70%) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important; }
+[data-mood="professional"] .dark .section-label { color: hsl(215 16% 47%) !important; text-shadow: none !important; }
+[data-mood="professional"] .dark .btn-primary { background: hsl(222 47% 11%) !important; color: white !important; box-shadow: none !important; }
+[data-mood="professional"] .dark .btn-primary:hover { opacity: 0.9 !important; box-shadow: none !important; transform: translateY(-1px) !important; }
+[data-mood="professional"] .dark .glow-divider { background: hsl(214 32% 91%) !important; }
+[data-mood="professional"] .dark .tag-filter.active { background: hsl(222 47% 11%) !important; border-color: hsl(222 47% 11%) !important; color: white !important; box-shadow: none !important; }
+[data-mood="professional"] .dark .terminal-cursor { color: hsl(215 16% 47%) !important; text-shadow: none !important; }
+[data-mood="professional"] .dark .icon-btn { background: hsl(210 40% 97%) !important; border-color: hsl(214 32% 91%) !important; color: hsl(215 16% 47%) !important; }
+[data-mood="professional"] .dark .icon-btn:hover { box-shadow: none !important; color: hsl(222 47% 11%) !important; }
+[data-mood="professional"] canvas { display: none !important; }
+[data-mood="professional"] .nav-blur { background: rgba(255,255,255,0.95) !important; }
+
 /* ═══════════════════════════════════════════════════
    PRINT STYLES
 ═══════════════════════════════════════════════════ */

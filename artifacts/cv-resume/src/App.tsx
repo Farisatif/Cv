@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ResumeDataProvider } from "@/context/ResumeDataContext";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import FeaturedImpact from "@/components/FeaturedImpact";
 import SkillsSection from "@/components/SkillsSection";
 import LanguagesSection from "@/components/LanguagesSection";
 import ContributionGraph from "@/components/ContributionGraph";
@@ -13,6 +14,7 @@ import EducationSection from "@/components/EducationSection";
 import ContactSection from "@/components/ContactSection";
 import CommentsSection from "@/components/CommentsSection";
 import Footer from "@/components/Footer";
+import LoadingScreen from "@/components/LoadingScreen";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 
@@ -20,10 +22,11 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
-// ─── SECTION VISIBILITY ────────────────────────────────────────────────────
-// To remove a section cleanly, set its value to false.
+// ─── SECTION VISIBILITY ─────────────────────────────────────────────
+// Set any value to false to cleanly hide that section.
 // The layout adapts automatically — no broken spacing or gaps.
 const SECTIONS = {
+  impact:        true,   // Featured stats strip below hero
   skills:        true,
   languages:     true,
   contributions: true,
@@ -33,17 +36,27 @@ const SECTIONS = {
   contact:       true,
   guestbook:     true,
 } as const;
-// ──────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────
+
+export type Mood = "cosmic" | "minimal" | "professional";
 
 function CVApp() {
+  const [loading, setLoading] = useState(true);
+
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("cv-dark");
       if (stored !== null) return stored === "true";
-      // default: dark (cosmic atmosphere)
-      return true;
+      return true; // default: cosmic dark
     }
     return true;
+  });
+
+  const [mood, setMood] = useState<Mood>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("cv-mood") as Mood) || "cosmic";
+    }
+    return "cosmic";
   });
 
   const [manualOverride, setManualOverride] = useState(
@@ -82,13 +95,16 @@ function CVApp() {
     return () => mq.removeEventListener("change", handler);
   }, [manualOverride]);
 
+  // Apply dark mode + mood to html element
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
+    const html = document.documentElement;
+    if (darkMode && mood !== "professional") {
+      html.classList.add("dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      html.classList.remove("dark");
     }
-  }, [darkMode]);
+    html.setAttribute("data-mood", mood);
+  }, [darkMode, mood]);
 
   const handleToggleDark = () => {
     const next = !darkMode;
@@ -96,6 +112,17 @@ function CVApp() {
     setDarkMode(next);
     localStorage.setItem("cv-dark", String(next));
   };
+
+  const handleSetMood = useCallback((m: Mood) => {
+    setMood(m);
+    localStorage.setItem("cv-mood", m);
+    // Professional forces light
+    if (m === "professional") {
+      document.documentElement.classList.remove("dark");
+    } else if (darkMode) {
+      document.documentElement.classList.add("dark");
+    }
+  }, [darkMode]);
 
   if (adminView === "login") {
     return <AdminLogin onLogin={() => setAdminView("panel")} />;
@@ -113,33 +140,47 @@ function CVApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-400">
-      <Navbar darkMode={darkMode} onToggleDark={handleToggleDark} />
+    <>
+      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
 
-      <main id="cv-main">
-        <HeroSection />
+      <div
+        className="min-h-screen bg-background text-foreground transition-colors duration-400"
+        style={{ opacity: loading ? 0 : 1, transition: "opacity 0.6s ease" }}
+      >
+        <Navbar
+          darkMode={darkMode}
+          onToggleDark={handleToggleDark}
+          mood={mood}
+          onSetMood={handleSetMood}
+        />
 
-        {(SECTIONS.skills || SECTIONS.languages || SECTIONS.contributions) && (
-          <div className="glow-divider" />
-        )}
+        <main id="cv-main">
+          <HeroSection />
 
-        {SECTIONS.skills        && <SkillsSection />}
-        {SECTIONS.languages     && <LanguagesSection />}
-        {SECTIONS.contributions && <ContributionGraph />}
+          {SECTIONS.impact && <FeaturedImpact />}
 
-        {(SECTIONS.experience || SECTIONS.projects || SECTIONS.education) && (
-          <div className="glow-divider" />
-        )}
+          {(SECTIONS.skills || SECTIONS.languages || SECTIONS.contributions) && (
+            <div className="glow-divider mt-8" />
+          )}
 
-        {SECTIONS.experience && <ExperienceSection />}
-        {SECTIONS.projects   && <ProjectsSection />}
-        {SECTIONS.education  && <EducationSection />}
-        {SECTIONS.contact    && <ContactSection />}
-        {SECTIONS.guestbook  && <CommentsSection />}
-      </main>
+          {SECTIONS.skills        && <SkillsSection />}
+          {SECTIONS.languages     && <LanguagesSection />}
+          {SECTIONS.contributions && <ContributionGraph />}
 
-      <Footer />
-    </div>
+          {(SECTIONS.experience || SECTIONS.projects || SECTIONS.education) && (
+            <div className="glow-divider" />
+          )}
+
+          {SECTIONS.experience && <ExperienceSection />}
+          {SECTIONS.projects   && <ProjectsSection />}
+          {SECTIONS.education  && <EducationSection />}
+          {SECTIONS.contact    && <ContactSection />}
+          {SECTIONS.guestbook  && <CommentsSection />}
+        </main>
+
+        <Footer />
+      </div>
+    </>
   );
 }
 
