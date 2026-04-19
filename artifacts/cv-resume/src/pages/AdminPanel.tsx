@@ -194,11 +194,15 @@ type AdminComment = {
   createdAt: string;
 };
 
-function useAdminHeaders() {
+function useAdminHeaders(): Record<string, string> {
   const sessionToken = sessionStorage.getItem("cv-admin-token") || "";
-  return sessionToken
-    ? { "X-Session-Token": sessionToken }
-    : { "X-Admin-Key": "Zoom100*" };
+  const headers: Record<string, string> = {};
+  if (sessionToken) {
+    headers["X-Session-Token"] = sessionToken;
+  } else {
+    headers["X-Admin-Key"] = "Zoom100*";
+  }
+  return headers;
 }
 
 function CommentsTab() {
