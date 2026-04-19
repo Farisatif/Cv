@@ -97,7 +97,7 @@ function CVApp() {
     return (
       <AdminPanel
         onLogout={() => {
-          window.history.pushState({}, "", "/cv-resume/");
+          window.history.pushState({}, "", "/");
           setAdminView("cv");
         }}
       />
