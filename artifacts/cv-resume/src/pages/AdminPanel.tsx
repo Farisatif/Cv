@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useResumeData } from "@/context/ResumeDataContext";
+import { AchievementIcon, ICON_OPTIONS } from "@/lib/achievementIcons";
 
 type ResumeData = ReturnType<typeof useResumeData>["data"];
 
@@ -171,13 +172,14 @@ function HighlightsEditor({
 }
 
 const TABS = [
-  { id: "personal",   labelEn: "Personal",    labelAr: "الشخصية" },
-  { id: "skills",     labelEn: "Skills",       labelAr: "المهارات" },
-  { id: "experience", labelEn: "Experience",   labelAr: "الخبرة" },
-  { id: "projects",   labelEn: "Projects",     labelAr: "المشاريع" },
-  { id: "education",  labelEn: "Education",    labelAr: "التعليم" },
-  { id: "languages",  labelEn: "Languages",    labelAr: "اللغات" },
-  { id: "comments",   labelEn: "Comments",     labelAr: "التعليقات" },
+  { id: "personal",      labelEn: "Personal",      labelAr: "الشخصية" },
+  { id: "skills",        labelEn: "Skills",         labelAr: "المهارات" },
+  { id: "experience",    labelEn: "Experience",     labelAr: "الخبرة" },
+  { id: "projects",      labelEn: "Projects",       labelAr: "المشاريع" },
+  { id: "education",     labelEn: "Education",      labelAr: "التعليم" },
+  { id: "languages",     labelEn: "Languages",      labelAr: "اللغات" },
+  { id: "achievements",  labelEn: "Achievements",   labelAr: "الإنجازات" },
+  { id: "comments",      labelEn: "Comments",       labelAr: "التعليقات" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -365,6 +367,13 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
 
   const upEdu = (i: number, patch: Partial<ResumeData["education"][0]>) =>
     setData((p) => ({ ...p, education: p.education.map((e, idx) => idx === i ? { ...e, ...patch } : e) }));
+
+  type AchItem = ResumeData["achievements"][0];
+  const upAch = (i: number, patch: Partial<AchItem>) =>
+    setData((p) => ({
+      ...p,
+      achievements: (p.achievements ?? []).map((a, idx) => idx === i ? { ...a, ...patch } : a),
+    }));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -746,6 +755,164 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
               className="w-full py-2.5 rounded-xl border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 text-sm transition-all"
             >
               + Add Language
+            </button>
+          </div>
+        )}
+
+        {/* ── ACHIEVEMENTS ── */}
+        {tab === "achievements" && (
+          <div className="space-y-4">
+            <SectionHeader title="Achievements / الإنجازات" />
+            <p className="text-xs text-muted-foreground -mt-2">
+              Each card shows on the CV with a colored icon, title, description, and badge. Changes are saved to the database and reflected immediately.
+            </p>
+            {(data.achievements ?? []).map((ach, i) => (
+              <div key={ach.id ?? i} className="border border-border rounded-xl p-5 bg-card space-y-4">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center border flex-shrink-0"
+                      style={{
+                        background: `hsl(${ach.accent} / 0.12)`,
+                        color: `hsl(${ach.accent})`,
+                        borderColor: `hsl(${ach.accent} / 0.25)`,
+                      }}
+                    >
+                      <AchievementIcon name={ach.icon} size={18} />
+                    </div>
+                    <span className="font-semibold text-sm truncate max-w-[200px]">{ach.title_en}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Move up */}
+                    <button
+                      onClick={() => {
+                        if (i === 0) return;
+                        setData((p) => {
+                          const arr = [...(p.achievements ?? [])];
+                          [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+                          return { ...p, achievements: arr };
+                        });
+                      }}
+                      disabled={i === 0}
+                      className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-1"
+                      title="Move up"
+                    >↑</button>
+                    {/* Move down */}
+                    <button
+                      onClick={() => {
+                        const arr = data.achievements ?? [];
+                        if (i >= arr.length - 1) return;
+                        setData((p) => {
+                          const a = [...(p.achievements ?? [])];
+                          [a[i], a[i + 1]] = [a[i + 1], a[i]];
+                          return { ...p, achievements: a };
+                        });
+                      }}
+                      disabled={i >= (data.achievements ?? []).length - 1}
+                      className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors px-1"
+                      title="Move down"
+                    >↓</button>
+                    <button
+                      onClick={() => {
+                        if (!confirm("Delete this achievement?")) return;
+                        setData((p) => ({
+                          ...p,
+                          achievements: (p.achievements ?? []).filter((_, idx) => idx !== i),
+                        }));
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {/* Icon + Accent row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icon</label>
+                    <select
+                      className="cosmic-input text-sm"
+                      value={ach.icon}
+                      onChange={(e) => upAch(i, { icon: e.target.value })}
+                    >
+                      {ICON_OPTIONS.map((opt) => (
+                        <option key={opt.key} value={opt.key}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Accent Color <span className="normal-case opacity-60">(HSL without hsl())</span>
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        className="cosmic-input text-sm flex-1 font-mono"
+                        value={ach.accent}
+                        placeholder="263 80% 68%"
+                        onChange={(e) => upAch(i, { accent: e.target.value })}
+                      />
+                      <div
+                        className="w-8 h-8 rounded-lg border border-border flex-shrink-0"
+                        style={{ background: `hsl(${ach.accent})` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Titles */}
+                <BilingualFields
+                  labelEn="Title (EN)" labelAr="العنوان"
+                  valueEn={ach.title_en} valueAr={ach.title_ar}
+                  onChangeEn={(v) => upAch(i, { title_en: v })}
+                  onChangeAr={(v) => upAch(i, { title_ar: v })}
+                />
+
+                {/* Descriptions */}
+                <BilingualFields
+                  labelEn="Description (EN)" labelAr="الوصف"
+                  valueEn={ach.desc_en} valueAr={ach.desc_ar}
+                  onChangeEn={(v) => upAch(i, { desc_en: v })}
+                  onChangeAr={(v) => upAch(i, { desc_ar: v })}
+                  multiline
+                />
+
+                {/* Badges */}
+                <BilingualFields
+                  labelEn="Badge Label (EN)" labelAr="اسم الشارة"
+                  valueEn={ach.badge_en} valueAr={ach.badge_ar}
+                  onChangeEn={(v) => upAch(i, { badge_en: v })}
+                  onChangeAr={(v) => upAch(i, { badge_ar: v })}
+                />
+              </div>
+            ))}
+
+            {/* Add new */}
+            <button
+              onClick={() =>
+                setData((p) => ({
+                  ...p,
+                  achievements: [
+                    ...(p.achievements ?? []),
+                    {
+                      id: `ach-${Date.now()}`,
+                      icon: "star",
+                      title_en: "New Achievement",
+                      title_ar: "إنجاز جديد",
+                      desc_en: "Describe this achievement.",
+                      desc_ar: "وصف هذا الإنجاز.",
+                      badge_en: "Badge",
+                      badge_ar: "شارة",
+                      accent: "263 80% 68%",
+                    },
+                  ],
+                }))
+              }
+              className="w-full py-2.5 rounded-xl border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 text-sm transition-all"
+            >
+              + Add Achievement
             </button>
           </div>
         )}
