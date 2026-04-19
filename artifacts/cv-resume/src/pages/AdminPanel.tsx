@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useResumeData } from "@/context/ResumeDataContext";
 
 type ResumeData = ReturnType<typeof useResumeData>["data"];
@@ -178,9 +178,163 @@ const TABS = [
   { id: "projects",   labelEn: "Projects",     labelAr: "المشاريع" },
   { id: "education",  labelEn: "Education",    labelAr: "التعليم" },
   { id: "languages",  labelEn: "Languages",    labelAr: "اللغات" },
+  { id: "comments",   labelEn: "Comments",     labelAr: "التعليقات" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
+
+type AdminComment = {
+  id: number;
+  name: string;
+  message: string;
+  likes: number;
+  approved: boolean;
+  createdAt: string;
+};
+
+function CommentsTab() {
+  const [comments, setComments] = useState<AdminComment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState<number | null>(null);
+
+  const storedToken = sessionStorage.getItem("cv-admin-token");
+  const adminToken = (storedToken && storedToken !== "dev-token") ? storedToken : "Zoom100*";
+
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/comments/all", {
+        headers: { "X-Admin-Key": adminToken },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setComments(data);
+      }
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchComments(); }, []);
+
+  const approve = async (id: number) => {
+    setActionId(id);
+    try {
+      await fetch(`/api/comments/${id}/approve`, {
+        method: "POST",
+        headers: { "X-Admin-Key": adminToken },
+      });
+      setComments((prev) => prev.map((c) => c.id === id ? { ...c, approved: true } : c));
+    } catch {}
+    setActionId(null);
+  };
+
+  const deleteComment = async (id: number) => {
+    if (!confirm("حذف هذا التعليق؟")) return;
+    setActionId(id);
+    try {
+      await fetch(`/api/comments/${id}`, {
+        method: "DELETE",
+        headers: { "X-Admin-Key": adminToken },
+      });
+      setComments((prev) => prev.filter((c) => c.id !== id));
+    } catch {}
+    setActionId(null);
+  };
+
+  const pending = comments.filter((c) => !c.approved);
+  const approved = comments.filter((c) => c.approved);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <SectionHeader title={`التعليقات (${comments.length} إجمالي)`} />
+        <button onClick={fetchComments} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-lg">
+          تحديث ↻
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">جاري التحميل...</div>
+      ) : (
+        <>
+          {pending.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                قيد الانتظار ({pending.length})
+              </h3>
+              <div className="space-y-3">
+                {pending.map((c) => (
+                  <div key={c.id} className="border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{c.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">{new Date(c.createdAt).toLocaleDateString("ar")}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{c.message}</p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => approve(c.id)}
+                          disabled={actionId === c.id}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-all"
+                        >
+                          ✓ قبول
+                        </button>
+                        <button
+                          onClick={() => deleteComment(c.id)}
+                          disabled={actionId === c.id}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-all"
+                        >
+                          ✗ حذف
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              المعتمدة ({approved.length})
+            </h3>
+            {approved.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-4">لا يوجد تعليقات معتمدة بعد</div>
+            ) : (
+              <div className="space-y-3">
+                {approved.map((c) => (
+                  <div key={c.id} className="border border-border rounded-xl p-4 bg-card">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{c.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">{new Date(c.createdAt).toLocaleDateString("ar")}</span>
+                          <span className="text-[10px] text-muted-foreground">❤️ {c.likes}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{c.message}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        disabled={actionId === c.id}
+                        className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors flex-shrink-0"
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const { data, setData, saveData, resetData, saving } = useResumeData();
@@ -593,20 +747,25 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
           </div>
         )}
 
-        <div className="mt-8 pt-4 border-t border-border flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            All edits in both languages. Press <strong>Save</strong> to write permanently to the database — visible to everyone instantly.
-          </p>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-60 ${
-              saved ? "bg-emerald-600 text-white" : "bg-foreground text-background hover:opacity-90"
-            }`}
-          >
-            {saving ? "Saving…" : saved ? "✓ Saved" : "Save"}
-          </button>
-        </div>
+        {/* ── COMMENTS ── */}
+        {tab === "comments" && <CommentsTab />}
+
+        {tab !== "comments" && (
+          <div className="mt-8 pt-4 border-t border-border flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              All edits in both languages. Press <strong>Save</strong> to write permanently to the database — visible to everyone instantly.
+            </p>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-60 ${
+                saved ? "bg-emerald-600 text-white" : "bg-foreground text-background hover:opacity-90"
+              }`}
+            >
+              {saving ? "Saving…" : saved ? "✓ Saved" : "Save"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

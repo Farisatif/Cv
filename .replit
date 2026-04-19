@@ -33,3 +33,14 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_URL = "https://zhqstdrgmtayullvuekn.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_C9FmEJvmM9_DzONpEsEI6g_Cq4Uh_bu"
+ADMIN_EMAIL = "farisatif7780@gmail.com"
+NOTIFY_EMAIL = "farisatif7780@gmail.com"
+GOOGLE_CLIENT_ID = "REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID"
+APP_BASE_URL = "https://cv-resume.replit.app"
+VITE_GOOGLE_CLIENT_ID = "REPLACE_WITH_GOOGLE_CLIENT_ID"

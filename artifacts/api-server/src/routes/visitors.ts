@@ -1,32 +1,42 @@
 import { Router, type IRouter } from "express";
-import { db, visitorsTable } from "@workspace/db";
+import { pool } from "@workspace/db";
 import { GetVisitorCountResponse, TrackVisitResponse } from "@workspace/api-zod";
-import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
 async function ensureVisitorRow() {
-  const [existing] = await db.select().from(visitorsTable).limit(1);
-  if (!existing) {
-    const [row] = await db.insert(visitorsTable).values({ count: 0 }).returning();
-    return row;
+  const result = await pool.query(`SELECT id, count FROM visitors LIMIT 1`);
+  if (result.rows.length === 0) {
+    const inserted = await pool.query(
+      `INSERT INTO visitors (count) VALUES (0) RETURNING id, count`
+    );
+    return inserted.rows[0];
   }
-  return existing;
+  return result.rows[0];
 }
 
 router.get("/visitors", async (req, res): Promise<void> => {
-  const row = await ensureVisitorRow();
-  res.json(GetVisitorCountResponse.parse({ count: row.count }));
+  try {
+    const row = await ensureVisitorRow();
+    res.json(GetVisitorCountResponse.parse({ count: row.count }));
+  } catch (err) {
+    console.error("[visitors] GET error:", err);
+    res.status(500).json({ error: "Failed to get visitors" });
+  }
 });
 
 router.post("/visitors", async (req, res): Promise<void> => {
-  const row = await ensureVisitorRow();
-  const [updated] = await db
-    .update(visitorsTable)
-    .set({ count: row.count + 1 })
-    .where(eq(visitorsTable.id, row.id))
-    .returning();
-  res.json(TrackVisitResponse.parse({ count: updated.count }));
+  try {
+    const row = await ensureVisitorRow();
+    const updated = await pool.query(
+      `UPDATE visitors SET count = count + 1 WHERE id = $1 RETURNING id, count`,
+      [row.id]
+    );
+    res.json(TrackVisitResponse.parse({ count: updated.rows[0].count }));
+  } catch (err) {
+    console.error("[visitors] POST error:", err);
+    res.status(500).json({ error: "Failed to track visit" });
+  }
 });
 
 export default router;

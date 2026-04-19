@@ -129,7 +129,7 @@ export default function CommentsSection() {
       setName("");
       setMessage("");
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 3000);
+      setTimeout(() => setSubmitted(false), 6000);
     } catch {
       setError(t.guestbook.failed);
     } finally {
@@ -226,11 +226,11 @@ export default function CommentsSection() {
                     {t.guestbook.posting}
                   </span>
                 ) : submitted ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2 text-xs">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    {t.guestbook.sent}
+                    {lang === "ar" ? "✓ تم الإرسال — بانتظار موافقة المشرف" : "✓ Sent — awaiting admin approval"}
                   </span>
                 ) : (
                   t.guestbook.post

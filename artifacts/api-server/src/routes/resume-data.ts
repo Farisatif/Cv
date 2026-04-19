@@ -1,26 +1,24 @@
 import { Router, type IRouter } from "express";
-import { db, resumeDataTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { pool } from "@workspace/db";
 
 const router: IRouter = Router();
 
-const ADMIN_KEY = "Zoom100*";
+const ADMIN_KEY = process.env.ADMIN_KEY || "Zoom100*";
 
 router.get("/resume", async (req, res): Promise<void> => {
   try {
-    const rows = await db
-      .select()
-      .from(resumeDataTable)
-      .orderBy(desc(resumeDataTable.updatedAt))
-      .limit(1);
+    const result = await pool.query(
+      `SELECT data FROM resume_data ORDER BY updated_at DESC LIMIT 1`
+    );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       res.json({ data: null });
       return;
     }
 
-    res.json({ data: JSON.parse(rows[0].data) });
+    res.json({ data: JSON.parse(result.rows[0].data) });
   } catch (err) {
+    console.error("[resume-data] GET error:", err);
     res.status(500).json({ error: "Failed to load resume data" });
   }
 });
@@ -41,23 +39,22 @@ router.put("/resume", async (req, res): Promise<void> => {
 
     const dataStr = JSON.stringify(payload);
 
-    const existing = await db
-      .select()
-      .from(resumeDataTable)
-      .orderBy(desc(resumeDataTable.updatedAt))
-      .limit(1);
+    const existing = await pool.query(
+      `SELECT id FROM resume_data ORDER BY updated_at DESC LIMIT 1`
+    );
 
-    if (existing.length === 0) {
-      await db.insert(resumeDataTable).values({ data: dataStr });
+    if (existing.rows.length === 0) {
+      await pool.query(`INSERT INTO resume_data (data) VALUES ($1)`, [dataStr]);
     } else {
-      await db
-        .update(resumeDataTable)
-        .set({ data: dataStr, updatedAt: new Date() })
-        .where(eq(resumeDataTable.id, existing[0].id));
+      await pool.query(
+        `UPDATE resume_data SET data = $1, updated_at = NOW() WHERE id = $2`,
+        [dataStr, existing.rows[0].id]
+      );
     }
 
     res.json({ success: true });
   } catch (err) {
+    console.error("[resume-data] PUT error:", err);
     res.status(500).json({ error: "Failed to save resume data" });
   }
 });
