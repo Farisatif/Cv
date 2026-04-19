@@ -6,8 +6,6 @@ import { downloadPDF } from "@/lib/downloadPDF";
 import type { Mood } from "@/App";
 
 interface NavbarProps {
-  darkMode: boolean;
-  onToggleDark: () => void;
   mood: Mood;
   onSetMood: (m: Mood) => void;
 }
@@ -25,29 +23,29 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_a
     ),
   },
   {
-    value: "minimal",
-    label: "Minimal",
-    label_ar: "مينيمال",
+    value: "dark",
+    label: "Dark",
+    label_ar: "أسود",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
     ),
   },
   {
-    value: "professional",
-    label: "Pro",
-    label_ar: "احترافي",
+    value: "light",
+    label: "Light",
+    label_ar: "أبيض",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        <circle cx="12" cy="12" r="5"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
       </svg>
     ),
   },
 ];
 
-export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: NavbarProps) {
+export default function Navbar({ mood, onSetMood }: NavbarProps) {
   const { lang, setLang, isRTL } = useLanguage();
   const t = translations[lang];
   const { data } = useResumeData();
@@ -220,23 +218,6 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
               {lang === "en" ? "عربي" : "EN"}
             </button>
 
-            {/* Desktop Theme Toggle */}
-            <button
-              onClick={onToggleDark}
-              className="hidden sm:flex h-8 w-8 rounded-lg items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-              ) : (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-              )}
-            </button>
-
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -245,8 +226,8 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             >
               <div className="w-5 flex flex-col gap-1.5 items-end">
                 <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 translate-y-2 -rotate-45" : "w-5"}`} />
-                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "opacity-0" : "w-3"}`} />
-                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 -translate-y-2 rotate-45" : "w-4"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-0 opacity-0" : "w-4"}`} />
+                <span className={`h-0.5 bg-current transition-all duration-300 ${menuOpen ? "w-5 -translate-y-2 rotate-45" : "w-3"}`} />
               </div>
             </button>
           </div>
@@ -322,30 +303,10 @@ export default function Navbar({ darkMode, onToggleDark, mood, onSetMood }: Navb
             {/* Integrated Appearance System */}
             <div className="mb-8">
               <div className={`px-4 mb-4 text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60 ${isRTL ? "text-right" : ""}`}>
-                {lang === "ar" ? "تخصيص الواجهة" : "Interface Customization"}
+                {lang === "ar" ? "اختر المظهر" : "Choose Theme"}
               </div>
               
               <div className="bg-muted/30 rounded-3xl p-3 border border-border/40 space-y-3">
-                {/* Theme Toggle */}
-                <button
-                  onClick={onToggleDark}
-                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all ${darkMode ? "bg-background shadow-md" : "bg-background/40 hover:bg-background/60"}`}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${darkMode ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {darkMode ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    )}
-                  </div>
-                  <div className={`flex-1 text-sm font-bold ${isRTL ? "text-right" : "text-left"}`}>
-                    {lang === "ar" ? (darkMode ? "الوضع الليلي" : "الوضع النهاري") : (darkMode ? "Dark Theme" : "Light Theme")}
-                  </div>
-                  <div className={`w-12 h-6 rounded-full relative transition-colors p-1 ${darkMode ? "bg-primary" : "bg-muted-foreground/30"}`}>
-                    <div className={`w-4 h-4 rounded-full bg-foreground transition-all shadow-sm ${isRTL ? (darkMode ? "translate-x-0" : "translate-x-6") : (darkMode ? "translate-x-6" : "translate-x-0")}`} />
-                  </div>
-                </button>
-
                 {/* Mood Selection */}
                 <div className="grid grid-cols-3 gap-2">
                   {MOOD_OPTIONS.map((opt) => (

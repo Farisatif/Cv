@@ -39,7 +39,7 @@ const SECTIONS = {
 } as const;
 // ────────────────────────────────────────────────────────────────────
 
-export type Mood = "cosmic" | "minimal" | "professional";
+export type Mood = "cosmic" | "dark" | "light";
 
 function SectionDivider() {
   return (
@@ -52,25 +52,18 @@ function SectionDivider() {
 function CVApp() {
   const [loading, setLoading] = useState(true);
 
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("cv-dark");
-      if (stored !== null) return stored === "true";
-      return true;
-    }
-    return true;
-  });
-
+  // Initialize mood based on system preference or stored value
   const [mood, setMood] = useState<Mood>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("cv-mood") as Mood) || "cosmic";
+      const stored = localStorage.getItem("cv-mood") as Mood | null;
+      if (stored) return stored;
+      
+      // Detect system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return prefersDark ? "dark" : "light";
     }
     return "cosmic";
   });
-
-  const [manualOverride, setManualOverride] = useState(
-    () => localStorage.getItem("cv-dark") !== null
-  );
 
   const [adminView, setAdminView] = useState<"cv" | "login" | "panel">(() => {
     if (typeof window !== "undefined") {
@@ -95,41 +88,43 @@ function CVApp() {
     return () => window.removeEventListener("popstate", handleNav);
   }, []);
 
+  // Listen for system preference changes and update mood if not manually set
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      if (!manualOverride) setDarkMode(e.matches);
+      const stored = localStorage.getItem("cv-mood");
+      // Only update if user hasn't manually selected a mood
+      if (!stored) {
+        setMood(e.matches ? "dark" : "light");
+      }
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, [manualOverride]);
+  }, []);
 
+  // Apply mood to document
   useEffect(() => {
     const html = document.documentElement;
-    if (darkMode && mood !== "professional") {
+    
+    // Remove all mood classes first
+    html.classList.remove("dark");
+    
+    // Apply mood-specific classes
+    if (mood === "dark") {
       html.classList.add("dark");
-    } else {
+    } else if (mood === "light") {
       html.classList.remove("dark");
+    } else if (mood === "cosmic") {
+      html.classList.add("dark");
     }
+    
     html.setAttribute("data-mood", mood);
-  }, [darkMode, mood]);
-
-  const handleToggleDark = () => {
-    const next = !darkMode;
-    setManualOverride(true);
-    setDarkMode(next);
-    localStorage.setItem("cv-dark", String(next));
-  };
+  }, [mood]);
 
   const handleSetMood = useCallback((m: Mood) => {
     setMood(m);
     localStorage.setItem("cv-mood", m);
-    if (m === "professional") {
-      document.documentElement.classList.remove("dark");
-    } else if (darkMode) {
-      document.documentElement.classList.add("dark");
-    }
-  }, [darkMode]);
+  }, []);
 
   if (adminView === "login") {
     return <AdminLogin onLogin={() => setAdminView("panel")} />;
@@ -158,8 +153,6 @@ function CVApp() {
         <FloatingLanguageParticles />
 
         <Navbar
-          darkMode={darkMode}
-          onToggleDark={handleToggleDark}
           mood={mood}
           onSetMood={handleSetMood}
         />
