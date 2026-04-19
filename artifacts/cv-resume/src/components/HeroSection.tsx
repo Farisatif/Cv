@@ -103,9 +103,19 @@ export default function HeroSection() {
     if (!ctx) return;
 
     let animId: number;
+    let paused = false;
+
+    // Color assigned once at creation — not recalculated per frame
+    const DARK_COLORS: [number, number, number][] = [
+      [175, 140, 255],
+      [120, 195, 255],
+      [255, 255, 255],
+    ];
+
     const particles: Array<{
       x: number; y: number; vx: number; vy: number;
       size: number; opacity: number; twinkle: number; twinkleSpeed: number;
+      colorIndex: number;
     }> = [];
 
     const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
@@ -119,10 +129,12 @@ export default function HeroSection() {
         opacity: Math.random() * 0.40 + 0.06,
         twinkle: Math.random() * Math.PI * 2,
         twinkleSpeed: 0.012 + Math.random() * 0.022,
+        colorIndex: Math.floor(Math.random() * 3),
       });
     }
 
     const draw = () => {
+      if (paused) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const isDark = document.documentElement.classList.contains("dark");
 
@@ -135,8 +147,9 @@ export default function HeroSection() {
         if (p.y > canvas.height) p.y = 0;
         const tw = p.opacity * (0.5 + 0.5 * Math.sin(p.twinkle));
         if (isDark) {
-          const colors = [`rgba(175,140,255,${tw})`, `rgba(120,195,255,${tw})`, `rgba(255,255,255,${tw * 0.65})`];
-          ctx.fillStyle = colors[Math.floor(p.twinkle * 0.2) % 3];
+          const [r, g, b] = DARK_COLORS[p.colorIndex];
+          const alpha = p.colorIndex === 2 ? tw * 0.65 : tw;
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
         } else {
           ctx.fillStyle = `rgba(0,0,0,${tw * 0.28})`;
         }
@@ -166,9 +179,20 @@ export default function HeroSection() {
 
       animId = requestAnimationFrame(draw);
     };
+
+    const onVisibility = () => {
+      paused = document.hidden;
+      if (!paused) draw();
+    };
+
     draw();
     window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });

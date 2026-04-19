@@ -11,7 +11,7 @@ const LANG_DOT: Record<string, string> = {
   Python:     "#22c55e",
   Rust:       "#f97316",
   Go:         "#06b6d4",
-  Nextjs:     "#a855f7",
+  "Next.js":  "#a855f7",
   "C++":      "#ec4899",
   Java:       "#ef4444",
 };

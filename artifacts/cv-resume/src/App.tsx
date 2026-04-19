@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { LanguageProvider } from "@/context/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import { ResumeDataProvider } from "@/context/ResumeDataContext";
 import Navbar from "@/components/Navbar";
 import FloatingLanguageParticles from "@/components/FloatingLanguageParticles";
@@ -23,6 +23,36 @@ import AdminPanel from "@/pages/AdminPanel";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
+
+function BackToTop({ isRTL }: { isRTL: boolean }) {
+  const [visible, setVisible] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 500);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <button
+      ref={btnRef}
+      aria-label="Back to top"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      data-rtl={isRTL ? "true" : undefined}
+      className="fab-top print:hidden"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(14px)",
+        pointerEvents: visible ? "auto" : "none",
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+  );
+}
 
 // ─── SECTION VISIBILITY ─────────────────────────────────────────────
 const SECTIONS = {
@@ -50,6 +80,7 @@ function SectionDivider() {
 }
 
 function CVApp() {
+  const { isRTL } = useLanguage();
   const [loading, setLoading] = useState(true);
 
   // Initialize mood based on system preference or stored value
@@ -183,6 +214,8 @@ function CVApp() {
 
         <Footer />
       </div>
+
+      <BackToTop isRTL={isRTL} />
     </>
   );
 }

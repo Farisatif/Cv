@@ -10,15 +10,48 @@ interface NavbarProps {
   onSetMood: (m: Mood) => void;
 }
 
+function ScrollProgress() {
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const update = () => {
+      const bar = barRef.current;
+      if (!bar) return;
+      const scrolled = window.scrollY;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = `scaleX(${total > 0 ? Math.min(1, scrolled / total) : 0})`;
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+  return (
+    <div
+      ref={barRef}
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: "2px",
+        background: "linear-gradient(90deg, hsl(263 80% 68%), hsl(186 95% 62%), hsl(316 72% 60%))",
+        transformOrigin: "left",
+        transform: "scaleX(0)",
+        willChange: "transform",
+        opacity: 0.75,
+        pointerEvents: "none",
+      }}
+    />
+  );
+}
+
 const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_ar: string }[] = [
   {
     value: "cosmic",
     label: "Cosmic",
     label_ar: "كوني",
     icon: (
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/>
+        <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" opacity="0.9"/>
       </svg>
     ),
   },
@@ -131,8 +164,10 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
             ? "border-b border-border dark:border-border bg-background/90 dark:bg-background/80 shadow-sm"
             : "bg-transparent"
         }`}
+        style={{ position: "fixed" }}
         dir={isRTL ? "rtl" : "ltr"}
       >
+        <ScrollProgress />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
           {/* Logo */}
           <a

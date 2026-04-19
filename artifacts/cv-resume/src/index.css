@@ -486,6 +486,7 @@ html[data-mood="dark"] .dark\:bg-\[hsl\(240_28\%_6\%\)\] {
   .section-reveal {
     opacity: 0;
     transform: translateY(20px);
+    will-change: opacity, transform;
     transition:
       opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1),
       transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
@@ -493,6 +494,7 @@ html[data-mood="dark"] .dark\:bg-\[hsl\(240_28\%_6\%\)\] {
   .section-reveal.visible {
     opacity: 1;
     transform: translateY(0);
+    will-change: auto;
   }
 
   /* ── SECTION LABEL — overline micro-label above titles ── */
@@ -1258,4 +1260,106 @@ html[data-mood="dark"] .dark\:bg-\[hsl\(240_28\%_6\%\)\] {
   .section-label {
     font-size: 9px;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   ACCESSIBILITY: REDUCED MOTION
+   Respects system preference — turns off decorative animations
+   while preserving functional state changes (expand/collapse, etc.)
+═══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  /* Section reveal: skip slide — just fade */
+  .section-reveal {
+    transform: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+  .section-reveal.visible {
+    transform: none !important;
+  }
+
+  /* Kill looping decorative animations */
+  .floating,
+  .nebula-orb,
+  .animate-spin,
+  .animate-ping,
+  .animate-bounce,
+  .progress-ring {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Freeze shimmer loaders in place */
+  .shimmer {
+    animation: none !important;
+    background-position: 0 center !important;
+  }
+
+  /* Collapse card hover lifts to zero */
+  .cosmic-card:hover,
+  .premium-card:hover,
+  .highlight-card:hover {
+    transform: none !important;
+  }
+
+  /* Disable progress bar scale animation */
+  .language-bar-fill {
+    transition: none !important;
+  }
+
+  /* Disable skill galaxy float animations */
+  [class*="sk-float"] {
+    animation: none !important;
+  }
+
+  /* Disable page-level keyframe animations */
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── FLOATING BACK-TO-TOP BUTTON ── */
+.fab-top {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  z-index: 40;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px hsl(0 0% 0% / 0.12);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.16,1,0.3,1),
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+  pointer-events: auto;
+}
+.fab-top:hover {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.22);
+  transform: translateY(-3px);
+}
+.dark .fab-top {
+  background: hsl(237 30% 4.5%);
+  border-color: hsl(240 34% 12%);
+  box-shadow: 0 4px 20px hsl(0 0% 0% / 0.45), 0 0 0 1px hsl(263 80% 68% / 0.06);
+}
+.dark .fab-top:hover {
+  border-color: hsl(263 80% 68% / 0.35);
+  color: hsl(263 80% 78%);
+  box-shadow: 0 6px 28px hsl(263 80% 68% / 0.14);
+}
+.fab-top[data-rtl="true"] {
+  right: auto;
+  left: 1.75rem;
 }
