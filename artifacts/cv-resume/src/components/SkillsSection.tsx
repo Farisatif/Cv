@@ -775,7 +775,7 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
   const sorted  = [...visible].sort((a, b) => b.level - a.level);
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
       {sorted.map((skill) => {
         const catIdx = Math.max(0, cats.indexOf(skill.category));
         const color  = PALETTE[catIdx % PALETTE.length];
@@ -783,51 +783,53 @@ function SkillGrid({ skills, filter, allLabel, lang, isRTL }: {
         const hsl    = `hsl(${color.h},${color.s}%,${color.l}%)`;
         const hslFn  = (a: string) => `hsl(${color.h},${color.s}%,${color.l}%/${a})`;
 
+        const accentStyle = isRTL
+          ? { borderRight: `3px solid ${hsl}` }
+          : { borderLeft:  `3px solid ${hsl}` };
+
         return (
           <div
             key={skill.id}
-            className="group rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4
-                       hover:border-[hsl(263_60%_65%/0.30)] hover:shadow-md
-                       transition-all duration-200"
+            className="group relative rounded-xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden
+                       hover:shadow-md transition-all duration-200"
+            style={accentStyle}
           >
-            {/* Header row */}
-            <div className={`flex items-center gap-2.5 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <div
-                className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: hslFn("0.10"), border: `1px solid ${hslFn("0.22")}` }}
-              >
-                <div
-                  className="w-2 h-2 rounded-full group-hover:scale-125 transition-transform duration-200"
-                  style={{ background: hsl, boxShadow: `0 0 7px ${hslFn("0.70")}` }}
-                />
+            <div className="p-3.5">
+              {/* Name + badge row */}
+              <div className={`flex items-start justify-between gap-2 mb-2.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
+                  <div className="text-[13px] font-bold tracking-tight leading-tight truncate">
+                    {skill.name}
+                  </div>
+                  <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest mt-0.5 truncate">
+                    {skill.category}
+                  </div>
+                </div>
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 whitespace-nowrap"
+                  style={{ color: hsl, background: hslFn("0.10"), border: `1px solid ${hslFn("0.18")}` }}
+                >
+                  {lang === "ar" ? label.ar : label.en}
+                </span>
               </div>
-              <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
-                <div className="text-sm font-bold tracking-tight truncate">{skill.name}</div>
-                <div className="text-[10px] text-muted-foreground/60 uppercase tracking-widest truncate">{skill.category}</div>
+
+              {/* Progress bar + % */}
+              <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: hslFn("0.10") }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width:      `${skill.level}%`,
+                      background: `linear-gradient(${isRTL ? "270deg" : "90deg"}, ${hsl}, hsl(${color.h},${color.s}%,${Math.min(color.l + 20, 92)}%))`,
+                      boxShadow:  `0 0 6px ${hslFn("0.50")}`,
+                    }}
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-muted-foreground/45 tabular-nums flex-shrink-0 w-7"
+                  style={{ textAlign: isRTL ? "left" : "right" }}>
+                  {skill.level}%
+                </span>
               </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-1 rounded-full overflow-hidden mb-2.5" style={{ background: hslFn("0.10") }}>
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width:      `${skill.level}%`,
-                  background: `linear-gradient(90deg, ${hsl}, hsl(${color.h},${color.s}%,${Math.min(color.l + 18, 90)}%))`,
-                  boxShadow:  `0 0 6px ${hslFn("0.45")}`,
-                }}
-              />
-            </div>
-
-            {/* Footer row */}
-            <div className={`flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
-              <span className="text-[10px] font-mono text-muted-foreground/50">{skill.level}%</span>
-              <span
-                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                style={{ color: hsl, background: hslFn("0.09") }}
-              >
-                {lang === "ar" ? label.ar : label.en}
-              </span>
             </div>
           </div>
         );
@@ -846,7 +848,7 @@ export default function SkillsSection() {
   const skills   = getSkills(lang, data) as Skill[];
   const [filter, setFilter] = useState("All");
   const allLabel = t.skills.all;
-  const [viewMode, setViewMode] = useState<"galaxy" | "grid">("galaxy");
+  const [viewMode, setViewMode] = useState<"galaxy" | "grid">("grid");
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
   useEffect(() => {
@@ -881,12 +883,8 @@ export default function SkillsSection() {
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
               {lang === "ar"
-                ? viewMode === "galaxy"
-                  ? "مهاراتي التقنية موزّعة في فضاء تفاعلي — اسحب أي نجمة لإعادة ترتيبها"
-                  : "جميع مهاراتي التقنية مرتبة حسب المستوى"
-                : viewMode === "galaxy"
-                  ? "Interactive skill space — drag any star to rearrange"
-                  : "All technical skills sorted by proficiency level"}
+                ? "جميع مهاراتي التقنية مرتبة حسب المستوى والفئة"
+                : "All technical skills sorted by proficiency level and category"}
             </p>
           </div>
 
