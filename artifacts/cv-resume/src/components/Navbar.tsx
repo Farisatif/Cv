@@ -13,7 +13,7 @@ export default function Navbar({ darkMode, onToggleDark }: NavbarProps) {
   const { lang, setLang, isRTL } = useLanguage();
   const t = translations[lang];
   const { data } = useResumeData();
-  const personalName = data.personal.name;
+  const personalName = data?.personal?.name ?? "Fares";
 
   const NAV_ITEMS = [
     { label: t.nav.about,      href: "#about" },
