@@ -121,7 +121,7 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
         try {
           const errJson = await res.json();
           if (errJson.dbNotReady) {
-            message = "Database not initialized — go to Settings to run the Supabase migration.";
+            message = "Database not ready — please try again in a moment.";
           } else if (errJson.error) {
             message = errJson.error;
           }

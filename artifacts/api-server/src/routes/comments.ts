@@ -226,6 +226,22 @@ router.post("/comments/:id/approve", async (req, res): Promise<void> => {
   }
 });
 
+router.post("/comments/:id/unapprove", async (req, res): Promise<void> => {
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+  try {
+    const { rows } = await pool.query(
+      "UPDATE comments SET approved = false WHERE id = $1 RETURNING id, name, message, likes, approved, created_at",
+      [id]
+    );
+    if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
+    res.json({ ...rows[0], createdAt: rows[0].created_at });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to unapprove comment" });
+  }
+});
+
 router.delete("/comments/:id", async (req, res): Promise<void> => {
   if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
   const id = parseInt(req.params.id);

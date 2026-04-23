@@ -40,17 +40,18 @@ export function PersonalTab({ data, setData }: { data: ResumeData; setData: SetD
           onChange={(tags) => upAr({ taglines: tags })} />
       </div>
 
-      <SectionHeader title="GitHub Stats (manual fallback)" />
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        {(["commits", "repos", "followers", "stars", "since"] as const).map((field) => (
-          <Field key={field}
-            label={field.charAt(0).toUpperCase() + field.slice(1)}
-            type="number"
-            value={data.personal.stats[field]}
-            onChange={(v) => setData((p) => ({ ...p, personal: { ...p.personal, stats: { ...p.personal.stats, [field]: parseInt(v) || 0 } } }))}
-          />
-        ))}
+      <SectionHeader title="Coding Timeline" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Field
+          label="Year coding started"
+          type="number"
+          value={data.personal.stats.since}
+          onChange={(v) => setData((p) => ({ ...p, personal: { ...p.personal, stats: { ...p.personal.stats, since: parseInt(v) || 2020 } } }))}
+        />
       </div>
+      <p className="text-xs text-muted-foreground -mt-2">
+        Repos, followers, stars, and contributions are fetched live from GitHub automatically.
+      </p>
     </div>
   );
 }

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 
 const GITHUB_USERNAME = "farisatif";
-const CACHE_KEY = "cv-github-stats";
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_KEY = "cv-github-stats-v2";
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 export interface GitHubStats {
   repos: number;
   followers: number;
   stars: number;
+  commits: number;
 }
 
 interface CachedStats {
@@ -51,11 +52,14 @@ export function useGitHubStats() {
 
     async function fetchStats() {
       try {
-        const [userRes, reposRes] = await Promise.all([
-          fetch(`https://api.github.com/users/${GITHUB_USERNAME}`),
-          fetch(
-            `https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`
-          ),
+        const [userRes, reposRes, contribRes] = await Promise.all([
+          fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, {
+            headers: { Accept: "application/vnd.github+json" },
+          }),
+          fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`, {
+            headers: { Accept: "application/vnd.github+json" },
+          }),
+          fetch(`https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}?y=last`),
         ]);
 
         if (!userRes.ok || !reposRes.ok) throw new Error("GitHub API error");
@@ -71,10 +75,21 @@ export function useGitHubStats() {
             )
           : 0;
 
+        let totalCommits = 0;
+        if (contribRes.ok) {
+          const contribData = await contribRes.json();
+          const contributions = contribData.contributions ?? [];
+          totalCommits = contributions.reduce(
+            (sum: number, d: { count: number }) => sum + (d.count || 0),
+            0
+          );
+        }
+
         const result: GitHubStats = {
           repos: user.public_repos ?? 0,
           followers: user.followers ?? 0,
           stars: totalStars,
+          commits: totalCommits,
         };
 
         if (!cancelled) {
