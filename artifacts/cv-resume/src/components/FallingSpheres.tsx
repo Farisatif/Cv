@@ -2,12 +2,12 @@ import { useEffect, useRef } from "react";
 
 /**
  * FallingSpheres — agency-grade physics scene.
- * Soft 3D-looking spheres drop from above with gravity, slight drift,
- * realistic bounce on a virtual floor, and basic inter-ball collisions.
  *
- * Performance: single <canvas>, devicePixelRatio-aware, throttled to rAF,
- * paused when off-screen / tab hidden, honours prefers-reduced-motion,
- * fewer particles on mobile.
+ * Soft, 3D-looking spheres drift down from above with realistic gravity,
+ * subtle lateral drift, gentle bouncing, and basic inter-sphere collisions.
+ * Render is a single <canvas> for performance, with theme-aware palette,
+ * IntersectionObserver pause, devicePixelRatio scaling, and full
+ * `prefers-reduced-motion` support.
  */
 
 type Sphere = {
@@ -16,22 +16,24 @@ type Sphere = {
   vx: number;
   vy: number;
   r: number;
-  hue: number;        // base hue, very narrow palette
+  hue: number;
+  sat: number;
+  light: number;
   alpha: number;
-  spawnDelay: number; // ms before this sphere becomes active
-  born: number;       // timestamp activated
+  spawnDelay: number;
+  born: number;
   settled: boolean;
+  bounces: number;
+  driftSeed: number;
 };
 
 interface Props {
-  /** CSS class for absolute positioning inside the parent (the parent must be relative). */
   className?: string;
-  /** Approx ball count on desktop; halved on mobile. */
+  /** Approx count on desktop; halved on mobile. Keep small for elegance. */
   count?: number;
-  /** Light vs dark palette automatically follows theme. */
 }
 
-export default function FallingSpheres({ className = "", count = 18 }: Props) {
+export default function FallingSpheres({ className = "", count = 14 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
     if (!ctx) return;
 
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
-    const N = Math.max(6, Math.round(isMobile ? count * 0.55 : count));
+    const N = Math.max(5, Math.round(isMobile ? count * 0.55 : count));
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     let W = 0, H = 0;
@@ -61,9 +63,37 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
       document.documentElement.classList.contains("dark") ||
       document.documentElement.dataset.mood === "dark";
 
-    /** Tasteful, narrow palette — blues / cyans / soft amber accents. */
-    const PALETTE_LIGHT = [212, 199, 218, 212, 195, 38];
-    const PALETTE_DARK  = [212, 199, 218, 212, 195, 38];
+    /** Restrained, sophisticated palette — closer to a brand system than a toy. */
+    function pickColor(dark: boolean) {
+      // Mostly neutral / cool; one warm accent (amber) appears rarely
+      const swatches = dark
+        ? [
+            { h: 212, s: 80, l: 58 }, // brand blue
+            { h: 199, s: 70, l: 56 }, // cyan-blue
+            { h: 218, s: 30, l: 70 }, // soft slate
+            { h: 220, s: 8,  l: 80 }, // near white
+            { h: 38,  s: 88, l: 60 }, // amber accent (rare)
+          ]
+        : [
+            { h: 212, s: 75, l: 52 },
+            { h: 199, s: 65, l: 50 },
+            { h: 218, s: 18, l: 62 },
+            { h: 220, s: 6,  l: 76 },
+            { h: 38,  s: 85, l: 55 },
+          ];
+      // weighted: neutrals/blues 92%, amber accent 8%
+      const r = Math.random();
+      const idx = r < 0.32 ? 0
+                : r < 0.55 ? 1
+                : r < 0.78 ? 2
+                : r < 0.92 ? 3
+                : 4;
+      return swatches[idx];
+    }
+
+    function rand(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
 
     function resize() {
       const rect = canvas!.getBoundingClientRect();
@@ -74,32 +104,35 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function rand(min: number, max: number) {
-      return Math.random() * (max - min) + min;
-    }
-
     function init() {
       resize();
-      const palette = isDark() ? PALETTE_DARK : PALETTE_LIGHT;
+      const dark = isDark();
+      // Spread spheres across width with a small jitter; avoid centre stacking
+      const slots = N;
       spheres = Array.from({ length: N }, (_, i) => {
-        const r = rand(isMobile ? 7 : 9, isMobile ? 16 : 22);
+        const slotX = (W * (i + 0.5)) / slots + rand(-W / (slots * 2.2), W / (slots * 2.2));
+        const r = rand(isMobile ? 6 : 9, isMobile ? 13 : 18);
+        const c = pickColor(dark);
         return {
-          x: rand(r + 6, Math.max(W - r - 6, r + 8)),
-          y: -rand(20, 220),
-          vx: rand(-0.25, 0.25),
-          vy: rand(0.2, 0.6),
+          x: Math.max(r + 4, Math.min(W - r - 4, slotX)),
+          y: -rand(40, 280),
+          vx: rand(-0.18, 0.18),
+          vy: rand(0.1, 0.45),
           r,
-          hue: palette[Math.floor(Math.random() * palette.length)],
-          alpha: rand(0.78, 0.95),
-          spawnDelay: i * rand(120, 280) + rand(0, 250),
+          hue: c.h,
+          sat: c.s,
+          light: c.l,
+          alpha: rand(0.78, 0.92),
+          spawnDelay: i * rand(160, 320) + rand(0, 200),
           born: 0,
           settled: false,
+          bounces: 0,
+          driftSeed: Math.random() * 1000,
         };
       });
       startTs = performance.now();
     }
 
-    /** Resolve overlap & exchange velocities between two circles. */
     function collide(a: Sphere, b: Sphere) {
       const dx = b.x - a.x;
       const dy = b.y - a.y;
@@ -111,20 +144,18 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
       const ny = dy / dist;
       const overlap = (min - dist) * 0.5;
 
-      // separate
       a.x -= nx * overlap;
       a.y -= ny * overlap;
       b.x += nx * overlap;
       b.y += ny * overlap;
 
-      // velocity along normal
       const va = a.vx * nx + a.vy * ny;
       const vb = b.vx * nx + b.vy * ny;
       const ma = a.r * a.r;
       const mb = b.r * b.r;
 
-      // 1D elastic exchange (with mild damping)
-      const damp = 0.82;
+      // soft elastic exchange — agency feel, not arcade
+      const damp = 0.78;
       const newVa = ((va * (ma - mb)) + 2 * mb * vb) / (ma + mb) * damp;
       const newVb = ((vb * (mb - ma)) + 2 * ma * va) / (ma + mb) * damp;
 
@@ -134,58 +165,60 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
       b.vy += (newVb - vb) * ny;
     }
 
-    /** Render one sphere with depth: shadow → core gradient → soft highlight → rim. */
     function drawSphere(s: Sphere, dark: boolean) {
-      const { x, y, r, hue, alpha } = s;
+      const { x, y, r, hue, sat, light, alpha } = s;
+      const floorY = H - 4;
 
-      // Drop shadow on virtual floor (softer when settled, sharper mid-air)
-      const floorY = H - 6;
+      // Soft elliptical ground shadow — sharper near floor, diffuse mid-air
       const distToFloor = Math.max(0, floorY - y);
-      const shadowScale = Math.max(0.35, 1 - distToFloor / (H * 0.9));
-      const shadowAlpha = (dark ? 0.32 : 0.18) * shadowScale;
+      const closeness = Math.max(0.18, 1 - distToFloor / (H * 0.85));
+      const shadowAlpha = (dark ? 0.30 : 0.16) * closeness;
       ctx!.save();
       ctx!.globalAlpha = shadowAlpha;
       ctx!.fillStyle = "#000";
       ctx!.beginPath();
-      ctx!.ellipse(x, floorY + 2, r * (0.85 + shadowScale * 0.4), r * 0.28 * shadowScale, 0, 0, Math.PI * 2);
+      ctx!.ellipse(
+        x,
+        floorY + 2,
+        r * (0.80 + closeness * 0.55),
+        r * 0.22 * closeness + 1.5,
+        0, 0, Math.PI * 2,
+      );
       ctx!.fill();
       ctx!.restore();
 
-      // Core radial gradient — gives the 3D ball look
+      // Core sphere — radial gradient gives depth
       const grd = ctx!.createRadialGradient(
-        x - r * 0.35, y - r * 0.4, r * 0.15,
+        x - r * 0.32, y - r * 0.38, r * 0.10,
         x, y, r,
       );
-      if (dark) {
-        grd.addColorStop(0,   `hsla(${hue}, 90%, 78%, ${alpha})`);
-        grd.addColorStop(0.55,`hsla(${hue}, 80%, 52%, ${alpha * 0.9})`);
-        grd.addColorStop(1,   `hsla(${hue}, 65%, 22%, ${alpha * 0.85})`);
-      } else {
-        grd.addColorStop(0,   `hsla(${hue}, 95%, 86%, ${alpha})`);
-        grd.addColorStop(0.55,`hsla(${hue}, 85%, 60%, ${alpha * 0.9})`);
-        grd.addColorStop(1,   `hsla(${hue}, 70%, 38%, ${alpha * 0.85})`);
-      }
+      const topL = Math.min(96, light + (dark ? 22 : 28));
+      const midL = light;
+      const botL = Math.max(12, light - (dark ? 30 : 26));
+      grd.addColorStop(0,    `hsla(${hue}, ${sat}%, ${topL}%, ${alpha})`);
+      grd.addColorStop(0.55, `hsla(${hue}, ${sat}%, ${midL}%, ${alpha * 0.95})`);
+      grd.addColorStop(1,    `hsla(${hue}, ${Math.max(40, sat - 15)}%, ${botL}%, ${alpha * 0.88})`);
       ctx!.fillStyle = grd;
       ctx!.beginPath();
       ctx!.arc(x, y, r, 0, Math.PI * 2);
       ctx!.fill();
 
-      // Specular highlight
+      // Specular highlight (top-left)
       const hg = ctx!.createRadialGradient(
-        x - r * 0.4, y - r * 0.5, 0,
-        x - r * 0.4, y - r * 0.5, r * 0.7,
+        x - r * 0.42, y - r * 0.5, 0,
+        x - r * 0.42, y - r * 0.5, r * 0.65,
       );
-      hg.addColorStop(0, `hsla(0, 0%, 100%, ${dark ? 0.55 : 0.75})`);
+      hg.addColorStop(0, `hsla(0, 0%, 100%, ${dark ? 0.45 : 0.6})`);
       hg.addColorStop(1, "hsla(0, 0%, 100%, 0)");
       ctx!.fillStyle = hg;
       ctx!.beginPath();
-      ctx!.arc(x - r * 0.4, y - r * 0.5, r * 0.7, 0, Math.PI * 2);
+      ctx!.arc(x - r * 0.42, y - r * 0.5, r * 0.65, 0, Math.PI * 2);
       ctx!.fill();
 
-      // Subtle rim light
+      // Faint rim light — premium, restrained
       ctx!.save();
-      ctx!.globalAlpha = dark ? 0.35 : 0.25;
-      ctx!.strokeStyle = `hsla(${hue}, 100%, 80%, 1)`;
+      ctx!.globalAlpha = dark ? 0.28 : 0.18;
+      ctx!.strokeStyle = `hsla(${hue}, 100%, ${dark ? 78 : 70}%, 1)`;
       ctx!.lineWidth = 0.6;
       ctx!.beginPath();
       ctx!.arc(x, y, r - 0.4, 0, Math.PI * 2);
@@ -193,57 +226,63 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
       ctx!.restore();
     }
 
-    const GRAVITY = 0.32;
-    const FLOOR_RESTITUTION = 0.52;
-    const WALL_RESTITUTION  = 0.62;
-    const FRICTION = 0.992;
-    const SETTLE_THRESHOLD = 0.18;
+    // Tuned for elegance: slow gravity, soft bounce, quick settle.
+    const GRAVITY            = 0.24;
+    const FLOOR_RESTITUTION  = 0.42;
+    const WALL_RESTITUTION   = 0.55;
+    const AIR_FRICTION       = 0.994;
+    const SETTLE_THRESHOLD   = 0.22;
+    const MAX_BOUNCES        = 4;
 
     function step(now: number) {
       if (!running) return;
       ctx!.clearRect(0, 0, W, H);
       const dark = isDark();
       const elapsed = now - startTs;
-      const floorY = H - 6;
+      const floorY = H - 4;
 
-      // Update
       for (const s of spheres) {
         if (s.spawnDelay > elapsed) continue;
         if (s.born === 0) s.born = now;
 
-        s.vy += GRAVITY;
-        // gentle horizontal drift (very slight)
-        s.vx += (Math.sin((now * 0.0006) + s.r) * 0.004);
-        s.vx *= FRICTION;
-        s.x += s.vx;
-        s.y += s.vy;
+        if (!s.settled) {
+          s.vy += GRAVITY;
+          // Very subtle horizontal drift while airborne (per-sphere phase)
+          if (s.y + s.r < floorY - 2) {
+            s.vx += Math.sin((now * 0.0005) + s.driftSeed) * 0.0035;
+          }
+          s.vx *= AIR_FRICTION;
+          s.x += s.vx;
+          s.y += s.vy;
 
-        // walls
-        if (s.x - s.r < 0) {
-          s.x = s.r;
-          s.vx = -s.vx * WALL_RESTITUTION;
-        } else if (s.x + s.r > W) {
-          s.x = W - s.r;
-          s.vx = -s.vx * WALL_RESTITUTION;
-        }
+          // walls
+          if (s.x - s.r < 0) {
+            s.x = s.r;
+            s.vx = -s.vx * WALL_RESTITUTION;
+          } else if (s.x + s.r > W) {
+            s.x = W - s.r;
+            s.vx = -s.vx * WALL_RESTITUTION;
+          }
 
-        // floor
-        if (s.y + s.r > floorY) {
-          s.y = floorY - s.r;
-          if (Math.abs(s.vy) < SETTLE_THRESHOLD * 4) {
-            s.vy = 0;
-            s.vx *= 0.86;
-            if (Math.abs(s.vx) < SETTLE_THRESHOLD) {
-              s.vx = 0;
-              s.settled = true;
+          // floor
+          if (s.y + s.r > floorY) {
+            s.y = floorY - s.r;
+            s.bounces++;
+            if (Math.abs(s.vy) < SETTLE_THRESHOLD * 4 || s.bounces >= MAX_BOUNCES) {
+              s.vy = 0;
+              s.vx *= 0.78;
+              if (Math.abs(s.vx) < SETTLE_THRESHOLD) {
+                s.vx = 0;
+                s.settled = true;
+              }
+            } else {
+              s.vy = -s.vy * FLOOR_RESTITUTION;
             }
-          } else {
-            s.vy = -s.vy * FLOOR_RESTITUTION;
           }
         }
       }
 
-      // Pairwise collisions (O(n²) but n is small)
+      // Pairwise collisions — n is small, O(n²) is fine
       for (let i = 0; i < spheres.length; i++) {
         const a = spheres[i];
         if (a.spawnDelay > elapsed) continue;
@@ -254,7 +293,7 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
         }
       }
 
-      // Render — sort by y so back ones draw first (gives some depth)
+      // Render back-to-front for stacking depth
       const visible = spheres
         .filter((s) => s.spawnDelay <= elapsed)
         .sort((a, b) => a.y - b.y);
@@ -280,7 +319,6 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
     const onResize = () => init();
     const onVis = () => (document.hidden ? stop() : start());
 
-    // Pause when scrolled fully out of view
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -295,8 +333,7 @@ export default function FallingSpheres({ className = "", count = 18 }: Props) {
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVis);
 
-    // React to theme toggles
-    const themeObs = new MutationObserver(() => { /* re-render uses live isDark() each frame */ });
+    const themeObs = new MutationObserver(() => { /* live isDark() per frame */ });
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-mood"] });
 
     return () => {
