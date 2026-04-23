@@ -5,13 +5,12 @@ interface Props { onDone: () => void }
 export default function LoadingScreen({ onDone }: Props) {
   const [phase, setPhase] = useState<"in" | "hold" | "out">("in");
 
-  const isDark = (() => {
+  const mood = (() => {
     try {
       const stored = localStorage.getItem("cv-mood");
-      if (stored === "light") return false;
-      if (stored === "dark" || stored === "cosmic") return true;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch { return true; }
+      if (stored === "dark" || stored === "light" || stored === "cosmic") return stored;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "cosmic" : "light";
+    } catch { return "cosmic"; }
   })();
 
   useEffect(() => {
@@ -21,14 +20,28 @@ export default function LoadingScreen({ onDone }: Props) {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onDone]);
 
-  const bg        = isDark ? "hsl(215, 55%, 3.5%)" : "hsl(180, 22%, 98%)";
-  const ring      = isDark ? "hsl(174, 88%, 52%)"  : "hsl(174, 78%, 38%)";
-  const cyan      = isDark ? "hsl(199, 94%, 58%)"  : "hsl(199, 80%, 44%)";
-  const center    = isDark ? "hsl(215, 50%, 5%)"   : "hsl(180, 22%, 96%)";
-  const bar1      = ring;
-  const bar2      = cyan;
-  const textColor = isDark ? "hsl(174, 80%, 65%)"  : "hsl(174, 68%, 32%)";
-  const trackColor = isDark ? "hsl(210, 42%, 10%)" : "hsl(185, 20%, 88%)";
+  const themes = {
+    cosmic: {
+      bg: "hsl(218, 90%, 2.5%)",    ring: "hsl(174, 88%, 52%)",
+      cyan: "hsl(199, 94%, 58%)",   center: "hsl(218, 80%, 4%)",
+      textColor: "hsl(174, 80%, 65%)", trackColor: "hsl(210, 55%, 9%)",
+    },
+    dark: {
+      bg: "hsl(216, 28%, 7%)",      ring: "hsl(212, 100%, 67%)",
+      cyan: "hsl(155, 77%, 58%)",   center: "hsl(215, 28%, 10%)",
+      textColor: "hsl(212, 100%, 72%)", trackColor: "hsl(215, 16%, 20%)",
+    },
+    light: {
+      bg: "hsl(220, 16%, 95%)",     ring: "hsl(212, 93%, 44%)",
+      cyan: "hsl(174, 78%, 38%)",   center: "hsl(0, 0%, 100%)",
+      textColor: "hsl(212, 93%, 36%)", trackColor: "hsl(215, 18%, 87%)",
+    },
+  };
+
+  const t = themes[mood];
+  const bg = t.bg; const ring = t.ring; const cyan = t.cyan;
+  const center = t.center; const textColor = t.textColor; const trackColor = t.trackColor;
+  const bar1 = ring; const bar2 = cyan;
 
   return (
     <div
