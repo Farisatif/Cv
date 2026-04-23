@@ -4,6 +4,7 @@ import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import { ResumeDataProvider } from "@/context/ResumeDataContext";
 import Navbar from "@/components/Navbar";
 import FloatingLanguageParticles from "@/components/FloatingLanguageParticles";
+import AnimatedBackgroundController from "@/components/AnimatedBackgroundController";
 import HeroSection from "@/components/HeroSection";
 import FeaturedImpact from "@/components/FeaturedImpact";
 import SkillsSection from "@/components/SkillsSection";
@@ -167,6 +168,9 @@ function CVApp() {
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
 
+      {/* Persistent animated background layers */}
+      <AnimatedBackgroundController mood={mood} />
+
       <div
         className="min-h-screen bg-background text-foreground"
         style={{ opacity: loading ? 0 : 1, transition: "opacity 0.7s ease", position: "relative" }}
@@ -183,7 +187,7 @@ function CVApp() {
         />
 
         <main id="cv-main" style={{ position: "relative", zIndex: 1 }}>
-          <HeroSection />
+          <HeroSection mood={mood} />
 
           {SECTIONS.impact && <FeaturedImpact />}
 

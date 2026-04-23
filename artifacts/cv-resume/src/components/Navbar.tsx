@@ -184,7 +184,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                     onClick={(e) => { e.preventDefault(); scrollTo(item.href); }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? "bg-foreground text-background dark:bg-[hsl(212_100%_67%)] dark:text-[hsl(216_28%_7%)] dark:shadow-[0_0_16px_hsl(212_100%_67%/0.28)]"
+                        ? "bg-foreground text-background dark:bg-[hsl(210_100%_50%)] dark:text-[hsl(0_0%_0%)] dark:shadow-[0_0_16px_hsl(210_100%_50%/0.35)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
