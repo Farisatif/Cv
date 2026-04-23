@@ -34,7 +34,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Features**:
   - Bilingual EN/AR with RTL layout support (globe icon + ع/E badge in navbar)
   - PDF download (pure jsPDF): full sections, bilingual, skill bars, pagination
-  - Premium design system: `cosmic-card`, `premium-card`, `highlight-card`, `btn-primary`, `btn-secondary`, `cosmic-input`, `section-label`
+  - Premium design system: `cosmic-card`, `premium-card`, `highlight-card`, `btn-primary` (with hover shine), `btn-secondary`, `cosmic-input` (with `field-valid`/`field-error` states), `section-label`, `char-bar-track/fill`
   - Space Grotesk + Inter + Noto Sans Arabic typography
   - Animated floating tech/Arabic word chips on loading screen
   - Animated particle background on hero with twinkling + constellation lines
@@ -52,7 +52,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - 2 site moods: Dark (GitHub dark: `data-mood="dark"`) and Light (GitHub light: `data-mood="light"`)
   - Sticky navbar with active section tracking + active item highlighted in GitHub blue
   - Multi-section footer with quick links + connect section
-  - Guestbook backed by PostgreSQL (comments + likes + char counter + trust signals)
+  - Guestbook backed by PostgreSQL (comments + likes + real-time validation, char count bar, animated success banner)
   - Live visitor counter (session-deduplicated)
   - Admin panel with premium field styling (cosmic-input)
   - Admin panel at `/admin` with password "Zoom100*"

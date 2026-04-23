@@ -31,9 +31,20 @@ export default function AchievementsSection() {
       </div>
 
       {achievements.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center py-10">
-          {lang === "ar" ? "لا توجد إنجازات بعد." : "No achievements added yet."}
-        </p>
+        <div className="cosmic-card rounded-2xl p-12 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-muted dark:bg-[hsl(212_100%_67%/0.07)] border border-border dark:border-[hsl(212_100%_67%/0.14)] flex items-center justify-center mx-auto mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+              strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(212_100%_70%)]">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-foreground/60 mb-1">
+            {lang === "ar" ? "لا توجد إنجازات بعد" : "No highlights yet"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {lang === "ar" ? "أضف إنجازاتك من لوحة الإدارة." : "Add your milestones from the admin panel."}
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {achievements.map((item, i) => (

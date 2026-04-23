@@ -165,18 +165,46 @@ export default function CommentsSection() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [nameTouched, setNameTouched] = useState(false);
+  const [messageTouched, setMessageTouched] = useState(false);
+
+  const MIN_NAME = 2;
+  const MIN_MSG  = 10;
+  const MAX_MSG  = 300;
+
+  const nameError = nameTouched && name.trim().length > 0 && name.trim().length < MIN_NAME
+    ? (lang === "ar" ? "الاسم يجب أن يكون حرفين على الأقل" : "At least 2 characters required")
+    : null;
+  const nameValid = name.trim().length >= MIN_NAME;
+
+  const msgProgress = Math.min((message.length / MAX_MSG) * 100, 100);
+  const msgError = messageTouched && message.trim().length > 0 && message.trim().length < MIN_MSG
+    ? (lang === "ar" ? `يجب أن تكون الرسالة ${MIN_MSG} أحرف على الأقل` : `At least ${MIN_MSG} characters required`)
+    : null;
+  const msgValid = message.trim().length >= MIN_MSG;
+
+  const canSubmit = nameValid && msgValid && !submitting;
+
+  const getMsgBarColor = () => {
+    if (message.length > MAX_MSG * 0.9) return "hsl(38 92% 52%)";
+    if (msgValid) return "hsl(142 70% 48%)";
+    return "hsl(213 50% 65%)";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !message.trim()) { setError(t.guestbook.fillBoth); return; }
+    setNameTouched(true);
+    setMessageTouched(true);
+    if (!nameValid || !msgValid) { setError(t.guestbook.fillBoth); return; }
     setError("");
     setSubmitting(true);
     try {
       await createComment.mutateAsync({ data: { name: name.trim(), message: message.trim() } });
       queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey() });
       setName(""); setMessage("");
+      setNameTouched(false); setMessageTouched(false);
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 7000);
+      setTimeout(() => setSubmitted(false), 8000);
     } catch {
       setError(t.guestbook.failed);
     } finally {
@@ -254,43 +282,104 @@ export default function CommentsSection() {
               <h3 className="text-sm font-semibold">{t.guestbook.writeMessage}</h3>
             </div>
 
+            {/* ── Success Banner ── */}
+            {submitted && (
+              <div
+                className="mb-4 rounded-xl border border-green-500/22 bg-green-500/8 dark:bg-green-500/10 dark:border-green-500/20 px-4 py-3.5 flex items-start gap-3"
+                style={{ animation: "success-pop 0.45s cubic-bezier(0.16,1,0.3,1) both" }}
+              >
+                <div className="w-7 h-7 rounded-full bg-green-500/15 dark:bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400"
+                    style={{ strokeDasharray: 30, strokeDashoffset: 0, animation: "draw-check 0.4s 0.2s ease both" }}>
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-green-700 dark:text-green-400">
+                    {lang === "ar" ? "تم الإرسال بنجاح!" : "Message sent!"}
+                  </p>
+                  <p className="text-[10px] text-green-600/70 dark:text-green-500/60 mt-0.5">
+                    {lang === "ar" ? "ستظهر رسالتك بعد موافقة المشرف." : "Your message will appear after admin approval."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Name field */}
               <div>
-                <label className={`text-[11px] text-muted-foreground mb-1.5 block font-semibold uppercase tracking-widest ${isRTL ? "text-right" : ""}`}>
-                  {t.guestbook.name}
-                </label>
+                <div className={`flex items-center justify-between mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                  <label className={`text-[11px] text-muted-foreground font-semibold uppercase tracking-widest`}>
+                    {t.guestbook.name}
+                  </label>
+                  {nameError && (
+                    <span className="field-hint error">{nameError}</span>
+                  )}
+                  {!nameError && nameValid && nameTouched && (
+                    <span className="field-hint valid flex items-center gap-1">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      {lang === "ar" ? "ممتاز" : "Looks good"}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setNameTouched(true)}
                   placeholder={t.guestbook.namePlaceholder}
                   maxLength={50}
                   dir="auto"
-                  className="cosmic-input"
+                  className={`cosmic-input ${
+                    nameError ? "field-error" : nameValid && nameTouched ? "field-valid" : ""
+                  }`}
                 />
               </div>
+
+              {/* Message field */}
               <div>
-                <label className={`text-[11px] text-muted-foreground mb-1.5 block font-semibold uppercase tracking-widest ${isRTL ? "text-right" : ""}`}>
-                  {t.guestbook.message}
-                </label>
+                <div className={`flex items-center justify-between mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                  <label className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">
+                    {t.guestbook.message}
+                  </label>
+                  {msgError && (
+                    <span className="field-hint error">{msgError}</span>
+                  )}
+                  {!msgError && msgValid && messageTouched && (
+                    <span className="field-hint valid flex items-center gap-1">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      {lang === "ar" ? "ممتاز" : "Looks good"}
+                    </span>
+                  )}
+                </div>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  onBlur={() => setMessageTouched(true)}
                   placeholder={t.guestbook.messagePlaceholder}
-                  maxLength={300}
+                  maxLength={MAX_MSG}
                   rows={4}
                   dir="auto"
-                  className="cosmic-input resize-none leading-relaxed"
+                  className={`cosmic-input resize-none leading-relaxed ${
+                    msgError ? "field-error" : msgValid && messageTouched ? "field-valid" : ""
+                  }`}
                 />
-                <div className={`flex items-center justify-between mt-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-                  <span className={`text-[10px] font-mono text-muted-foreground/50 ${isRTL ? "text-right" : ""}`}>
-                    {message.length}/300
+                {/* Character count bar */}
+                <div className={`flex items-center gap-2 mt-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                  <div className="char-bar-track">
+                    <div
+                      className="char-bar-fill"
+                      style={{ width: `${msgProgress}%`, backgroundColor: getMsgBarColor() }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground/45 tabular-nums flex-shrink-0">
+                    {message.length}/{MAX_MSG}
                   </span>
-                  {message.length > 250 && (
-                    <span className="text-[10px] text-amber-500/70 font-mono">
-                      {300 - message.length} {lang === "ar" ? "حرف متبقي" : "left"}
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -307,12 +396,10 @@ export default function CommentsSection() {
 
               <button
                 type="submit"
-                disabled={submitting || !name.trim() || !message.trim()}
-                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  submitted
-                    ? "bg-green-500/10 text-green-600 border border-green-500/20 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
-                    : "btn-primary"
-                } ${(submitting || (!name.trim() || !message.trim())) && !submitted ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!canSubmit}
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 btn-primary ${
+                  !canSubmit ? "opacity-45 cursor-not-allowed" : ""
+                }`}
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -320,13 +407,6 @@ export default function CommentsSection() {
                       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                     </svg>
                     {t.guestbook.posting}
-                  </span>
-                ) : submitted ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    {lang === "ar" ? "تم الإرسال! ✓" : "Sent! Awaiting approval"}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
@@ -338,7 +418,7 @@ export default function CommentsSection() {
                 )}
               </button>
 
-              <p className={`text-[10px] text-muted-foreground/50 leading-relaxed ${isRTL ? "text-right" : ""}`}>
+              <p className={`text-[10px] text-muted-foreground/45 leading-relaxed ${isRTL ? "text-right" : ""}`}>
                 {lang === "ar"
                   ? "الرسائل تظهر بعد موافقة المشرف"
                   : "Messages appear after admin approval"}
