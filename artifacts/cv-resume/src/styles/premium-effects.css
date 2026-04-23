@@ -244,14 +244,203 @@
   transform: translateY(0);
 }
 
+/* ═════════════════════════════════════════════════════════════════════
+   KITSYS-INSPIRED EFFECTS — SCROLL TRIGGERS & INTERACTIVE ANIMATIONS
+═════════════════════════════════════════════════════════════════════ */
+
+/* ── Scroll-triggered fade and slide ──────────────────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px) scale(0.98);
+  transition: 
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal.in-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ── Staggered children animations (for lists/grids) ──────────────── */
+.scroll-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(28px) scale(0.95);
+  transition: 
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal-stagger.in-view > * {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.scroll-reveal-stagger > :nth-child(1) { transition-delay: 0ms; }
+.scroll-reveal-stagger > :nth-child(2) { transition-delay: 80ms; }
+.scroll-reveal-stagger > :nth-child(3) { transition-delay: 160ms; }
+.scroll-reveal-stagger > :nth-child(4) { transition-delay: 240ms; }
+.scroll-reveal-stagger > :nth-child(5) { transition-delay: 320ms; }
+.scroll-reveal-stagger > :nth-child(n+6) { transition-delay: 400ms; }
+
+/* ── Marquee text animation (rotating text like KitSys) ──────────── */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.marquee-content {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee-scroll 20s linear infinite;
+  will-change: transform;
+}
+.marquee-content:hover {
+  animation-play-state: paused;
+}
+.marquee-item {
+  flex-shrink: 0;
+  padding-right: 3rem;
+  display: inline-block;
+}
+
+/* ── Button hover effects (inspired by KitSys interactive buttons) ── */
+.interactive-btn {
+  position: relative;
+  overflow: hidden;
+  transition: 
+    all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+}
+.interactive-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: hsl(var(--glow-primary) / 0.2);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.interactive-btn:hover::before {
+  animation: ripple-expand 0.6s ease-out;
+}
+@keyframes ripple-expand {
+  to {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+/* ── Hover lift effect (KitSys card style) ──────────────────────── */
+.card-lift {
+  transition: 
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-lift:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 48px hsl(var(--glow-primary) / 0.18),
+    0 8px 16px hsl(var(--foreground) / 0.08);
+}
+.dark .card-lift:hover {
+  box-shadow: 
+    0 20px 48px hsl(var(--glow-primary) / 0.25),
+    0 8px 16px hsl(0 0% 0% / 0.3);
+}
+
+/* ── Smooth line underline animation ─────────────────────────────── */
+.line-underline {
+  position: relative;
+  display: inline-block;
+}
+.line-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: hsl(var(--glow-primary));
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.line-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ── Parallax scroll effect for background elements ──────────────── */
+[data-parallax] {
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+}
+
+/* ── Enhanced button press animation ────────────────────────────── */
+.btn-press-enhanced {
+  transition: 
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.15s ease;
+}
+.btn-press-enhanced:active {
+  transform: scale(0.96);
+  box-shadow: inset 0 2px 8px hsl(var(--foreground) / 0.15);
+}
+.dark .btn-press-enhanced:active {
+  box-shadow: inset 0 2px 8px hsl(0 0% 0% / 0.4);
+}
+
+/* ── Gradient text animation (flowing effect) ──────────────────── */
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-text-animated {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--glow-primary)),
+    hsl(var(--glow-secondary)),
+    hsl(var(--glow-primary))
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-flow 4s ease infinite;
+}
+
+/* ── Smooth opacity transitions on scroll ────────────────────────── */
+.fade-scroll {
+  opacity: 0.6;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fade-scroll.in-view {
+  opacity: 1;
+}
+
 /* ── Reduced motion ─────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .aurora::before,
   .aurora::after,
   .text-shimmer,
   .skeleton::after,
-  .reveal-words .word > span {
+  .reveal-words .word > span,
+  .scroll-reveal,
+  .scroll-reveal-stagger > *,
+  .marquee-content,
+  .interactive-btn::before,
+  .card-lift,
+  .line-underline::after,
+  .btn-press-enhanced {
     animation: none !important;
+    transition: none !important;
   }
   .reveal-words .word > span {
     transform: none !important;
@@ -259,7 +448,9 @@
   }
   [data-tilt],
   [data-magnetic],
-  .reveal {
+  .reveal,
+  .scroll-reveal,
+  .card-lift {
     transition: none !important;
     transform: none !important;
   }

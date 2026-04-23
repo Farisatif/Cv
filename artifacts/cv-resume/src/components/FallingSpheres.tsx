@@ -113,6 +113,9 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
         const slotX = (W * (i + 0.5)) / slots + rand(-W / (slots * 2.2), W / (slots * 2.2));
         const r = rand(isMobile ? 6 : 9, isMobile ? 13 : 18);
         const c = pickColor(dark);
+        // Staggered spawn delays for elegant cascade effect
+        const baseDelay = i * rand(180, 340);
+        const randomOffset = rand(0, 240);
         return {
           x: Math.max(r + 4, Math.min(W - r - 4, slotX)),
           y: -rand(40, 280),
@@ -123,7 +126,7 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
           sat: c.s,
           light: c.l,
           alpha: rand(0.78, 0.92),
-          spawnDelay: i * rand(160, 320) + rand(0, 200),
+          spawnDelay: baseDelay + randomOffset,
           born: 0,
           settled: false,
           bounces: 0,
@@ -166,8 +169,23 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
     }
 
     function drawSphere(s: Sphere, dark: boolean) {
-      const { x, y, r, hue, sat, light, alpha } = s;
+      const { x, y, r, hue, sat, light, alpha, vy } = s;
       const floorY = H - 4;
+
+      // Motion trail (subtle, performance-optimized)
+      const speedFactor = Math.min(1, Math.abs(vy) / 2);
+      if (speedFactor > 0.1) {
+        ctx!.save();
+        const trailLength = Math.min(r * 3, Math.abs(vy) * 1.5);
+        const trailGrad = ctx!.createLinearGradient(x, y, x, y + trailLength);
+        trailGrad.addColorStop(0, `hsla(${hue}, ${sat}%, ${light}%, ${alpha * 0.15 * speedFactor})`);
+        trailGrad.addColorStop(1, `hsla(${hue}, ${sat}%, ${light}%, 0)`);
+        ctx!.fillStyle = trailGrad;
+        ctx!.beginPath();
+        ctx!.ellipse(x, y + trailLength / 2, r * 0.35, trailLength / 2, 0, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+      }
 
       // Soft elliptical ground shadow — sharper near floor, diffuse mid-air
       const distToFloor = Math.max(0, floorY - y);
@@ -187,7 +205,7 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
       ctx!.fill();
       ctx!.restore();
 
-      // Core sphere — radial gradient gives depth
+      // Core sphere — radial gradient gives depth (enhanced)
       const grd = ctx!.createRadialGradient(
         x - r * 0.32, y - r * 0.38, r * 0.10,
         x, y, r,
@@ -203,25 +221,33 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
       ctx!.arc(x, y, r, 0, Math.PI * 2);
       ctx!.fill();
 
-      // Specular highlight (top-left)
+      // Specular highlight (top-left) — enhanced for more visual depth
       const hg = ctx!.createRadialGradient(
         x - r * 0.42, y - r * 0.5, 0,
         x - r * 0.42, y - r * 0.5, r * 0.65,
       );
-      hg.addColorStop(0, `hsla(0, 0%, 100%, ${dark ? 0.45 : 0.6})`);
+      hg.addColorStop(0, `hsla(0, 0%, 100%, ${dark ? 0.50 : 0.68})`);
       hg.addColorStop(1, "hsla(0, 0%, 100%, 0)");
       ctx!.fillStyle = hg;
       ctx!.beginPath();
       ctx!.arc(x - r * 0.42, y - r * 0.5, r * 0.65, 0, Math.PI * 2);
       ctx!.fill();
 
-      // Faint rim light — premium, restrained
+      // Enhanced rim light with subtle glow
       ctx!.save();
-      ctx!.globalAlpha = dark ? 0.28 : 0.18;
-      ctx!.strokeStyle = `hsla(${hue}, 100%, ${dark ? 78 : 70}%, 1)`;
-      ctx!.lineWidth = 0.6;
+      ctx!.globalAlpha = dark ? 0.32 : 0.22;
+      ctx!.strokeStyle = `hsla(${hue}, 100%, ${dark ? 80 : 72}%, 1)`;
+      ctx!.lineWidth = 0.8;
       ctx!.beginPath();
       ctx!.arc(x, y, r - 0.4, 0, Math.PI * 2);
+      ctx!.stroke();
+      
+      // Outer glow halo (subtle, performance-friendly)
+      ctx!.globalAlpha = dark ? 0.12 : 0.08;
+      ctx!.strokeStyle = `hsla(${hue}, ${sat}%, ${light}%, 1)`;
+      ctx!.lineWidth = 1.2;
+      ctx!.beginPath();
+      ctx!.arc(x, y, r + 1.5, 0, Math.PI * 2);
       ctx!.stroke();
       ctx!.restore();
     }
