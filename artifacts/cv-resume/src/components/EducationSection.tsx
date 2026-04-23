@@ -31,8 +31,8 @@ export default function EducationSection() {
             <div className={`flex items-start justify-between gap-4 ${isRTL ? "flex-row-reverse" : ""}`}>
               <div className="flex-1 min-w-0">
                 <div className={`flex items-center gap-3 mb-3 flex-wrap ${isRTL ? "flex-row-reverse" : ""}`}>
-                  <div className="w-9 h-9 rounded-xl border border-border bg-muted/50 dark:bg-[hsl(263_80%_68%/0.07)] flex items-center justify-center flex-shrink-0">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(263_80%_70%)]">
+                  <div className="w-9 h-9 rounded-xl border border-border bg-muted/50 dark:bg-[hsl(174_88%_52%/0.07)] flex items-center justify-center flex-shrink-0">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(174_80%_65%)]">
                       <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                       <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                     </svg>
@@ -50,7 +50,7 @@ export default function EducationSection() {
                 <ul className={`space-y-2.5 ${isRTL ? "text-right" : ""}`}>
                   {edu.highlights.map((h, hi) => (
                     <li key={hi} className={`flex items-start gap-3 text-sm text-muted-foreground ${isRTL ? "flex-row-reverse" : ""}`}>
-                      <span className="mt-1.5 w-1 h-1 rounded-full bg-foreground/30 dark:bg-[hsl(263_80%_68%/0.5)] flex-shrink-0" />
+                      <span className="mt-1.5 w-1 h-1 rounded-full bg-foreground/30 dark:bg-[hsl(174_88%_52%/0.5)] flex-shrink-0" />
                       <span className="leading-relaxed">{h}</span>
                     </li>
                   ))}
@@ -58,9 +58,9 @@ export default function EducationSection() {
               </div>
 
               {/* GPA badge */}
-              <div className="flex-shrink-0 text-center px-5 py-4 rounded-2xl border border-border dark:border-[hsl(263_80%_68%/0.18)] dark:bg-[hsl(263_80%_68%/0.05)] bg-muted/40">
+              <div className="flex-shrink-0 text-center px-5 py-4 rounded-2xl border border-border dark:border-[hsl(174_88%_52%/0.18)] dark:bg-[hsl(174_88%_52%/0.05)] bg-muted/40">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mb-1 whitespace-nowrap">{t.education.gpa}</div>
-                <div className="font-mono font-extrabold text-2xl tracking-tight dark:text-[hsl(263_80%_75%)]">{edu.gpa}</div>
+                <div className="font-mono font-extrabold text-2xl tracking-tight dark:text-[hsl(174_80%_68%)]">{edu.gpa}</div>
               </div>
             </div>
           </div>

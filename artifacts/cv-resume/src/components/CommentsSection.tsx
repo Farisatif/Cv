@@ -45,7 +45,7 @@ function ScrollCircle({ sectionRef }: { sectionRef: React.RefObject<HTMLElement 
         transform:      "translate(-50%, -50%) scale(0)",
         opacity:        0,
         pointerEvents:  "none",
-        background:     "radial-gradient(circle, hsl(263 80% 62% / 0.07) 0%, hsl(220 80% 55% / 0.04) 45%, transparent 72%)",
+        background:     "radial-gradient(circle, hsl(174 85% 52% / 0.07) 0%, hsl(220 80% 55% / 0.04) 45%, transparent 72%)",
         filter:         "blur(2px)",
         willChange:     "transform, opacity",
         zIndex:         0,
@@ -132,8 +132,8 @@ function CommentCard({
             disabled={liked}
             className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all duration-200 ${isRTL ? "flex-row-reverse" : ""} ${
               liked
-                ? "text-foreground bg-foreground/8 border border-foreground/12 dark:text-[hsl(263_80%_75%)] dark:bg-[hsl(263_80%_68%/0.1)] dark:border-[hsl(263_80%_68%/0.18)] font-semibold"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border/60 dark:hover:border-[hsl(263_80%_68%/0.15)]"
+                ? "text-foreground bg-foreground/8 border border-foreground/12 dark:text-[hsl(174_80%_68%)] dark:bg-[hsl(174_88%_52%/0.1)] dark:border-[hsl(174_88%_52%/0.18)] font-semibold"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent hover:border-border/60 dark:hover:border-[hsl(174_88%_52%/0.15)]"
             }`}
             aria-label={liked ? "Liked" : "Like"}
           >
@@ -244,9 +244,9 @@ export default function CommentsSection() {
         <div className="lg:col-span-2" style={{ order: isRTL ? 2 : 1 }}>
           <div className="cosmic-card glow-border rounded-2xl p-6 sticky top-20">
             <div className={`flex items-center gap-2.5 mb-6 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <div className="w-8 h-8 rounded-lg bg-muted dark:bg-[hsl(263_80%_68%/0.08)] border border-border dark:border-[hsl(263_80%_68%/0.18)] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-muted dark:bg-[hsl(174_88%_52%/0.08)] border border-border dark:border-[hsl(174_88%_52%/0.18)] flex items-center justify-center">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round" className="dark:text-[hsl(263_80%_70%)]">
+                  strokeLinecap="round" strokeLinejoin="round" className="dark:text-[hsl(174_80%_65%)]">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
@@ -366,9 +366,9 @@ export default function CommentsSection() {
             </div>
           ) : !comments || comments.length === 0 ? (
             <div className="cosmic-card rounded-2xl p-14 text-center glow-border">
-              <div className="w-14 h-14 rounded-2xl dark:bg-[hsl(263_80%_68%/0.07)] bg-muted flex items-center justify-center mx-auto mb-5 border border-border dark:border-[hsl(263_80%_68%/0.18)]">
+              <div className="w-14 h-14 rounded-2xl dark:bg-[hsl(174_88%_52%/0.07)] bg-muted flex items-center justify-center mx-auto mb-5 border border-border dark:border-[hsl(174_88%_52%/0.18)]">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(263_80%_65%)]">
+                  strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground dark:text-[hsl(174_85%_52%)]">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>

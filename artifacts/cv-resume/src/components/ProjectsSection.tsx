@@ -36,12 +36,12 @@ function FeaturedCard({
     >
       {/* Top accent bar — always on for featured */}
       <div className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{ background: `linear-gradient(90deg, hsl(263 80% 68% / 0.85), hsl(316 72% 55% / 0.45), transparent)` }}
+        style={{ background: `linear-gradient(90deg, hsl(174 88% 52% / 0.85), hsl(316 72% 55% / 0.45), transparent)` }}
       />
 
       {/* Featured label */}
       <div className={`flex items-center gap-2 mb-5 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-[hsl(263_62%_50%/0.10)] dark:bg-[hsl(263_80%_68%/0.10)] text-[hsl(263_62%_48%)] dark:text-[hsl(263_80%_75%)] border border-[hsl(263_62%_50%/0.2)] dark:border-[hsl(263_80%_68%/0.22)]">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-[hsl(174_72%_42%/0.10)] dark:bg-[hsl(174_88%_52%/0.10)] text-[hsl(263_62%_48%)] dark:text-[hsl(174_80%_68%)] border border-[hsl(174_72%_42%/0.2)] dark:border-[hsl(174_88%_52%/0.22)]">
           <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" stroke="none">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
@@ -58,7 +58,7 @@ function FeaturedCard({
 
       {/* Title */}
       <div className={`flex items-start gap-3 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <div className="w-10 h-10 rounded-xl border border-border bg-muted/40 dark:bg-[hsl(263_80%_68%/0.06)] flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:border-[hsl(263_62%_50%/0.3)] dark:group-hover:border-[hsl(263_80%_68%/0.28)]">
+        <div className="w-10 h-10 rounded-xl border border-border bg-muted/40 dark:bg-[hsl(174_88%_52%/0.06)] flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:border-[hsl(174_72%_42%/0.3)] dark:group-hover:border-[hsl(174_88%_52%/0.28)]">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
           </svg>
@@ -86,7 +86,7 @@ function FeaturedCard({
       <div className={`flex flex-wrap gap-1.5 mb-5 ${isRTL ? "flex-row-reverse" : ""}`}>
         {project.tags.map(tag => (
           <span key={tag}
-            className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border border-border text-muted-foreground bg-muted/40 dark:bg-[hsl(263_80%_68%/0.05)] dark:border-[hsl(263_80%_68%/0.12)] uppercase tracking-wider transition-colors group-hover:border-foreground/12 dark:group-hover:border-[hsl(263_80%_68%/0.22)]">
+            className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border border-border text-muted-foreground bg-muted/40 dark:bg-[hsl(174_88%_52%/0.05)] dark:border-[hsl(174_88%_52%/0.12)] uppercase tracking-wider transition-colors group-hover:border-foreground/12 dark:group-hover:border-[hsl(174_88%_52%/0.22)]">
             {tag}
           </span>
         ))}
@@ -140,7 +140,7 @@ function ProjectCard({
     >
       <div className={`flex items-start justify-between mb-3.5 gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
         <div className={`flex items-center gap-3 min-w-0 ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div className="w-9 h-9 rounded-xl border border-border bg-muted/40 dark:bg-[hsl(263_80%_68%/0.06)] flex items-center justify-center flex-shrink-0 transition-all group-hover:border-foreground/18 dark:group-hover:border-[hsl(263_80%_68%/0.24)]">
+          <div className="w-9 h-9 rounded-xl border border-border bg-muted/40 dark:bg-[hsl(174_88%_52%/0.06)] flex items-center justify-center flex-shrink-0 transition-all group-hover:border-foreground/18 dark:group-hover:border-[hsl(174_88%_52%/0.24)]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
@@ -171,7 +171,7 @@ function ProjectCard({
       <div className={`flex flex-wrap gap-1.5 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
         {project.tags.map(tag => (
           <span key={tag}
-            className="px-2 py-0.5 rounded-full text-[10px] font-semibold border border-border text-muted-foreground bg-muted/40 dark:bg-[hsl(263_80%_68%/0.05)] dark:border-[hsl(263_80%_68%/0.12)] uppercase tracking-wide transition-colors group-hover:border-foreground/12 dark:group-hover:border-[hsl(263_80%_68%/0.2)]">
+            className="px-2 py-0.5 rounded-full text-[10px] font-semibold border border-border text-muted-foreground bg-muted/40 dark:bg-[hsl(174_88%_52%/0.05)] dark:border-[hsl(174_88%_52%/0.12)] uppercase tracking-wide transition-colors group-hover:border-foreground/12 dark:group-hover:border-[hsl(174_88%_52%/0.2)]">
             {tag}
           </span>
         ))}

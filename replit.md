@@ -21,7 +21,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### cv-resume (Interactive CV/Resume)
 - **Type**: react-vite, preview at `/`
 - **Directory**: `artifacts/cv-resume/`
-- **Description**: A GitHub-inspired black & white interactive CV/resume site with bilingual EN/AR support.
+- **Description**: An interactive CV/resume site with a teal/emerald "Signal" aesthetic, bilingual EN/AR support, and 3 mood themes (Cosmic, Night, Light).
 - **Data**: All CV content lives in `src/data/resume.json` — edit this to update any information.
   - Bilingual structure: `en` and `ar` sub-objects for each translatable field.
   - Skills have `category_en` and `category_ar`.
@@ -39,7 +39,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - Achievement chips on hero (years coding, commits, repos)
   - Typewriter effect for role titles (bilingual)
   - Animated stat counters (count-up on scroll)
-  - Galaxy Skills: golden-angle spiral placement, category-interleaved, no clustering; 2-col grid with spring-back drag + collision glow
+  - Skills grid: animated scroll-triggered cards with stagger delay, per-skill color-coded progress bars, category filter tabs, level stats legend
   - Interactive language bar with draggable dividers
   - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated); scroll-driven emerald circular glow
   - Real GitHub stats (followers, repos, stars) in contribution section
@@ -47,7 +47,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - Accordion experience timeline with company initials avatars + duration badges
   - Project cards (first featured full-width) with language dot + star/fork counts
   - New AchievementsSection with 6 highlight cards + accent colors (id: `achievements`)
-  - 3 site moods: Cosmic (dim purple stars), Night (pitch-black, data-mood="dark"), Light (clean white)
+  - 3 site moods: Cosmic (deep navy + teal/emerald glow), Night (pitch-black, data-mood="dark"), Light (clean white)
   - Sticky navbar with active section tracking + "Highlights" nav item
   - Multi-section footer with quick links + connect section
   - Guestbook backed by PostgreSQL (comments + likes + char counter + trust signals)

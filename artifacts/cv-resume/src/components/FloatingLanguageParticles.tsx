@@ -75,14 +75,14 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
 
 const LEVEL_COLORS = {
   dark: {
-    FAR:  { h: 216, s: 88, l: 72 },
-    MID:  { h: 264, s: 78, l: 74 },
-    NEAR: { h: 184, s: 90, l: 66 },
+    FAR:  { h: 199, s: 85, l: 68 },
+    MID:  { h: 174, s: 82, l: 62 },
+    NEAR: { h: 155, s: 78, l: 60 },
   },
   light: {
-    FAR:  { h: 248, s: 60, l: 46 },
-    MID:  { h: 282, s: 62, l: 50 },
-    NEAR: { h: 322, s: 66, l: 48 },
+    FAR:  { h: 199, s: 60, l: 44 },
+    MID:  { h: 174, s: 65, l: 36 },
+    NEAR: { h: 155, s: 62, l: 32 },
   },
 } as const;
 
@@ -376,7 +376,7 @@ export default function FloatingLanguageParticles() {
 
         ctx.save();
         ctx.globalAlpha  = finalAlpha;
-        ctx.fillStyle    = isDark ? "hsl(263,70%,75%)" : "hsl(248,55%,40%)";
+        ctx.fillStyle    = isDark ? "hsl(174,72%,62%)" : "hsl(174,65%,32%)";
         ctx.font         = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
         ctx.textAlign    = "left";
         ctx.textBaseline = "middle";
@@ -480,7 +480,7 @@ export default function FloatingLanguageParticles() {
         height:        "100%",
         pointerEvents: "none",
         zIndex:        0,
-        willChange:    "contents",
+        transform:     "translateZ(0)",
       }}
     />
   );

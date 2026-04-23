@@ -5,7 +5,6 @@ interface Props { onDone: () => void }
 export default function LoadingScreen({ onDone }: Props) {
   const [phase, setPhase] = useState<"in" | "hold" | "out">("in");
 
-  // Detect current theme: cosmic/dark → dark; light → light
   const isDark = (() => {
     try {
       const stored = localStorage.getItem("cv-mood");
@@ -22,14 +21,14 @@ export default function LoadingScreen({ onDone }: Props) {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onDone]);
 
-  const bg   = isDark ? "hsl(237, 34%, 2.5%)" : "hsl(248, 28%, 99%)";
-  const ring = isDark ? "hsl(263, 80%, 68%)"   : "hsl(263, 62%, 52%)";
-  const cyan = isDark ? "hsl(192, 100%, 62%)"  : "hsl(192, 80%, 48%)";
-  const center = isDark ? "hsl(240, 28%, 7%)"   : "hsl(250, 24%, 96%)";
-  const bar1 = ring;
-  const bar2 = cyan;
-  const textColor = isDark ? "hsl(263, 80%, 78%)" : "hsl(263, 55%, 38%)";
-  const trackColor = isDark ? "hsl(240, 30%, 14%)" : "hsl(250, 22%, 90%)";
+  const bg        = isDark ? "hsl(215, 55%, 3.5%)" : "hsl(180, 22%, 98%)";
+  const ring      = isDark ? "hsl(174, 88%, 52%)"  : "hsl(174, 78%, 38%)";
+  const cyan      = isDark ? "hsl(199, 94%, 58%)"  : "hsl(199, 80%, 44%)";
+  const center    = isDark ? "hsl(215, 50%, 5%)"   : "hsl(180, 22%, 96%)";
+  const bar1      = ring;
+  const bar2      = cyan;
+  const textColor = isDark ? "hsl(174, 80%, 65%)"  : "hsl(174, 68%, 32%)";
+  const trackColor = isDark ? "hsl(210, 42%, 10%)" : "hsl(185, 20%, 88%)";
 
   return (
     <div
@@ -43,7 +42,7 @@ export default function LoadingScreen({ onDone }: Props) {
         pointerEvents: phase === "out" ? "none" : "all",
       }}
     >
-      {/* Subtle radial glow behind the spinner */}
+      {/* Radial glow behind the spinner */}
       <div style={{
         position: "absolute",
         width: 280, height: 280,
@@ -64,7 +63,7 @@ export default function LoadingScreen({ onDone }: Props) {
             position: "absolute", top: -3, left: "50%", marginLeft: -3,
             width: 6, height: 6, borderRadius: "50%",
             background: ring,
-            boxShadow: `0 0 8px ${ring}cc`,
+            boxShadow: `0 0 8px ${ring}cc, 0 0 16px ${ring}66`,
           }} />
         </div>
 

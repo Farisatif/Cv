@@ -32,7 +32,7 @@ function ScrollProgress() {
         left: 0,
         right: 0,
         height: "2px",
-        background: "linear-gradient(90deg, hsl(263 80% 68%), hsl(186 95% 62%), hsl(316 72% 60%))",
+        background: "linear-gradient(90deg, hsl(174 88% 52%), hsl(199 94% 58%), hsl(155 80% 50%))",
         transformOrigin: "left",
         transform: "scaleX(0)",
         willChange: "transform",
@@ -175,7 +175,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
             className={`flex items-center gap-2.5 group flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           >
-            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 dark:group-hover:ring-[hsl(263_80%_68%/0.4)] transition-all flex-shrink-0">
+            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 dark:group-hover:ring-[hsl(174_88%_52%/0.35)] transition-all flex-shrink-0">
               <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
             </div>
             <span className="text-sm font-semibold hidden sm:block tracking-tight">
@@ -195,7 +195,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                     onClick={(e) => { e.preventDefault(); scrollTo(item.href); }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? "bg-foreground text-background dark:bg-[hsl(263_80%_68%)] dark:text-[hsl(240_25%_3.5%)] dark:shadow-[0_0_16px_hsl(263_80%_68%/0.4)]"
+                        ? "bg-foreground text-background dark:bg-[hsl(174_88%_52%)] dark:text-[hsl(215_55%_3%)] dark:shadow-[0_0_16px_hsl(174_88%_52%/0.35)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
@@ -231,7 +231,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
 
               {moodOpen && (
                 <div
-                  className={`absolute top-10 z-50 py-1 rounded-xl border border-border bg-background dark:bg-[hsl(240_28%_6%)] shadow-xl overflow-hidden min-w-[140px] ${isRTL ? "right-0" : "right-0"}`}
+                  className={`absolute top-10 z-50 py-1 rounded-xl border border-border bg-background dark:bg-[hsl(215_50%_5%)] shadow-xl overflow-hidden min-w-[140px] ${isRTL ? "right-0" : "right-0"}`}
                   style={{ animation: "scale-in 0.15s cubic-bezier(0.16,1,0.3,1)" }}
                 >
                   {MOOD_OPTIONS.map((opt) => (
@@ -240,7 +240,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                       onClick={() => { onSetMood(opt.value); setMoodOpen(false); }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-all ${isRTL ? "flex-row-reverse text-right" : ""} ${
                         mood === opt.value
-                          ? "text-foreground bg-muted dark:bg-[hsl(263_80%_68%/0.1)] dark:text-[hsl(263_80%_80%)]"
+                          ? "text-foreground bg-muted dark:bg-[hsl(174_88%_52%/0.10)] dark:text-[hsl(174_80%_68%)]"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       }`}
                     >

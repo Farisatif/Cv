@@ -7,7 +7,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 const COLORS = [
   { bar: "hsl(160 80% 45%)", light: "hsl(160 80% 45% / 0.15)", border: "hsl(160 80% 45% / 0.4)" },
   { bar: "hsl(220 90% 60%)", light: "hsl(220 90% 60% / 0.15)", border: "hsl(220 90% 60% / 0.4)" },
-  { bar: "hsl(263 80% 65%)", light: "hsl(263 80% 65% / 0.15)", border: "hsl(263 80% 65% / 0.4)" },
+  { bar: "hsl(174 85% 52%)", light: "hsl(174 85% 52% / 0.15)", border: "hsl(174 85% 52% / 0.4)" },
   { bar: "hsl(38 95% 55%)",  light: "hsl(38 95% 55% / 0.15)",  border: "hsl(38 95% 55% / 0.4)"  },
   { bar: "hsl(0 85% 62%)",   light: "hsl(0 85% 62% / 0.15)",   border: "hsl(0 85% 62% / 0.4)"   },
   { bar: "hsl(192 100% 52%)",light: "hsl(192 100% 52% / 0.15)",border: "hsl(192 100% 52% / 0.4)" },
@@ -98,7 +98,7 @@ export default function LanguagesSection() {
           </div>
           <button
             onClick={reset}
-            className={`text-xs text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""} hover:dark:text-[hsl(263_80%_75%)]`}
+            className={`text-xs text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""} hover:dark:text-[hsl(174_80%_68%)]`}
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -121,7 +121,7 @@ export default function LanguagesSection() {
           {/* Segmented bar */}
           <div
             ref={containerRef}
-            className="relative flex h-6 rounded-xl overflow-hidden mb-5 select-none cursor-col-resize border border-border/50 dark:border-[hsl(263_80%_68%/0.12)]"
+            className="relative flex h-6 rounded-xl overflow-hidden mb-5 select-none cursor-col-resize border border-border/50 dark:border-[hsl(174_88%_52%/0.12)]"
           >
             {languages.map((language, i) => {
               const color = getColor(i);

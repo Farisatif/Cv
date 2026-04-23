@@ -206,7 +206,7 @@ export default function HeroSection() {
 
       {/* Nebula orbs */}
       <div className="nebula-orb w-[700px] h-[700px] top-[-200px] left-[-160px] opacity-0 dark:opacity-100 print:hidden"
-        style={{ background: "radial-gradient(circle, hsl(263 80% 68% / 0.09) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(circle, hsl(174 88% 52% / 0.09) 0%, transparent 70%)" }} />
       <div className="nebula-orb w-[500px] h-[500px] bottom-[-80px] right-[-100px] opacity-0 dark:opacity-100 print:hidden"
         style={{ background: "radial-gradient(circle, hsl(192 100% 62% / 0.06) 0%, transparent 70%)", animationDelay: "4s" }} />
 
