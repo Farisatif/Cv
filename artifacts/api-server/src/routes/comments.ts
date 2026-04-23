@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { supabase } from "../lib/supabase";
+import pool from "../lib/db";
 import {
   ListCommentsResponse,
   CreateCommentBody,
@@ -19,17 +19,15 @@ const APP_BASE_URL = process.env.REPLIT_DEV_DOMAIN
 async function isAuthorized(req: import("express").Request): Promise<boolean> {
   const adminKey = req.headers["x-admin-key"] || req.query.adminKey;
   if (adminKey === ADMIN_KEY) return true;
-
   const sessionToken = req.headers["x-session-token"] as string | undefined;
+  if (sessionToken === ADMIN_KEY) return true;
   if (sessionToken) {
     try {
-      const { data } = await supabase
-        .from("admin_sessions")
-        .select("id")
-        .eq("session_token", sessionToken)
-        .gt("expires_at", new Date().toISOString())
-        .limit(1);
-      if (data && data.length > 0) return true;
+      const { rows } = await pool.query(
+        "SELECT id FROM admin_sessions WHERE session_token = $1 AND expires_at > NOW() LIMIT 1",
+        [sessionToken]
+      );
+      if (rows.length > 0) return true;
     } catch { /* fall through */ }
   }
   return false;
@@ -64,10 +62,12 @@ async function sendApprovalEmail(comment: { id: number; name: string; message: s
   const rejectToken = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  await supabase.from("comment_tokens").insert([
-    { comment_id: comment.id, token: approveToken, action: "approve", expires_at: expiresAt },
-    { comment_id: comment.id, token: rejectToken, action: "reject", expires_at: expiresAt },
-  ]);
+  await pool.query(
+    `INSERT INTO comment_tokens (comment_id, token, action, expires_at) VALUES
+     ($1, $2, 'approve', $3),
+     ($1, $4, 'reject', $3)`,
+    [comment.id, approveToken, expiresAt, rejectToken]
+  );
 
   const approveUrl = `${APP_BASE_URL}/api/comments/moderate?token=${approveToken}&action=approve`;
   const rejectUrl = `${APP_BASE_URL}/api/comments/moderate?token=${rejectToken}&action=reject`;
@@ -114,26 +114,13 @@ async function sendApprovalEmail(comment: { id: number; name: string; message: s
 
 router.get("/comments", async (req, res): Promise<void> => {
   try {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("id, name, message, likes, approved, created_at")
-      .eq("approved", true)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.warn("[comments] GET warning:", error.message);
-      res.json(ListCommentsResponse.parse([]));
-      return;
-    }
-
-    const rows = (data ?? []).map((r) => ({
-      ...r,
-      createdAt: r.created_at,
-    }));
-
-    res.json(ListCommentsResponse.parse(rows));
+    const { rows } = await pool.query(
+      "SELECT id, name, message, likes, approved, created_at FROM comments WHERE approved = true ORDER BY created_at DESC"
+    );
+    const formatted = rows.map((r) => ({ ...r, createdAt: r.created_at }));
+    res.json(ListCommentsResponse.parse(formatted));
   } catch (err) {
-    console.warn("[comments] GET fallback:", (err as Error).message);
+    console.warn("[comments] GET error:", (err as Error).message);
     res.json(ListCommentsResponse.parse([]));
   }
 });
@@ -141,14 +128,10 @@ router.get("/comments", async (req, res): Promise<void> => {
 router.get("/comments/all", async (req, res): Promise<void> => {
   if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
   try {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("id, name, message, likes, approved, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    res.json((data ?? []).map((r) => ({ ...r, createdAt: r.created_at })));
+    const { rows } = await pool.query(
+      "SELECT id, name, message, likes, approved, created_at FROM comments ORDER BY created_at DESC"
+    );
+    res.json(rows.map((r) => ({ ...r, createdAt: r.created_at })));
   } catch (err) {
     console.error("[comments] GET all error:", err);
     res.status(500).json({ error: "Failed to load comments" });
@@ -164,13 +147,11 @@ router.post("/comments", async (req, res): Promise<void> => {
   if (!name || !message) { res.status(400).json({ error: "Name and message are required" }); return; }
 
   try {
-    const { data, error } = await supabase
-      .from("comments")
-      .insert({ name, message, likes: 0, approved: false })
-      .select("id, name, message, likes, approved, created_at")
-      .single();
-
-    if (error) throw error;
+    const { rows } = await pool.query(
+      "INSERT INTO comments (name, message, likes, approved) VALUES ($1, $2, 0, false) RETURNING id, name, message, likes, approved, created_at",
+      [name, message]
+    );
+    const data = rows[0];
 
     try {
       await sendApprovalEmail({ id: data.id, name: data.name, message: data.message });
@@ -190,15 +171,12 @@ router.get("/comments/moderate", async (req, res): Promise<void> => {
   if (!token || !action) { res.status(400).send("<h2>رابط غير صحيح</h2>"); return; }
 
   try {
-    const { data: tokens } = await supabase
-      .from("comment_tokens")
-      .select("*")
-      .eq("token", token)
-      .eq("action", action)
-      .gt("expires_at", new Date().toISOString())
-      .limit(1);
+    const { rows: tokens } = await pool.query(
+      "SELECT * FROM comment_tokens WHERE token = $1 AND action = $2 AND expires_at > NOW() LIMIT 1",
+      [token, action]
+    );
 
-    if (!tokens || tokens.length === 0) {
+    if (tokens.length === 0) {
       res.status(404).send(`<!DOCTYPE html><html dir="rtl"><body style="font-family:Arial;text-align:center;padding:40px"><h2>❌ الرابط غير صحيح أو منتهي الصلاحية</h2></body></html>`);
       return;
     }
@@ -210,12 +188,12 @@ router.get("/comments/moderate", async (req, res): Promise<void> => {
     }
 
     if (action === "approve") {
-      await supabase.from("comments").update({ approved: true }).eq("id", tokenRow.comment_id);
+      await pool.query("UPDATE comments SET approved = true WHERE id = $1", [tokenRow.comment_id]);
     } else if (action === "reject") {
-      await supabase.from("comments").delete().eq("id", tokenRow.comment_id);
+      await pool.query("DELETE FROM comments WHERE id = $1", [tokenRow.comment_id]);
     }
 
-    await supabase.from("comment_tokens").update({ used_at: new Date().toISOString() }).eq("id", tokenRow.id);
+    await pool.query("UPDATE comment_tokens SET used_at = NOW() WHERE id = $1", [tokenRow.id]);
 
     const successHtml = action === "approve"
       ? `<h2>✅ تم قبول التعليق بنجاح</h2><p>سيظهر التعليق الآن على الموقع.</p>`
@@ -237,14 +215,12 @@ router.post("/comments/:id/approve", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
   try {
-    const { data, error } = await supabase
-      .from("comments")
-      .update({ approved: true })
-      .eq("id", id)
-      .select("id, name, message, likes, approved, created_at")
-      .single();
-    if (error || !data) { res.status(404).json({ error: "Comment not found" }); return; }
-    res.json({ ...data, createdAt: data.created_at });
+    const { rows } = await pool.query(
+      "UPDATE comments SET approved = true WHERE id = $1 RETURNING id, name, message, likes, approved, created_at",
+      [id]
+    );
+    if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
+    res.json({ ...rows[0], createdAt: rows[0].created_at });
   } catch (err) {
     res.status(500).json({ error: "Failed to approve comment" });
   }
@@ -255,7 +231,7 @@ router.delete("/comments/:id", async (req, res): Promise<void> => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
   try {
-    await supabase.from("comments").delete().eq("id", id);
+    await pool.query("DELETE FROM comments WHERE id = $1", [id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete comment" });
@@ -268,24 +244,14 @@ router.post("/comments/:id/like", async (req, res): Promise<void> => {
   if (!parsed.success) { res.status(400).json({ error: "Invalid comment ID" }); return; }
 
   try {
-    const { data: existing } = await supabase
-      .from("comments")
-      .select("id, likes")
-      .eq("id", parsed.data.id)
-      .eq("approved", true)
-      .limit(1);
-
-    if (!existing || existing.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
-
-    const { data: updated, error } = await supabase
-      .from("comments")
-      .update({ likes: existing[0].likes + 1 })
-      .eq("id", parsed.data.id)
-      .select("id, name, message, likes, approved, created_at")
-      .single();
-
-    if (error || !updated) throw error;
-    res.json({ ...updated, createdAt: updated.created_at });
+    const { rows } = await pool.query(
+      `UPDATE comments SET likes = likes + 1
+       WHERE id = $1 AND approved = true
+       RETURNING id, name, message, likes, approved, created_at`,
+      [parsed.data.id]
+    );
+    if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
+    res.json({ ...rows[0], createdAt: rows[0].created_at });
   } catch (err) {
     res.status(500).json({ error: "Failed to like comment" });
   }

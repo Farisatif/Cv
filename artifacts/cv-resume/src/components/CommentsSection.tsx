@@ -168,26 +168,25 @@ export default function CommentsSection() {
   const [nameTouched, setNameTouched] = useState(false);
   const [messageTouched, setMessageTouched] = useState(false);
 
-  const MIN_NAME = 2;
-  const MIN_MSG  = 10;
   const MAX_MSG  = 300;
 
-  const nameError = nameTouched && name.trim().length > 0 && name.trim().length < MIN_NAME
-    ? (lang === "ar" ? "الاسم يجب أن يكون حرفين على الأقل" : "At least 2 characters required")
+  const nameHasContent = name.trim().length > 0;
+  const msgHasContent  = message.trim().length > 0;
+
+  const nameError = nameTouched && !nameHasContent
+    ? (lang === "ar" ? "الاسم مطلوب" : "Name is required")
     : null;
-  const nameValid = name.trim().length >= MIN_NAME;
 
   const msgProgress = Math.min((message.length / MAX_MSG) * 100, 100);
-  const msgError = messageTouched && message.trim().length > 0 && message.trim().length < MIN_MSG
-    ? (lang === "ar" ? `يجب أن تكون الرسالة ${MIN_MSG} أحرف على الأقل` : `At least ${MIN_MSG} characters required`)
+  const msgError = messageTouched && !msgHasContent
+    ? (lang === "ar" ? "الرسالة مطلوبة" : "Message is required")
     : null;
-  const msgValid = message.trim().length >= MIN_MSG;
 
-  const canSubmit = nameValid && msgValid && !submitting;
+  const canSubmit = nameHasContent && msgHasContent && !submitting;
 
   const getMsgBarColor = () => {
     if (message.length > MAX_MSG * 0.9) return "hsl(38 92% 52%)";
-    if (msgValid) return "hsl(142 70% 48%)";
+    if (msgHasContent) return "hsl(142 70% 48%)";
     return "hsl(213 50% 65%)";
   };
 
@@ -195,7 +194,7 @@ export default function CommentsSection() {
     e.preventDefault();
     setNameTouched(true);
     setMessageTouched(true);
-    if (!nameValid || !msgValid) { setError(t.guestbook.fillBoth); return; }
+    if (!nameHasContent || !msgHasContent) { setError(t.guestbook.fillBoth); return; }
     setError("");
     setSubmitting(true);
     try {
@@ -316,7 +315,7 @@ export default function CommentsSection() {
                   {nameError && (
                     <span className="field-hint error">{nameError}</span>
                   )}
-                  {!nameError && nameValid && nameTouched && (
+                  {!nameError && nameHasContent && nameTouched && (
                     <span className="field-hint valid flex items-center gap-1">
                       <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
@@ -334,7 +333,7 @@ export default function CommentsSection() {
                   maxLength={50}
                   dir="auto"
                   className={`cosmic-input ${
-                    nameError ? "field-error" : nameValid && nameTouched ? "field-valid" : ""
+                    nameError ? "field-error" : nameHasContent && nameTouched ? "field-valid" : ""
                   }`}
                 />
               </div>
@@ -348,7 +347,7 @@ export default function CommentsSection() {
                   {msgError && (
                     <span className="field-hint error">{msgError}</span>
                   )}
-                  {!msgError && msgValid && messageTouched && (
+                  {!msgError && msgHasContent && messageTouched && (
                     <span className="field-hint valid flex items-center gap-1">
                       <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
@@ -366,7 +365,7 @@ export default function CommentsSection() {
                   rows={4}
                   dir="auto"
                   className={`cosmic-input resize-none leading-relaxed ${
-                    msgError ? "field-error" : msgValid && messageTouched ? "field-valid" : ""
+                    msgError ? "field-error" : msgHasContent && messageTouched ? "field-valid" : ""
                   }`}
                 />
                 {/* Character count bar */}

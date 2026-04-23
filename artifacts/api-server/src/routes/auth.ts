@@ -1,50 +1,27 @@
 import { Router, type IRouter } from "express";
 import { randomBytes } from "crypto";
-import { supabase } from "../lib/supabase";
+import pool from "../lib/db";
 import bcrypt from "bcrypt";
 
 const router: IRouter = Router();
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "farisatif7780@gmail.com";
-
 const ADMIN_DEFAULT_PASSWORD = process.env.ADMIN_DEFAULT_PASSWORD || "Zoom100*";
 
-// ── Password-based login ───────────────────────────────────────────────────
 router.post("/auth/login", async (req, res): Promise<void> => {
   const { username, password } = req.body;
-
   if (!username || !password) {
     res.status(400).json({ error: "Username and password are required" });
     return;
   }
 
   try {
-    // Attempt DB-backed authentication first
-    const { data: creds, error: dbError } = await supabase
-      .from("admin_credentials")
-      .select("id, username, password_hash")
-      .eq("username", username.trim().toLowerCase())
-      .limit(1);
+    const { rows: creds } = await pool.query(
+      "SELECT id, username, password_hash FROM admin_credentials WHERE username = $1 LIMIT 1",
+      [username.trim().toLowerCase()]
+    );
 
-    // Fallback: if DB tables don't exist, allow login with default password
-    if (dbError) {
-      console.warn("[Auth] DB not ready — using env fallback:", dbError.message);
-      const adminEmail = (process.env.ADMIN_EMAIL || "farisatif7780@gmail.com").toLowerCase();
-      const lc = username.trim().toLowerCase();
-      const isDefaultUser = lc === "admin" || lc === adminEmail;
-      const isValidPassword = password === ADMIN_DEFAULT_PASSWORD;
-      if (isDefaultUser && isValidPassword) {
-        // Return the ADMIN_KEY as token (works without DB session validation)
-        const staticToken = process.env.ADMIN_KEY || "Zoom100*";
-        console.log("[Auth] Fallback login success for admin (no DB)");
-        res.json({ success: true, token: staticToken, username: "admin", dbMode: "offline" });
-      } else {
-        res.status(401).json({ error: "Invalid credentials" });
-      }
-      return;
-    }
-
-    if (!creds || creds.length === 0) {
+    if (creds.length === 0) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
@@ -60,26 +37,14 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const googleId = `local:${cred.username}`;
 
-    const { data: existing } = await supabase
-      .from("admin_sessions")
-      .select("id")
-      .eq("google_id", googleId)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      await supabase
-        .from("admin_sessions")
-        .update({ session_token: sessionToken, expires_at: expiresAt })
-        .eq("google_id", googleId);
-    } else {
-      await supabase.from("admin_sessions").insert({
-        google_id: googleId,
-        email: cred.username,
-        name: cred.username,
-        session_token: sessionToken,
-        expires_at: expiresAt,
-      });
-    }
+    await pool.query(
+      `INSERT INTO admin_sessions (google_id, email, name, session_token, expires_at)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (google_id) DO UPDATE
+         SET session_token = EXCLUDED.session_token,
+             expires_at    = EXCLUDED.expires_at`,
+      [googleId, cred.username, cred.username, sessionToken, expiresAt]
+    );
 
     console.log(`[Auth] Password login success: ${cred.username}`);
     res.json({ success: true, token: sessionToken, username: cred.username });
@@ -89,7 +54,6 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 });
 
-// ── Change password ────────────────────────────────────────────────────────
 router.post("/auth/change-password", async (req, res): Promise<void> => {
   const token = req.headers["x-session-token"] as string;
   const { currentPassword, newPassword } = req.body;
@@ -100,13 +64,12 @@ router.post("/auth/change-password", async (req, res): Promise<void> => {
   }
 
   try {
-    const { data: sessions } = await supabase
-      .from("admin_sessions")
-      .select("google_id, expires_at")
-      .eq("session_token", token)
-      .limit(1);
+    const { rows: sessions } = await pool.query(
+      "SELECT google_id, expires_at FROM admin_sessions WHERE session_token = $1 LIMIT 1",
+      [token]
+    );
 
-    if (!sessions || sessions.length === 0 || new Date(sessions[0].expires_at) < new Date()) {
+    if (sessions.length === 0 || new Date(sessions[0].expires_at) < new Date()) {
       res.status(401).json({ error: "Session expired or invalid" }); return;
     }
 
@@ -116,24 +79,21 @@ router.post("/auth/change-password", async (req, res): Promise<void> => {
     }
 
     const username = googleId.replace("local:", "");
-    const { data: creds } = await supabase
-      .from("admin_credentials")
-      .select("password_hash")
-      .eq("username", username)
-      .limit(1);
+    const { rows: creds } = await pool.query(
+      "SELECT password_hash FROM admin_credentials WHERE username = $1 LIMIT 1",
+      [username]
+    );
 
-    if (!creds || creds.length === 0) {
-      res.status(404).json({ error: "Account not found" }); return;
-    }
+    if (creds.length === 0) { res.status(404).json({ error: "Account not found" }); return; }
 
     const isValid = await bcrypt.compare(currentPassword, creds[0].password_hash);
     if (!isValid) { res.status(401).json({ error: "Current password is incorrect" }); return; }
 
     const newHash = await bcrypt.hash(newPassword, 12);
-    await supabase
-      .from("admin_credentials")
-      .update({ password_hash: newHash, updated_at: new Date().toISOString() })
-      .eq("username", username);
+    await pool.query(
+      "UPDATE admin_credentials SET password_hash = $1, updated_at = NOW() WHERE username = $2",
+      [newHash, username]
+    );
 
     console.log(`[Auth] Password changed for: ${username}`);
     res.json({ success: true });
@@ -143,7 +103,6 @@ router.post("/auth/change-password", async (req, res): Promise<void> => {
   }
 });
 
-// ── Google OAuth login ─────────────────────────────────────────────────────
 router.post("/auth/google", async (req, res): Promise<void> => {
   try {
     const { credential } = req.body;
@@ -173,23 +132,16 @@ router.post("/auth/google", async (req, res): Promise<void> => {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const googleId = payload.sub || email;
 
-    const { data: existing } = await supabase
-      .from("admin_sessions")
-      .select("id")
-      .eq("google_id", googleId)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      await supabase.from("admin_sessions").update({
-        session_token: sessionToken, expires_at: expiresAt,
-        email, name: payload.name ?? null,
-      }).eq("google_id", googleId);
-    } else {
-      await supabase.from("admin_sessions").insert({
-        google_id: googleId, email, name: payload.name ?? null,
-        session_token: sessionToken, expires_at: expiresAt,
-      });
-    }
+    await pool.query(
+      `INSERT INTO admin_sessions (google_id, email, name, session_token, expires_at)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (google_id) DO UPDATE
+         SET session_token = EXCLUDED.session_token,
+             expires_at    = EXCLUDED.expires_at,
+             email         = EXCLUDED.email,
+             name          = EXCLUDED.name`,
+      [googleId, email, payload.name ?? null, sessionToken, expiresAt]
+    );
 
     res.json({ success: true, token: sessionToken, email, name: payload.name });
   } catch (err) {
@@ -198,12 +150,10 @@ router.post("/auth/google", async (req, res): Promise<void> => {
   }
 });
 
-// ── Session verification ───────────────────────────────────────────────────
 router.get("/auth/verify", async (req, res): Promise<void> => {
   const token = req.headers["x-session-token"] as string;
   if (!token) { res.status(401).json({ error: "No token" }); return; }
 
-  // Offline mode: ADMIN_KEY acts as static session token
   const adminKey = process.env.ADMIN_KEY || "Zoom100*";
   if (token === adminKey) {
     res.json({ valid: true, email: "admin", name: "Admin" });
@@ -211,28 +161,26 @@ router.get("/auth/verify", async (req, res): Promise<void> => {
   }
 
   try {
-    const { data, error } = await supabase
-      .from("admin_sessions")
-      .select("email, name, expires_at")
-      .eq("session_token", token)
-      .limit(1);
+    const { rows } = await pool.query(
+      "SELECT email, name, expires_at FROM admin_sessions WHERE session_token = $1 LIMIT 1",
+      [token]
+    );
 
-    if (error || !data || data.length === 0 || new Date(data[0].expires_at) < new Date()) {
+    if (rows.length === 0 || new Date(rows[0].expires_at) < new Date()) {
       res.status(401).json({ error: "Session expired or invalid" }); return;
     }
 
-    res.json({ valid: true, email: data[0].email, name: data[0].name });
+    res.json({ valid: true, email: rows[0].email, name: rows[0].name });
   } catch (err) {
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ── Logout ─────────────────────────────────────────────────────────────────
 router.post("/auth/logout", async (req, res): Promise<void> => {
   const token = req.headers["x-session-token"] as string;
   if (token) {
     try {
-      await supabase.from("admin_sessions").delete().eq("session_token", token);
+      await pool.query("DELETE FROM admin_sessions WHERE session_token = $1", [token]);
     } catch (err) {
       console.error("[Auth] Logout error:", err);
     }
