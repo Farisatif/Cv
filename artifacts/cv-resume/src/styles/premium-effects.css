@@ -1,0 +1,273 @@
+/* ═════════════════════════════════════════════════════════════════════
+   PREMIUM EFFECTS LAYER
+   Subtle, performant, agency-grade interactions.
+   All effects honour `prefers-reduced-motion`.
+═════════════════════════════════════════════════════════════════════ */
+
+/* ── Aurora background — slowly drifting blurred orbs ───────────────── */
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.aurora::before,
+.aurora::after {
+  content: "";
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  will-change: transform;
+  animation: aurora-drift 22s ease-in-out infinite alternate;
+}
+.aurora::before {
+  top: -22vmax;
+  left: -18vmax;
+  background: radial-gradient(circle at 30% 30%,
+    hsl(212 100% 60% / 0.55),
+    transparent 60%);
+}
+.aurora::after {
+  bottom: -28vmax;
+  right: -20vmax;
+  background: radial-gradient(circle at 70% 70%,
+    hsl(266 78% 64% / 0.40),
+    transparent 60%);
+  animation-delay: -11s;
+  animation-duration: 28s;
+}
+.dark .aurora::before { opacity: 0.30; }
+.dark .aurora::after  { opacity: 0.22; }
+:root:not(.dark) .aurora::before { opacity: 0.18; }
+:root:not(.dark) .aurora::after  { opacity: 0.14; }
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(4%, -3%, 0) scale(1.07); }
+  100% { transform: translate3d(-3%, 4%, 0) scale(0.96); }
+}
+
+/* ── Soft grid backdrop (very faint, recedes at edges) ──────────────── */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 35%, transparent 75%);
+          mask-image: radial-gradient(ellipse at center, black 35%, transparent 75%);
+}
+.dark .bg-grid {
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.06) 1px, transparent 1px);
+}
+
+/* ── Magnetic / tilt cards — driven by JS hooks via CSS vars ────────── */
+[data-tilt] {
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 280ms ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+[data-tilt][data-tilting="1"] {
+  transition: transform 100ms ease-out;
+}
+[data-magnetic] {
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+[data-magnetic][data-magnetic-active="1"] {
+  transition: transform 80ms ease-out;
+}
+
+/* ── Word-by-word headline reveal ───────────────────────────────────── */
+.reveal-words { display: inline; }
+.reveal-words .word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  margin-right: 0.18em;
+}
+[dir="rtl"] .reveal-words .word { margin-right: 0; margin-left: 0.18em; }
+.reveal-words .word > span {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  animation: word-rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--word-delay, 0ms);
+}
+@keyframes word-rise {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Underline link (animated, agency-style) ────────────────────────── */
+.link-underline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 420ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* ── Shimmer text (slow gradient sweep across heading) ──────────────── */
+.text-shimmer {
+  background: linear-gradient(
+    100deg,
+    hsl(var(--foreground)) 30%,
+    hsl(var(--foreground) / 0.55) 50%,
+    hsl(var(--foreground)) 70%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 220% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* ── Skeleton shimmer ───────────────────────────────────────────────── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--muted) / 0.55);
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--foreground) / 0.06),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+
+/* ── Empty state card ───────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2.75rem 1.25rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--muted-foreground));
+  gap: 0.5rem;
+  animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.empty-state .empty-icon {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: hsl(var(--muted) / 0.7);
+  display: grid; place-items: center;
+  margin-bottom: 0.25rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Press effect — light tactile feedback for buttons ──────────────── */
+.press {
+  transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.press:active { transform: scale(0.97); }
+
+/* ── Glow ring (used sparingly on focal CTAs) ───────────────────────── */
+.glow-ring {
+  position: relative;
+}
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--glow-primary) / 0.55),
+    transparent 40%,
+    hsl(var(--glow-secondary) / 0.45)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 280ms ease;
+  pointer-events: none;
+}
+.glow-ring:hover::before { opacity: 1; }
+
+/* ── Subtle parallax target (scroll-driven via JS) ──────────────────── */
+[data-parallax] { will-change: transform; }
+
+/* ── Reveal-on-scroll (manual) ──────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .aurora::before,
+  .aurora::after,
+  .text-shimmer,
+  .skeleton::after,
+  .reveal-words .word > span {
+    animation: none !important;
+  }
+  .reveal-words .word > span {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  [data-tilt],
+  [data-magnetic],
+  .reveal {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ── Mobile: tone things down for performance ───────────────────────── */
+@media (max-width: 640px) {
+  .aurora::before,
+  .aurora::after { filter: blur(70px); opacity: 0.25; }
+  .bg-grid { background-size: 40px 40px; }
+}

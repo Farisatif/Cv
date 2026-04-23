@@ -8,6 +8,7 @@ import { downloadPDF } from "@/lib/downloadPDF";
 import { useGitHubStats } from "@/hooks/useGitHubStats";
 import { useGetVisitorCount, useTrackVisit, getGetVisitorCountQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMagnetic, useParallax } from "@/hooks/useInteractions";
 
 // ── Animated counter ──────────────────────────────────────────────────────
 function StatPill({ value, label }: { value: number; label: string }) {
@@ -88,6 +89,10 @@ export default function HeroSection() {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const typeText = useTypewriter(personal.taglines, 72, 32, 2200);
+
+  const ctaRef     = useMagnetic<HTMLButtonElement>(0.22);
+  const orb1Ref    = useParallax<HTMLDivElement>(0.05);
+  const orb2Ref    = useParallax<HTMLDivElement>(-0.04);
 
   const handleDownloadPDF = async () => {
     setPdfLoading(true);
@@ -205,10 +210,11 @@ export default function HeroSection() {
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none print:hidden" />
 
       {/* Nebula orbs */}
-      <div className="nebula-orb w-[700px] h-[700px] top-[-200px] left-[-160px] opacity-0 dark:opacity-100 print:hidden"
+      <div ref={orb1Ref} className="nebula-orb w-[700px] h-[700px] top-[-200px] left-[-160px] opacity-0 dark:opacity-100 print:hidden"
         style={{ background: "radial-gradient(circle, hsl(212 100% 67% / 0.07) 0%, transparent 70%)" }} />
-      <div className="nebula-orb w-[500px] h-[500px] bottom-[-80px] right-[-100px] opacity-0 dark:opacity-100 print:hidden"
+      <div ref={orb2Ref} className="nebula-orb w-[500px] h-[500px] bottom-[-80px] right-[-100px] opacity-0 dark:opacity-100 print:hidden"
         style={{ background: "radial-gradient(circle, hsl(192 100% 62% / 0.06) 0%, transparent 70%)", animationDelay: "4s" }} />
+      <div className="aurora print:hidden" aria-hidden />
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/65 pointer-events-none print:hidden" />
 
@@ -306,7 +312,7 @@ export default function HeroSection() {
               className={`flex flex-wrap gap-3 mb-8 print:hidden ${isRTL ? "flex-row-reverse" : ""}`}
               style={{ animation: "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.21s both" }}
             >
-              <button onClick={() => scrollTo("contact")} className="btn-primary">
+              <button ref={ctaRef} onClick={() => scrollTo("contact")} className="btn-primary press glow-ring">
                 {t.hero.getInTouch}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7"/>

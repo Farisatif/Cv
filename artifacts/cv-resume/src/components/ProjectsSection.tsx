@@ -5,6 +5,7 @@ import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useGitHubRepos } from "@/hooks/useGitHubRepos";
+import { useTilt } from "@/hooks/useInteractions";
 
 const LANG_DOT: Record<string, string> = {
   TypeScript: "#3b82f6",
@@ -26,13 +27,15 @@ function FeaturedCard({
   lang: "en" | "ar";
 }) {
   const color = LANG_DOT[project.language];
+  const tiltRef = useTilt<HTMLAnchorElement>(3);
 
   return (
     <a
+      ref={tiltRef}
       href={`https://${project.url}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative sm:col-span-2 cosmic-card rounded-2xl p-6 flex flex-col overflow-hidden"
+      className="group relative sm:col-span-2 cosmic-card rounded-2xl p-6 flex flex-col overflow-hidden press"
       style={{ animation: "fade-up 0.5s cubic-bezier(0.16,1,0.3,1) both" }}
     >
       {/* Top accent bar — always on for featured */}
@@ -130,13 +133,15 @@ function ProjectCard({
   lang: "en" | "ar";
 }) {
   const color = LANG_DOT[project.language];
+  const tiltRef = useTilt<HTMLAnchorElement>(4);
 
   return (
     <a
+      ref={tiltRef}
       href={`https://${project.url}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col cosmic-card project-featured rounded-2xl p-5"
+      className="group flex flex-col cosmic-card project-featured rounded-2xl p-5 press"
       style={{ animation: `fade-up 0.5s cubic-bezier(0.16,1,0.3,1) ${idx * 55}ms both` }}
     >
       <div className={`flex items-start justify-between mb-3.5 gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -276,14 +281,17 @@ export default function ProjectsSection() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="cosmic-card rounded-2xl p-14 text-center">
-          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+        <div className="empty-state">
+          <div className="empty-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {lang === "ar" ? "لا مشاريع في هذه الفئة" : "No projects in this category"}
+          <p className="text-sm font-medium text-foreground/80">
+            {lang === "ar" ? "لا توجد مشاريع في هذه الفئة" : "No projects in this category"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {lang === "ar" ? "جرّب اختيار فئة أخرى من الأعلى" : "Try selecting another category above"}
           </p>
         </div>
       ) : (
