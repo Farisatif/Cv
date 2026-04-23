@@ -144,7 +144,7 @@ export default function ContributionGraph() {
       <div ref={wrapperRef} className="relative">
 
         {/* ── Contribution card ──────────────────────────────────────────── */}
-        <div className="relative border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+        <div className="relative cosmic-card glow-border rounded-xl overflow-hidden">
 
           {/* ── Circular glow — inside card, behind content ────────────── */}
           <div

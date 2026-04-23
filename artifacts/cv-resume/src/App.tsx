@@ -202,7 +202,13 @@ function CVApp() {
           <SectionDivider />
 
           {SECTIONS.experience   && <ExperienceSection />}
+
+          <SectionDivider />
+
           {SECTIONS.projects     && <ProjectsSection />}
+
+          <SectionDivider />
+
           {SECTIONS.achievements && <AchievementsSection />}
           {SECTIONS.education    && <EducationSection />}
 
