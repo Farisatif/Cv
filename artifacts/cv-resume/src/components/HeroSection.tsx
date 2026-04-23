@@ -10,24 +10,40 @@ import { useGetVisitorCount, useTrackVisit, getGetVisitorCountQueryKey } from "@
 import { useQueryClient } from "@tanstack/react-query";
 import { useMagnetic, useParallax } from "@/hooks/useInteractions";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { useRevealOnScroll } from "@/hooks/useRevealOnScroll";
-import { useParallaxElement } from "@/hooks/useParallaxElement";
-import { useElementShine } from "@/hooks/useElementShine";
 import FallingSpheres from "@/components/FallingSpheres";
-import { AnimatedText } from "@/components/AnimatedText";
-import { InteractiveButton } from "@/components/InteractiveButton";
-import { StatsCounter } from "@/components/StatsCounter";
 
-// ── Animated counter — uses StatsCounter component now
-// This function is kept for backward compatibility but StatsCounter is recommended
+// ── Animated counter ──────────────────────────────────────────────────────
 function StatPill({ value, label }: { value: number; label: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        let start = 0;
+        const dur = 1100;
+        const step = Math.max(1, Math.ceil(value / (dur / 16)));
+        const timer = setInterval(() => {
+          start = Math.min(start + step, value);
+          setCount(start);
+          if (start >= value) clearInterval(timer);
+        }, 16);
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value]);
+
   return (
-    <StatsCounter
-      value={value}
-      label={label}
-      duration={1100}
-      className="transition-all"
-    />
+    <div ref={ref} className="flex flex-col items-center gap-0.5">
+      <span className="text-lg font-bold font-mono tabular-nums tracking-tight leading-none">
+        {count.toLocaleString()}
+      </span>
+      <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{label}</span>
+    </div>
   );
 }
 
@@ -304,39 +320,21 @@ export default function HeroSection() {
               </span>
             </div>
 
-            {/* CTA Buttons — primary + secondary clearly distinguished with premium effects */}
+            {/* CTA Buttons — primary + secondary clearly distinguished */}
             <div
               className={`flex flex-wrap gap-3 mb-8 print:hidden ${isRTL ? "flex-row-reverse" : ""}`}
               style={{ animation: "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.21s both" }}
             >
-              <InteractiveButton
-                ref={ctaRef}
-                onClick={() => scrollTo("contact")}
-                variant="primary"
-                size="md"
-                animation="scale"
-                className="gap-2"
-              >
+              <button ref={ctaRef} onClick={() => scrollTo("contact")} className="btn-primary press glow-ring">
                 {t.hero.getInTouch}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
-              </InteractiveButton>
-              <InteractiveButton
-                onClick={() => scrollTo("projects")}
-                variant="secondary"
-                size="md"
-                animation="scale"
-              >
+              </button>
+              <button onClick={() => scrollTo("projects")} className="btn-secondary">
                 {t.hero.viewProjects}
-              </InteractiveButton>
-              <InteractiveButton
-                onClick={handleDownloadPDF}
-                disabled={pdfLoading}
-                variant="secondary"
-                size="md"
-                animation="scale"
-              >
+              </button>
+              <button onClick={handleDownloadPDF} disabled={pdfLoading} className="btn-secondary disabled:opacity-50">
                 {pdfLoading ? (
                   <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
@@ -349,7 +347,7 @@ export default function HeroSection() {
                   </svg>
                 )}
                 {t.hero.downloadCV}
-              </InteractiveButton>
+              </button>
             </div>
 
             {/* Print contact */}
@@ -463,8 +461,8 @@ export default function HeroSection() {
                   )}
                 </div>
 
-                {/* Stats grid — animated counters */}
-                <div className="grid grid-cols-4 divide-x divide-border/60 py-2 bg-gradient-to-r from-transparent via-accent/5 to-transparent">
+                {/* Stats grid */}
+                <div className="grid grid-cols-4 divide-x divide-border/60 py-2">
                   <StatPill value={resumeData.personal.stats.commits} label={t.stats.commits} />
                   <div className={ghLoading ? "opacity-50" : ""}>
                     <StatPill value={liveRepos} label={t.stats.repos} />
