@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
+import { useGitHubStats } from "@/hooks/useGitHubStats";
 
 function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
@@ -87,15 +88,21 @@ const IMPACT_ITEMS = [
 export default function FeaturedImpact() {
   const { lang, isRTL } = useLanguage();
   const { data } = useResumeData();
+  const { stats: gh } = useGitHubStats();
+
+  // Live values from GitHub (with stored stats only as fallback while loading/offline)
+  const liveCommits = gh?.commits   ?? data.personal.stats.commits  ?? 0;
+  const liveRepos   = gh?.repos     ?? data.personal.stats.repos    ?? 0;
+  const liveStars   = gh?.stars     ?? data.personal.stats.stars    ?? 0;
 
   const items = IMPACT_ITEMS.map(item => ({
     ...item,
     value: item.label_en === "Git Commits"
-      ? (data.personal.stats.commits ?? item.value)
+      ? liveCommits
       : item.label_en === "GitHub Repos"
-        ? (data.personal.stats.repos ?? item.value)
+        ? liveRepos
         : item.label_en === "GitHub Stars"
-          ? (data.personal.stats.stars ?? item.value)
+          ? liveStars
           : new Date().getFullYear() - data.personal.stats.since,
     suffix: lang === "ar" && item.label_en === "Years Coding" ? "" : item.suffix,
   }));

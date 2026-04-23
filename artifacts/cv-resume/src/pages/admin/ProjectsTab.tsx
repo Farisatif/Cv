@@ -31,9 +31,10 @@ export function ProjectsTab({ data, setData }: { data: ResumeData; setData: SetD
             <Field label="Name" value={proj.name} onChange={(v) => up(i, { name: v })} />
             <Field label="Language" value={proj.language} onChange={(v) => up(i, { language: v })} />
             <Field label="URL (no https://)" value={proj.url} dir="ltr" onChange={(v) => up(i, { url: v })} />
-            <Field label="Stars" type="number" value={proj.stars} onChange={(v) => up(i, { stars: parseInt(v) || 0 })} />
-            <Field label="Forks" type="number" value={proj.forks} onChange={(v) => up(i, { forks: parseInt(v) || 0 })} />
           </div>
+          <p className="text-[11px] text-muted-foreground -mt-1">
+            ⭐ Stars and forks are fetched live from GitHub — no need to edit them here.
+          </p>
           <BilingualFields labelEn="Description (EN)" labelAr="الوصف"
             valueEn={proj.en.description} valueAr={proj.ar.description}
             onChangeEn={(v) => up(i, { en: { description: v } })}

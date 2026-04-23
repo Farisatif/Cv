@@ -4,6 +4,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useGitHubRepos } from "@/hooks/useGitHubRepos";
 
 const LANG_DOT: Record<string, string> = {
   TypeScript: "#3b82f6",
@@ -209,7 +210,15 @@ export default function ProjectsSection() {
   const { lang, isRTL } = useLanguage();
   const { data: resumeData } = useResumeData();
   const t = translations[lang];
-  const projects = getProjects(lang, resumeData);
+  const baseProjects = getProjects(lang, resumeData);
+  const { lookup } = useGitHubRepos();
+  // Enrich each project with live GitHub stars/forks (falls back to stored values)
+  const projects = baseProjects.map((p) => {
+    const live = lookup(p.url);
+    return live
+      ? { ...p, stars: live.stars, forks: live.forks }
+      : p;
+  });
   const [activeTag, setActiveTag] = useState<string>("all");
 
   const allTags = useMemo(() => {
