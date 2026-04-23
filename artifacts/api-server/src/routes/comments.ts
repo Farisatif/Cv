@@ -112,12 +112,23 @@ async function sendApprovalEmail(comment: { id: number; name: string; message: s
   });
 }
 
+function normalizeRow(r: any) {
+  return {
+    id: Number(r.id),
+    name: r.name,
+    message: r.message,
+    likes: Number(r.likes),
+    approved: Boolean(r.approved),
+    createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+  };
+}
+
 router.get("/comments", async (req, res): Promise<void> => {
   try {
     const { rows } = await pool.query(
       "SELECT id, name, message, likes, approved, created_at FROM comments WHERE approved = true ORDER BY created_at DESC"
     );
-    const formatted = rows.map((r) => ({ ...r, createdAt: r.created_at }));
+    const formatted = rows.map(normalizeRow);
     res.json(ListCommentsResponse.parse(formatted));
   } catch (err) {
     console.warn("[comments] GET error:", (err as Error).message);
@@ -131,7 +142,7 @@ router.get("/comments/all", async (req, res): Promise<void> => {
     const { rows } = await pool.query(
       "SELECT id, name, message, likes, approved, created_at FROM comments ORDER BY created_at DESC"
     );
-    res.json(rows.map((r) => ({ ...r, createdAt: r.created_at })));
+    res.json(rows.map(normalizeRow));
   } catch (err) {
     console.error("[comments] GET all error:", err);
     res.status(500).json({ error: "Failed to load comments" });
@@ -159,7 +170,7 @@ router.post("/comments", async (req, res): Promise<void> => {
       console.error("[Email] Failed to send approval email:", emailErr);
     }
 
-    res.status(201).json({ ...data, createdAt: data.created_at, pending: true });
+    res.status(201).json({ ...normalizeRow(data), pending: true });
   } catch (err) {
     console.error("[comments] POST error:", err);
     res.status(500).json({ error: "Failed to create comment" });
@@ -220,7 +231,7 @@ router.post("/comments/:id/approve", async (req, res): Promise<void> => {
       [id]
     );
     if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
-    res.json({ ...rows[0], createdAt: rows[0].created_at });
+    res.json(normalizeRow(rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to approve comment" });
   }
@@ -236,7 +247,7 @@ router.post("/comments/:id/unapprove", async (req, res): Promise<void> => {
       [id]
     );
     if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
-    res.json({ ...rows[0], createdAt: rows[0].created_at });
+    res.json(normalizeRow(rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to unapprove comment" });
   }
@@ -267,7 +278,7 @@ router.post("/comments/:id/like", async (req, res): Promise<void> => {
       [parsed.data.id]
     );
     if (rows.length === 0) { res.status(404).json({ error: "Comment not found" }); return; }
-    res.json({ ...rows[0], createdAt: rows[0].created_at });
+    res.json(normalizeRow(rows[0]));
   } catch (err) {
     res.status(500).json({ error: "Failed to like comment" });
   }
