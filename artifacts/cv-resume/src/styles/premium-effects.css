@@ -28,22 +28,32 @@
   top: -22vmax;
   left: -18vmax;
   background: radial-gradient(circle at 30% 30%,
-    hsl(212 100% 60% / 0.55),
+    hsl(210 100% 50% / 0.55),
     transparent 60%);
 }
 .aurora::after {
   bottom: -28vmax;
   right: -20vmax;
   background: radial-gradient(circle at 70% 70%,
-    hsl(266 78% 64% / 0.40),
+    hsl(280 100% 50% / 0.40),
     transparent 60%);
   animation-delay: -11s;
   animation-duration: 28s;
 }
-.dark .aurora::before { opacity: 0.30; }
-.dark .aurora::after  { opacity: 0.22; }
-:root:not(.dark) .aurora::before { opacity: 0.18; }
-:root:not(.dark) .aurora::after  { opacity: 0.14; }
+.dark .aurora::before { opacity: 0.35; }
+.dark .aurora::after  { opacity: 0.28; }
+:root:not(.dark) .aurora::before { 
+  opacity: 0.12; 
+  background: radial-gradient(circle at 30% 30%,
+    hsl(215 70% 45% / 0.35),
+    transparent 60%);
+}
+:root:not(.dark) .aurora::after  { 
+  opacity: 0.10;
+  background: radial-gradient(circle at 70% 70%,
+    hsl(280 85% 45% / 0.25),
+    transparent 60%);
+}
 
 @keyframes aurora-drift {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
@@ -461,4 +471,143 @@
   .aurora::before,
   .aurora::after { filter: blur(70px); opacity: 0.25; }
   .bg-grid { background-size: 40px 40px; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   PREMIUM BACKGROUND ANIMATIONS — ENHANCED VISUAL EFFECTS
+═════════════════════════════════════════════════════════════════════ */
+
+/* Floating particles animation */
+@keyframes float-rise {
+  0% { 
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+  }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { 
+    opacity: 0;
+    transform: translateY(-100px) scale(1.1);
+  }
+}
+
+.floating-particle {
+  animation: float-rise 8s ease-in forwards;
+  animation-delay: var(--particle-delay, 0s);
+  will-change: transform, opacity;
+}
+
+/* Glow pulse animation for elements */
+@keyframes glow-pulse {
+  0%, 100% { 
+    filter: drop-shadow(0 0 8px hsl(var(--glow-primary) / 0.4));
+  }
+  50% { 
+    filter: drop-shadow(0 0 16px hsl(var(--glow-primary) / 0.8));
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Floating orb animation */
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+}
+
+[data-orbit] {
+  animation: orbit var(--orbit-duration, 20s) linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Smooth fade-in animation */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+  animation-delay: var(--fade-delay, 0s);
+}
+
+/* Scale up entrance */
+@keyframes scale-in {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--scale-delay, 0s);
+}
+
+/* Slide in from edges */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide-from, -30px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--slide-delay, 0s);
+}
+
+/* Enhanced background gradient animation */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.gradient-animated {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Smooth elevation on hover */
+.elevation-on-hover {
+  transition: 
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elevation-on-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 32px hsl(var(--foreground) / 0.12),
+    0 0 0 1px hsl(var(--border));
+}
+
+.dark .elevation-on-hover:hover {
+  box-shadow: 
+    0 12px 32px hsl(210 100% 50% / 0.15),
+    0 0 0 1px hsl(var(--border));
+}
+
+/* Smooth background color transition */
+.color-transition {
+  transition: 
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease;
+}
+
+/* Background layer that respects theme changes */
+.bg-layer-adaptive {
+  transition: background 0.4s ease, filter 0.4s ease;
 }

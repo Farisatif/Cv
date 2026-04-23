@@ -31,33 +31,33 @@
    LIGHT MODE
 ═══════════════════════════════════════════════════ */
 :root {
-  --background: 180 22% 98%;
-  --foreground: 215 32% 8%;
-  --border: 185 20% 88%;
-  --input: 185 20% 88%;
-  --ring: 212 93% 44%;
-  --card: 0 0% 100%;
-  --card-foreground: 215 32% 8%;
-  --primary: 215 30% 10%;
+  --background: 0 0% 100%;         /* Pure white */
+  --foreground: 215 32% 12%;       /* Deep navy/charcoal */
+  --border: 215 20% 88%;
+  --input: 215 25% 94%;
+  --ring: 210 100% 45%;            /* Inverted cyan */
+  --card: 0 0% 100%;               /* White cards */
+  --card-foreground: 215 32% 12%;
+  --primary: 215 30% 15%;          /* Deep navy */
   --primary-foreground: 0 0% 100%;
-  --secondary: 185 18% 96%;
-  --secondary-foreground: 215 28% 8%;
-  --muted: 185 16% 94%;
-  --muted-foreground: 200 16% 42%;
-  --accent: 212 40% 94%;
-  --accent-foreground: 212 60% 22%;
+  --secondary: 215 18% 96%;
+  --secondary-foreground: 215 28% 16%;
+  --muted: 215 16% 92%;
+  --muted-foreground: 215 16% 40%;
+  --accent: 280 85% 45%;           /* Inverted purple */
+  --accent-foreground: 0 0% 100%;
 
   --app-font-sans: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --app-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, monospace;
   --radius: 0.875rem;
 
-  --glow-primary: 212 100% 55%;
-  --glow-secondary: 199 92% 52%;
-  --glow-blue: 220 85% 60%;
-  --glow-amber: 38 96% 58%;
+  --glow-primary: 215 50% 35%;
+  --glow-secondary: 280 85% 45%;
+  --glow-blue: 215 70% 40%;
+  --glow-amber: 40 85% 45%;
 
-  --card-shadow: 0 1px 3px hsl(215 28% 14% / 0.09), 0 4px 20px hsl(212 40% 40% / 0.08), 0 0 0 1px hsl(215 20% 88%);
-  --card-shadow-hover: 0 8px 32px hsl(212 55% 42% / 0.16), 0 2px 8px hsl(215 30% 14% / 0.08), 0 0 0 1px hsl(212 60% 72% / 0.18);
+  --card-shadow: 0 1px 3px hsl(215 28% 14% / 0.08), 0 4px 20px hsl(215 30% 30% / 0.10), 0 0 0 1px hsl(215 20% 92%);
+  --card-shadow-hover: 0 8px 32px hsl(215 35% 25% / 0.15), 0 2px 8px hsl(215 30% 20% / 0.12), 0 0 0 1px hsl(215 40% 80% / 0.20);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -73,77 +73,75 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   DARK — GitHub Dark base (overridden by [data-mood="dark"])
+   DARK — Pure Black with Premium Accents
 ═══════════════════════════════════════════════════ */
 .dark {
-  --background: 216 28% 7%;
-  --foreground: 213 27% 84%;
-  --border: 215 16% 20%;
-  --input: 215 22% 12%;
-  --ring: 212 100% 67%;
+  --background: 0 0% 0%;           /* Pure black */
+  --foreground: 210 40% 96%;       /* Bright white */
+  --border: 215 20% 18%;           /* Deep gray */
+  --input: 215 25% 12%;
+  --ring: 210 100% 50%;            /* Bright cyan */
 
-  --card: 215 28% 10%;
-  --card-foreground: 213 27% 84%;
+  --card: 0 0% 4%;                 /* Near-black cards */
+  --card-foreground: 210 40% 96%;
 
-  --primary: 212 100% 67%;
-  --primary-foreground: 216 28% 7%;
+  --primary: 210 100% 50%;         /* Bright cyan */
+  --primary-foreground: 0 0% 0%;
 
-  --secondary: 215 22% 9%;
-  --secondary-foreground: 213 20% 72%;
+  --secondary: 215 22% 8%;
+  --secondary-foreground: 210 35% 88%;
 
-  --muted: 215 22% 8%;
-  --muted-foreground: 213 18% 52%;
+  --muted: 215 22% 10%;
+  --muted-foreground: 210 20% 60%;
 
-  --accent: 215 25% 14%;
-  --accent-foreground: 213 27% 84%;
+  --accent: 280 100% 50%;          /* Vibrant purple */
+  --accent-foreground: 210 40% 96%;
 
-  --glow-primary: 212 100% 67%;
-  --glow-secondary: 155 77% 58%;
-  --glow-blue: 212 100% 67%;
-  --glow-amber: 38 96% 62%;
+  --glow-primary: 210 100% 50%;
+  --glow-secondary: 280 100% 50%;
+  --glow-blue: 210 100% 50%;
+  --glow-amber: 40 100% 60%;
 
-  --card-shadow: 0 0 0 1px hsl(215 16% 17%), 0 2px 10px hsl(216 28% 3% / 0.50);
-  --card-shadow-hover: 0 0 0 2px hsl(212 100% 67% / 0.18), 0 8px 28px hsl(216 28% 3% / 0.65);
+  --card-shadow: 0 0 0 1px hsl(215 20% 15%), 0 4px 20px hsl(210 100% 50% / 0.15);
+  --card-shadow-hover: 0 0 0 2px hsl(210 100% 50% / 0.25), 0 12px 40px hsl(210 100% 50% / 0.25);
 }
 
 /* ═══════════════════════════════════════════════════
-   DARK MODE — GitHub Dark
-   #0d1117 canvas, charcoal cards, GitHub blue accent
+   DARK MODE — Pure Black Premium
 ═══════════════════════════════════════════════════ */
 html[data-mood="dark"] {
-  --background: 216 28% 7%;        /* #0d1117 */
-  --foreground: 213 27% 84%;       /* #e6edf3 */
-  --border: 215 16% 20%;           /* #30363d */
-  --input: 215 22% 12%;
-  --ring: 212 100% 67%;            /* GitHub blue */
+  --background: 0 0% 0%;           /* Pure black */
+  --foreground: 210 40% 96%;       /* Bright white */
+  --border: 215 20% 18%;           /* Deep gray */
+  --input: 215 25% 12%;
+  --ring: 210 100% 50%;            /* Bright cyan */
 
-  --card: 215 28% 10%;             /* #161b22 */
-  --card-foreground: 213 27% 84%;
+  --card: 0 0% 4%;                 /* Near-black cards */
+  --card-foreground: 210 40% 96%;
 
-  --primary: 212 100% 67%;         /* #58a6ff */
-  --primary-foreground: 216 28% 7%;
+  --primary: 210 100% 50%;         /* Bright cyan */
+  --primary-foreground: 0 0% 0%;
 
-  --secondary: 215 22% 9%;
-  --secondary-foreground: 213 20% 72%;
+  --secondary: 215 22% 8%;
+  --secondary-foreground: 210 35% 88%;
 
-  --muted: 215 22% 8%;
-  --muted-foreground: 213 18% 52%;  /* #8b949e */
+  --muted: 215 22% 10%;
+  --muted-foreground: 210 20% 60%;
 
-  --accent: 215 25% 14%;
-  --accent-foreground: 213 27% 84%;
+  --accent: 280 100% 50%;          /* Vibrant purple */
+  --accent-foreground: 210 40% 96%;
 
-  --glow-primary: 212 100% 67%;
-  --glow-secondary: 155 77% 58%;
-  --glow-blue: 212 100% 67%;
-  --glow-amber: 38 94% 62%;
+  --glow-primary: 210 100% 50%;
+  --glow-secondary: 280 100% 50%;
+  --glow-blue: 210 100% 50%;
+  --glow-amber: 40 100% 60%;
 
   --card-shadow:
-    0 0 0 1px hsl(215 16% 17%),
-    0 2px 10px hsl(216 28% 3% / 0.50);
+    0 0 0 1px hsl(215 20% 15%),
+    0 4px 20px hsl(210 100% 50% / 0.15);
   --card-shadow-hover:
-    0 0 0 2px hsl(212 100% 67% / 0.18),
-    0 8px 28px hsl(216 28% 3% / 0.65),
-    0 2px 0 hsl(215 16% 22%);
+    0 0 0 2px hsl(210 100% 50% / 0.25),
+    0 12px 40px hsl(210 100% 50% / 0.25);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -203,10 +201,10 @@ html[data-mood="dark"] {
 
   ::-webkit-scrollbar { width: 3px; height: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: hsl(212 35% 58% / 0.28); border-radius: 4px; }
-  .dark ::-webkit-scrollbar-thumb { background: hsl(212 52% 38% / 0.38); }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(212 55% 55% / 0.5); }
-  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(212 100% 67% / 0.45); }
+  ::-webkit-scrollbar-thumb { background: hsl(215 20% 70% / 0.28); border-radius: 4px; }
+  .dark ::-webkit-scrollbar-thumb { background: hsl(210 100% 50% / 0.32); }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(215 20% 60% / 0.5); }
+  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(210 100% 50% / 0.50); }
 
   h1 {
     letter-spacing: -0.03em;
@@ -601,17 +599,17 @@ html[data-mood="dark"] {
     background: hsl(212 100% 67% / 0.06);
   }
   .tag-filter.active {
-    border-color: hsl(212 100% 60%);
-    color: hsl(0 0% 100%);
-    background: hsl(212 100% 60%);
+    border-color: hsl(215 30% 20%);
+    color: hsl(0 0% 0%);
+    background: hsl(215 30% 20%);
     font-weight: 600;
-    box-shadow: 0 2px 10px hsl(212 100% 60% / 0.28);
+    box-shadow: 0 2px 10px hsl(215 30% 20% / 0.28);
   }
   .dark .tag-filter.active {
-    border-color: hsl(var(--glow-primary));
-    color: hsl(215 55% 3.5%);
-    background: hsl(var(--glow-primary));
-    box-shadow: 0 0 18px hsl(var(--glow-primary) / 0.32);
+    border-color: hsl(210 100% 50%);
+    color: hsl(0 0% 0%);
+    background: hsl(210 100% 50%);
+    box-shadow: 0 0 18px hsl(210 100% 50% / 0.35);
   }
 
   /* ── STAT NUMBER ── */
@@ -724,20 +722,20 @@ html[data-mood="dark"] {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
   .dark .btn-primary {
-    background: hsl(212 100% 67%);
-    color: hsl(215 55% 4%);
+    background: hsl(210 100% 50%);
+    color: hsl(0 0% 0%);
   }
   .dark .btn-primary:hover {
     opacity: 1;
     box-shadow: 
-      0 12px 32px hsl(212 100% 67% / 0.35),
-      0 0 24px hsl(212 100% 67% / 0.15);
+      0 12px 32px hsl(210 100% 50% / 0.35),
+      0 0 24px hsl(210 100% 50% / 0.20);
     transform: translateY(-3px) scale(1.02);
   }
   .dark .btn-primary:active {
     box-shadow: 
       inset 0 2px 8px hsl(0 0% 0% / 0.3),
-      0 2px 8px hsl(212 100% 67% / 0.15);
+      0 2px 8px hsl(210 100% 50% / 0.20);
   }
 
   /* ── FORM VALIDATION STATES ── */
