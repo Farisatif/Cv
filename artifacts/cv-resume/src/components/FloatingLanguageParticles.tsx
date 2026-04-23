@@ -89,7 +89,6 @@ const LEVEL_COLORS = {
 interface Particle {
   label:        string;
   screenX:      number;
-  screenY:      number;
   depth:        number;
   depthLevel:   DepthLevel;
   size:         number;
@@ -100,7 +99,8 @@ interface Particle {
   driftAmpY:    number;
   baseRotation: number;
   rotSpeed:     number;
-  wrapOffsetY:  number;
+  posY:         number;   // autonomous absolute Y (pixels)
+  velY:         number;   // constant drift velocity (px/ms)
   // pre-computed box dimensions (filled on first draw)
   cachedBoxW:   number;
   cachedBoxH:   number;
@@ -166,21 +166,26 @@ function createParticles(count: number): Particle[] {
     const edgeT   = rng() * rng(); // skewed toward the very edge (0 = deep edge)
     const screenX = side === "left" ? edgeT * 0.22 : 1 - edgeT * 0.22;
 
+    // Autonomous vertical velocity — slow constant drift, independent of scroll
+    // Spread: 0.010–0.030 px/ms  ≈  10–30 px/s (very gentle)
+    const speed = (0.010 + rng() * 0.020) * st.driftMultiplier;
+    const velY  = rng() < 0.5 ? speed : -speed;
+
     result.push({
       label:        LABELS[li],
       screenX,
-      screenY:      rng(),
       depth,
       depthLevel:   level,
       size,
       opacity,
       phase:        rng() * Math.PI * 2,
       phaseSpeed:   0.00020 + rng() * 0.00035,
-      driftAmpX:    (6 + rng() * 10) * st.driftMultiplier,
-      driftAmpY:    (4 + rng() * 8)  * st.driftMultiplier,
-      baseRotation: (rng() - 0.5) * 0.20,
+      driftAmpX:    (5 + rng() * 9)  * st.driftMultiplier,
+      driftAmpY:    (3 + rng() * 6)  * st.driftMultiplier,
+      baseRotation: (rng() - 0.5) * 0.18,
       rotSpeed,
-      wrapOffsetY:  0,
+      posY:         rng(),   // normalised 0-1, converted to pixels on first draw
+      velY,
       cachedBoxW:   0,
       cachedBoxH:   0,
       cachedPadX:   0,
@@ -241,17 +246,15 @@ const STARS      = createStars(50);
 export default function FloatingLanguageParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef  = useRef({
-    targetScrollY: 0,
-    smoothScrollY: 0,
-    scrollVel:     0,
-    animId:        0,
-    width:         0,
-    height:        0,
-    isDark:        true,
-    docHeight:     0,
-    lastTime:      0,
-    codeLines:     CODE_CHIPS.map(c => ({ ...c })),
+    scrollVel:       0,
+    animId:          0,
+    width:           0,
+    height:          0,
+    isDark:          true,
+    lastTime:        0,
+    codeLines:       CODE_CHIPS.map(c => ({ ...c })),
     particlesInited: false,
+    particles:       PARTICLES.map(p => ({ ...p })),
   });
 
   const resize = useCallback(() => {
@@ -279,8 +282,6 @@ export default function FloatingLanguageParticles() {
     if (!ctx) return;
 
     const state = stateRef.current;
-    state.docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
@@ -288,10 +289,9 @@ export default function FloatingLanguageParticles() {
     const onScroll = () => {
       const sy     = window.scrollY;
       const rawVel = sy - lastSY;
-      state.scrollVel = Math.max(-50, Math.min(50, rawVel));
+      // Only track velocity for the subtle X-wobble nudge — no Y pull
+      state.scrollVel = Math.max(-30, Math.min(30, rawVel));
       lastSY = sy;
-      state.targetScrollY = sy;
-      state.docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -310,17 +310,13 @@ export default function FloatingLanguageParticles() {
       const dt = state.lastTime === 0 ? 16 : Math.min(ts - state.lastTime, 50);
       state.lastTime = ts;
 
-      // Smooth scroll — decoupled from direct scroll events
-      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * 0.055;
-      const scrollFrac = state.smoothScrollY / Math.max(1, state.docHeight - height);
-
       ctx.clearRect(0, 0, width, height);
       const palette = isDark ? LEVEL_COLORS.dark : LEVEL_COLORS.light;
 
-      // ── PRE-COMPUTE cached sizes on first draw ────────────────────────────
+      // ── PRE-COMPUTE cached sizes + seed posY in pixels on first draw ────────
       if (!state.particlesInited) {
         state.particlesInited = true;
-        PARTICLES.forEach(p => {
+        state.particles.forEach(p => {
           const st  = LEVEL_STYLES[p.depthLevel];
           ctx.font  = `${st.fontWeight} ${p.size}px 'Space Grotesk','Inter',sans-serif`;
           const tw  = ctx.measureText(p.label).width;
@@ -330,6 +326,8 @@ export default function FloatingLanguageParticles() {
           p.cachedBoxH = p.size * 1.35 + padY * 2;
           p.cachedPadX = padX;
           p.cachedPadY = padY;
+          // Convert normalised seed to actual pixels spread across the full height
+          p.posY = p.posY * height;
         });
         state.codeLines.forEach(line => {
           ctx.font = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
@@ -361,7 +359,7 @@ export default function FloatingLanguageParticles() {
         });
       }
 
-      // ── CODE LINES (using cached widths) ─────────────────────────────────
+      // ── CODE LINES (horizontal drift, no scroll dependency) ─────────────────
       state.codeLines.forEach(line => {
         line.x += line.dir * line.speed * dt / width;
         const textFrac = (line.cachedW + 40) / width;
@@ -369,7 +367,7 @@ export default function FloatingLanguageParticles() {
         if (line.dir === -1 && line.x < -textFrac)     line.x = 1 + textFrac;
 
         const px = line.x * width;
-        const py = line.screenY * height + scrollFrac * height * 0.06 * (1 - line.depth);
+        const py = line.screenY * height;
 
         const finalAlpha = line.opacity * (isDark ? 1 : 0.4);
         if (finalAlpha < 0.006) return;
@@ -384,38 +382,43 @@ export default function FloatingLanguageParticles() {
         ctx.restore();
       });
 
-      // ── PARTICLES (using cached box dimensions) ───────────────────────────
-      PARTICLES.forEach(p => {
+      // ── PARTICLES — fully autonomous drift, no scroll anchoring ───────────
+      // Fade zone: particles smoothly fade in/out over the top and bottom 15%
+      const edgePad = Math.max(90, height * 0.14);
+      const buf     = edgePad + 20;  // wrap buffer slightly larger than fade zone
+
+      state.particles.forEach(p => {
         const st    = LEVEL_STYLES[p.depthLevel];
         const color = palette[p.depthLevel];
         const { h, s, l } = color;
 
-        const homeY = p.screenY * height;
-        const parallaxShift = scrollFrac * height * 0.18 * (1 - p.depth * 0.7);
+        // Advance autonomous position
+        p.posY += p.velY * dt;
+
+        // Seamless wrap: disappears at one edge, re-enters at the other
+        const span = height + buf * 2;
+        if (p.posY < -buf)         p.posY += span;
+        if (p.posY > height + buf) p.posY -= span;
+
+        // Gentle sinusoidal wobble overlaid on the constant drift
         const driftX = Math.sin(ts * p.phaseSpeed + p.phase) * p.driftAmpX;
-        const driftY = Math.sin(ts * p.phaseSpeed * 0.68 + p.phase + 1.1) * p.driftAmpY;
-        const velBoost = state.scrollVel * (1 - p.depth) * 0.12;
+        const driftY = Math.sin(ts * p.phaseSpeed * 0.72 + p.phase + 1.2) * p.driftAmpY;
 
         const px = p.screenX * width + driftX;
-        const py = homeY + parallaxShift + driftY + velBoost;
+        const py = p.posY + driftY;
 
-        const buf = 100;
-        const range = height + buf * 2;
-        const wrappedPy = ((py + buf) % range + range) % range - buf;
-
-        const edgePad = 80;
+        // Edge fade so particles glide in/out rather than pop
         let edgeFade = 1;
-        if (wrappedPy < edgePad)              edgeFade = Math.max(0, wrappedPy / edgePad);
-        else if (wrappedPy > height - edgePad) edgeFade = Math.max(0, (height - wrappedPy) / edgePad);
+        if (py < edgePad)              edgeFade = Math.max(0, py / edgePad);
+        else if (py > height - edgePad) edgeFade = Math.max(0, (height - py) / edgePad);
 
-        const velOpacity = Math.min(0.28, Math.abs(state.scrollVel) * 0.0025);
-        const finalAlpha = (p.opacity + velOpacity * (1 - p.depth)) * edgeFade;
-        if (finalAlpha < 0.005) return;
+        const finalAlpha = p.opacity * edgeFade;
+        if (finalAlpha < 0.004) return;
 
         const totalRot = p.baseRotation + ts * p.rotSpeed;
 
         ctx.save();
-        ctx.translate(px, wrappedPy);
+        ctx.translate(px, py);
         ctx.rotate(totalRot);
 
         const boxW = p.cachedBoxW || 60;
@@ -444,7 +447,8 @@ export default function FloatingLanguageParticles() {
         ctx.restore();
       });
 
-      state.scrollVel *= 0.88;
+      // Decay scroll velocity (only used for code-line colour pulse if ever needed)
+      state.scrollVel *= 0.85;
     };
 
     state.animId = requestAnimationFrame(draw);
