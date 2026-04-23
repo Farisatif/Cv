@@ -32,12 +32,22 @@ interface Skill { id: string; name: string; level: number; category: string }
 // ── Animated skill card ────────────────────────────────────────────────────
 function SkillCard({
   skill, catIdx, lang, isRTL, animDelay,
+  draggable, isDragging, isDragOver,
+  onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
 }: {
   skill: Skill;
   catIdx: number;
   lang: "en" | "ar";
   isRTL: boolean;
   animDelay: number;
+  draggable?: boolean;
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const barRef  = useRef<HTMLDivElement>(null);
@@ -65,33 +75,38 @@ function SkillCard({
   const hslFn  = (a: string) => `hsl(${color.h},${color.s}%,${color.l}%/${a})`;
 
   const accentBorder = isRTL
-    ? { borderRight: `3px solid ${hsl}` }
-    : { borderLeft:  `3px solid ${hsl}` };
+    ? { borderRight: `2px solid ${hsl}` }
+    : { borderLeft:  `2px solid ${hsl}` };
 
   return (
     <div
       ref={cardRef}
       className="skill-card"
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
       style={{
         ...accentBorder,
-        opacity:    visible ? 1 : 0,
-        transform:  visible ? "translateY(0)" : "translateY(20px)",
-        transition: `opacity 0.55s cubic-bezier(0.16,1,0.3,1) ${animDelay}ms, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${animDelay}ms, border-color 0.22s ease, box-shadow 0.25s ease`,
+        opacity:    visible ? (isDragging ? 0.4 : 1) : 0,
+        transform:  visible ? (isDragOver ? "translateY(-3px) scale(1.02)" : "translateY(0)") : "translateY(20px)",
+        transition: `opacity 0.55s cubic-bezier(0.16,1,0.3,1) ${animDelay}ms, transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.22s ease, box-shadow 0.25s ease`,
+        cursor:     draggable ? "grab" : "default",
+        boxShadow:  isDragOver ? `0 6px 18px ${hslFn("0.35")}` : undefined,
       }}
     >
-      <div className="p-3.5">
+      <div className="p-2">
         {/* Name + badge row */}
-        <div className={`flex items-start justify-between gap-2 mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+        <div className={`flex items-center justify-between gap-1.5 mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
           <div className={`flex-1 min-w-0 ${isRTL ? "text-right" : ""}`}>
-            <div className="text-[13px] font-bold tracking-tight leading-tight truncate">
+            <div className="text-[11px] font-bold tracking-tight leading-tight truncate">
               {skill.name}
-            </div>
-            <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest mt-0.5 truncate">
-              {skill.category}
             </div>
           </div>
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5 whitespace-nowrap"
+            className="text-[8px] font-bold px-1 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap"
             style={{
               color: hsl,
               background: hslFn("0.10"),
@@ -103,9 +118,9 @@ function SkillCard({
         </div>
 
         {/* Progress bar + % */}
-        <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+        <div className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
           <div
-            className="flex-1 h-1.5 rounded-full overflow-hidden"
+            className="flex-1 h-1 rounded-full overflow-hidden"
             style={{ background: hslFn("0.10") }}
           >
             <div
@@ -114,7 +129,7 @@ function SkillCard({
               style={{
                 width:      `${skill.level}%`,
                 background: `linear-gradient(${isRTL ? "270deg" : "90deg"}, ${hsl}, hsl(${color.h},${color.s}%,${Math.min(color.l + 18, 90)}%))`,
-                boxShadow:  visible ? `0 0 8px ${hslFn("0.55")}` : "none",
+                boxShadow:  visible ? `0 0 6px ${hslFn("0.45")}` : "none",
                 transform:  visible ? "scaleX(1)" : "scaleX(0)",
                 transformOrigin: isRTL ? "right" : "left",
                 transition: `transform 1.1s cubic-bezier(0.16,1,0.3,1) ${animDelay + 120}ms, box-shadow 0.4s ease`,
@@ -122,7 +137,7 @@ function SkillCard({
             />
           </div>
           <span
-            className="text-[10px] font-mono text-muted-foreground/45 tabular-nums flex-shrink-0 w-7"
+            className="text-[9px] font-mono text-muted-foreground/45 tabular-nums flex-shrink-0 w-6"
             style={{ textAlign: isRTL ? "left" : "right" }}
           >
             {skill.level}%
@@ -134,6 +149,8 @@ function SkillCard({
 }
 
 // ── Skills grid ────────────────────────────────────────────────────────────
+const ORDER_KEY = "cv-skills-order-v1";
+
 function SkillGrid({
   skills, filter, allLabel, lang, isRTL,
 }: {
@@ -143,13 +160,72 @@ function SkillGrid({
   lang: "en" | "ar";
   isRTL: boolean;
 }) {
-  const cats    = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
-  const visible = filter === allLabel ? skills : skills.filter(s => s.category === filter);
-  const sorted  = [...visible].sort((a, b) => b.level - a.level);
+  const cats = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
+
+  // Load any saved custom order
+  const [order, setOrder] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(ORDER_KEY);
+      return raw ? (JSON.parse(raw) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Build the display list: sort by level desc, then apply user reorder
+  const baseSorted = useMemo(
+    () => [...skills].sort((a, b) => b.level - a.level),
+    [skills],
+  );
+
+  const fullOrdered = useMemo(() => {
+    const map = new Map(baseSorted.map(s => [s.id, s]));
+    const seen = new Set<string>();
+    const result: Skill[] = [];
+    for (const id of order) {
+      const s = map.get(id);
+      if (s) { result.push(s); seen.add(id); }
+    }
+    for (const s of baseSorted) {
+      if (!seen.has(s.id)) result.push(s);
+    }
+    return result;
+  }, [baseSorted, order]);
+
+  const visible = filter === allLabel
+    ? fullOrdered
+    : fullOrdered.filter(s => s.category === filter);
+
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId]         = useState<string | null>(null);
+
+  const persist = (next: string[]) => {
+    setOrder(next);
+    try { localStorage.setItem(ORDER_KEY, JSON.stringify(next)); } catch {}
+  };
+
+  useEffect(() => {
+    const reset = () => setOrder([]);
+    window.addEventListener("cv-skills-order-reset", reset);
+    return () => window.removeEventListener("cv-skills-order-reset", reset);
+  }, []);
+
+  const handleDrop = (targetId: string) => {
+    if (!draggingId || draggingId === targetId) return;
+    const ids       = fullOrdered.map(s => s.id);
+    const fromIdx   = ids.indexOf(draggingId);
+    const toIdx     = ids.indexOf(targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const next = [...ids];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    persist(next);
+  };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
-      {sorted.map((skill, i) => {
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {visible.map((skill, i) => {
         const catIdx = Math.max(0, cats.indexOf(skill.category));
         return (
           <SkillCard
@@ -158,7 +234,33 @@ function SkillGrid({
             catIdx={catIdx}
             lang={lang}
             isRTL={isRTL}
-            animDelay={Math.min(i * 45, 380)}
+            animDelay={Math.min(i * 35, 320)}
+            draggable
+            isDragging={draggingId === skill.id}
+            isDragOver={overId === skill.id && draggingId !== skill.id}
+            onDragStart={(e) => {
+              setDraggingId(skill.id);
+              e.dataTransfer.effectAllowed = "move";
+              try { e.dataTransfer.setData("text/plain", skill.id); } catch {}
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (overId !== skill.id) setOverId(skill.id);
+            }}
+            onDragLeave={() => {
+              if (overId === skill.id) setOverId(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleDrop(skill.id);
+              setOverId(null);
+              setDraggingId(null);
+            }}
+            onDragEnd={() => {
+              setDraggingId(null);
+              setOverId(null);
+            }}
           />
         );
       })}
@@ -258,6 +360,26 @@ export default function SkillsSection() {
             {cat === allLabel ? allLabel : cat}
           </button>
         ))}
+      </div>
+
+      {/* Drag hint */}
+      <div className={`mb-3 flex items-center gap-2 text-[10px] text-muted-foreground/60 ${isRTL ? "flex-row-reverse text-right" : ""}`}>
+        <span>↔</span>
+        <span>
+          {lang === "ar"
+            ? "يمكنك سحب وإفلات المهارات لإعادة ترتيبها"
+            : "Drag and drop skills to reorder them"}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            try { localStorage.removeItem("cv-skills-order-v1"); } catch {}
+            window.dispatchEvent(new Event("cv-skills-order-reset"));
+          }}
+          className={`${isRTL ? "mr-auto" : "ml-auto"} text-[10px] underline opacity-70 hover:opacity-100`}
+        >
+          {lang === "ar" ? "إعادة الترتيب" : "Reset order"}
+        </button>
       </div>
 
       {/* Skills grid */}
