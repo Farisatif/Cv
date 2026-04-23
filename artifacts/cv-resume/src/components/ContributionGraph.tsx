@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { contributionData } from "@/data/resume";
+import { generateContributionData } from "@/lib/resumeUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -23,7 +23,7 @@ export default function ContributionGraph() {
 
   const MONTHS = lang === "ar" ? MONTHS_AR : MONTHS_EN;
 
-  const [graphData, setGraphData] = useState<number[][]>(contributionData);
+  const [graphData, setGraphData] = useState<number[][]>(() => generateContributionData());
   const [ghStats, setGhStats] = useState<{ followers: number; public_repos: number; stars: number } | null>(null);
   const [loadingGH, setLoadingGH] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);

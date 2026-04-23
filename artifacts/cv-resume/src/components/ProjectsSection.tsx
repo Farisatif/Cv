@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { getProjects } from "@/data/resume";
+import { getProjects } from "@/lib/resumeUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";

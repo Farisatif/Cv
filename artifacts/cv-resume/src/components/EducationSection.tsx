@@ -1,4 +1,4 @@
-import { getEducation } from "@/data/resume";
+import { getEducation } from "@/lib/resumeUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";

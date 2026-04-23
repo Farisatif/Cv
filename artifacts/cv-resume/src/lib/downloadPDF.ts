@@ -1,4 +1,4 @@
-import { getPersonal, getSkills, getExperience, getProjects, getEducation } from "@/data/resume";
+import { getPersonal, getSkills, getExperience, getProjects, getEducation } from "@/lib/resumeUtils";
 
 export async function downloadPDF(lang: "en" | "ar" = "en", data?: any) {
   const filename = lang === "ar" ? "السيرة-الذاتية.pdf" : "cv-resume.pdf";

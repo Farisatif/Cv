@@ -1,5 +1,7 @@
 import { Router, type IRouter } from "express";
-import { pool } from "@workspace/db";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { supabase } from "../lib/supabase";
 
 const router: IRouter = Router();
 
@@ -10,19 +12,20 @@ async function isAuthorized(req: import("express").Request): Promise<boolean> {
   if (adminKey === ADMIN_KEY) return true;
 
   const sessionToken = req.headers["x-session-token"] as string | undefined;
-  if (sessionToken) {
-    try {
-      const result = await pool.query(
-        `SELECT expires_at FROM admin_sessions WHERE session_token = $1 LIMIT 1`,
-        [sessionToken]
-      );
-      if (result.rows.length > 0 && new Date(result.rows[0].expires_at) > new Date()) {
-        return true;
-      }
-    } catch {
-      // fall through
-    }
-  }
+  if (!sessionToken) return false;
+
+  // Offline mode: ADMIN_KEY is returned as static session token
+  if (sessionToken === ADMIN_KEY) return true;
+
+  try {
+    const { data } = await supabase
+      .from("admin_sessions")
+      .select("id")
+      .eq("session_token", sessionToken)
+      .gt("expires_at", new Date().toISOString())
+      .limit(1);
+    if (data && data.length > 0) return true;
+  } catch { /* fall through */ }
   return false;
 }
 
@@ -33,28 +36,59 @@ router.get("/admin/stats", async (req, res): Promise<void> => {
     return;
   }
 
-  try {
-    const [visitors, totalComments, pendingComments, approved, resumeData, dbTime] = await Promise.all([
-      pool.query(`SELECT count FROM visitors LIMIT 1`),
-      pool.query(`SELECT COUNT(*) AS total FROM comments`),
-      pool.query(`SELECT COUNT(*) AS pending FROM comments WHERE approved = false`),
-      pool.query(`SELECT COUNT(*) AS approved FROM comments WHERE approved = true`),
-      pool.query(`SELECT updated_at FROM resume_data ORDER BY updated_at DESC LIMIT 1`),
-      pool.query(`SELECT NOW() AS time`),
-    ]);
+  const results = await Promise.allSettled([
+    supabase.from("visitors").select("count").limit(1),
+    supabase.from("comments").select("*", { count: "exact", head: true }),
+    supabase.from("comments").select("*", { count: "exact", head: true }).eq("approved", false),
+    supabase.from("comments").select("*", { count: "exact", head: true }).eq("approved", true),
+    supabase.from("resume_data").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+  ]);
 
-    res.json({
-      visitors: visitors.rows[0]?.count ?? 0,
-      totalComments: parseInt(totalComments.rows[0]?.total ?? "0"),
-      pendingComments: parseInt(pendingComments.rows[0]?.pending ?? "0"),
-      approvedComments: parseInt(approved.rows[0]?.approved ?? "0"),
-      resumeLastSaved: resumeData.rows[0]?.updated_at ?? null,
-      dbStatus: "ok",
-      serverTime: dbTime.rows[0]?.time ?? null,
-    });
-  } catch (err) {
-    console.error("[admin/stats] error:", err);
-    res.status(500).json({ error: "Failed to load stats", dbStatus: "error" });
+  const get = (r: PromiseSettledResult<any>, key: string) =>
+    r.status === "fulfilled" ? r.value : { data: null, count: null, error: null };
+
+  const [v, tc, pc, ac, rd] = results.map(get);
+  const dbReady = results.every((r) => r.status === "fulfilled" && !r.value.error);
+
+  res.json({
+    visitors: v?.data?.[0]?.count ?? 0,
+    totalComments: tc?.count ?? 0,
+    pendingComments: pc?.count ?? 0,
+    approvedComments: ac?.count ?? 0,
+    resumeLastSaved: rd?.data?.[0]?.updated_at ?? null,
+    dbStatus: dbReady ? "ok" : "not_initialized",
+    serverTime: new Date().toISOString(),
+  });
+});
+
+// ── DB readiness check ──────────────────────────────────────────────────────
+router.get("/admin/db-status", async (req, res): Promise<void> => {
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const tables = ["visitors", "comments", "resume_data", "admin_credentials", "admin_sessions", "comment_tokens"];
+  const status: Record<string, boolean> = {};
+
+  await Promise.all(
+    tables.map(async (table) => {
+      const { error } = await supabase.from(table).select("*", { head: true, count: "exact" }).limit(1);
+      status[table] = !error;
+    })
+  );
+
+  const allReady = Object.values(status).every(Boolean);
+  res.json({ ready: allReady, tables: status });
+});
+
+// ── Migration SQL ──────────────────────────────────────────────────────────
+router.get("/admin/migration-sql", async (req, res): Promise<void> => {
+  if (!(await isAuthorized(req))) { res.status(401).json({ error: "Unauthorized" }); return; }
+  try {
+    const sqlPath = join(__dirname, "..", "supabase-migrations.sql");
+    const sql = readFileSync(sqlPath, "utf-8");
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.send(sql);
+  } catch {
+    res.status(404).json({ error: "Migration file not found" });
   }
 });
 

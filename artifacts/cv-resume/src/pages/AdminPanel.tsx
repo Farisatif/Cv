@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useResumeData } from "@/context/ResumeDataContext";
-import { TABS, TAB_ICONS, type TabId } from "./admin/adminShared";
+import { TABS, TAB_ICONS, useAdminHeaders, type TabId } from "./admin/adminShared";
 import { PersonalTab }      from "./admin/PersonalTab";
 import { SkillsTab }        from "./admin/SkillsTab";
 import { ExperienceTab }    from "./admin/ExperienceTab";
@@ -18,6 +18,15 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [saved, setSaved] = useState(false);
   const [error, setSaveError] = useState("");
   const [tab, setTab] = useState<TabId>("personal");
+  const [dbReady, setDbReady] = useState<boolean | null>(null);
+  const authHeaders = useAdminHeaders();
+
+  useEffect(() => {
+    fetch("/api/admin/db-status", { headers: authHeaders })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => setDbReady(d?.ready ?? false))
+      .catch(() => setDbReady(false));
+  }, []);
 
   const isUnsaved = DATA_TABS.includes(tab) && JSON.stringify(data) !== JSON.stringify(savedData);
 
@@ -27,8 +36,13 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
       await saveData(data);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setSaveError("Save failed — check your connection.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Save failed — check your connection.";
+      setSaveError(msg);
+      // If DB not ready, auto-navigate to settings to show setup guide
+      if (msg.includes("Database not initialized")) {
+        setTimeout(() => setTab("settings"), 800);
+      }
     }
   };
 
@@ -75,12 +89,28 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="hidden sm:inline">Unsaved changes</span>
               </span>
+            ) : dbReady === false ? (
+              <button
+                onClick={() => setTab("settings")}
+                className="flex items-center gap-1.5 text-xs text-amber-500 font-medium hover:text-amber-400 transition-colors"
+                title="Database not initialized — click to view setup guide"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span className="hidden sm:inline">DB not set up</span>
+              </button>
+            ) : dbReady === true ? (
+              <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium hidden sm:flex">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Database connected
+              </span>
             ) : (
               <span className="text-xs text-muted-foreground hidden sm:block">— edits both languages simultaneously</span>
             )}
           </div>
           <div className="flex items-center gap-1.5">
-            {error && <span className="text-xs text-red-500 hidden sm:block">{error}</span>}
             <button onClick={handleReset} disabled={saving}
               className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-50">
               Reset
@@ -112,6 +142,25 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
       </div>
+
+      {/* Save error banner */}
+      {error && (
+        <div className="border-b border-red-500/20 bg-red-500/8">
+          <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setSaveError("")} className="text-xs text-red-500/60 hover:text-red-500 transition-colors flex-shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Tab bar */}

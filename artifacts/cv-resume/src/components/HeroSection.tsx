@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTypewriter } from "@/hooks/useTypewriter";
-import { getPersonal } from "@/data/resume";
+import { getPersonal } from "@/lib/resumeUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";

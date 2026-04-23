@@ -116,7 +116,18 @@ export function ResumeDataProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify(d),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        let message = "Save failed";
+        try {
+          const errJson = await res.json();
+          if (errJson.dbNotReady) {
+            message = "Database not initialized — go to Settings to run the Supabase migration.";
+          } else if (errJson.error) {
+            message = errJson.error;
+          }
+        } catch {}
+        throw new Error(message);
+      }
       const json = await res.json();
       if (json.updatedAt) updatedAtRef.current = json.updatedAt;
       setData(d);

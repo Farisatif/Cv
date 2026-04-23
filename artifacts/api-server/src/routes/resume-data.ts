@@ -1,50 +1,59 @@
 import { Router, type IRouter } from "express";
-import { pool } from "@workspace/db";
+import { supabase } from "../lib/supabase";
 
 const router: IRouter = Router();
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "Zoom100*";
 
+async function isAuthorized(req: import("express").Request): Promise<boolean> {
+  const key = req.headers["x-admin-key"] || req.headers["x-session-token"];
+  if (key === ADMIN_KEY) return true;
+  if (key && typeof key === "string") {
+    try {
+      const { data } = await supabase
+        .from("admin_sessions")
+        .select("id")
+        .eq("session_token", key)
+        .gt("expires_at", new Date().toISOString())
+        .limit(1);
+      if (data && data.length > 0) return true;
+    } catch { /* DB not initialized, fall through */ }
+  }
+  return false;
+}
+
 router.get("/resume", async (req, res): Promise<void> => {
   try {
-    const result = await pool.query(
-      `SELECT data, updated_at FROM resume_data ORDER BY updated_at DESC LIMIT 1`
-    );
+    const { data, error } = await supabase
+      .from("resume_data")
+      .select("data, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(1);
 
-    if (result.rows.length === 0) {
+    if (error) {
+      // Gracefully handle missing tables — site falls back to static defaults
+      console.warn("[resume-data] GET warning:", error.message);
+      res.json({ data: null, updatedAt: null });
+      return;
+    }
+
+    if (!data || data.length === 0) {
       res.json({ data: null, updatedAt: null });
       return;
     }
 
     res.json({
-      data: JSON.parse(result.rows[0].data),
-      updatedAt: result.rows[0].updated_at,
+      data: JSON.parse(data[0].data),
+      updatedAt: data[0].updated_at,
     });
   } catch (err) {
     console.error("[resume-data] GET error:", err);
-    res.status(500).json({ error: "Failed to load resume data" });
+    res.json({ data: null, updatedAt: null });
   }
 });
 
 router.put("/resume", async (req, res): Promise<void> => {
-  const key = req.headers["x-admin-key"];
-
-  // Allow direct password or active session token
-  let authorized = key === ADMIN_KEY;
-
-  if (!authorized) {
-    try {
-      const sessionRes = await pool.query(
-        `SELECT id FROM admin_sessions WHERE session_token = $1 AND expires_at > NOW()`,
-        [key]
-      );
-      authorized = sessionRes.rows.length > 0;
-    } catch {
-      // session check failed — fall through to 401
-    }
-  }
-
-  if (!authorized) {
+  if (!(await isAuthorized(req))) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -57,25 +66,44 @@ router.put("/resume", async (req, res): Promise<void> => {
     }
 
     const dataStr = JSON.stringify(payload);
+    const now = new Date().toISOString();
 
-    const existing = await pool.query(
-      `SELECT id FROM resume_data ORDER BY updated_at DESC LIMIT 1`
-    );
+    const { data: existing, error: selectError } = await supabase
+      .from("resume_data")
+      .select("id")
+      .order("updated_at", { ascending: false })
+      .limit(1);
 
-    let updatedAt: string;
+    // Table not initialized — return a clear, actionable error
+    if (selectError) {
+      console.warn("[resume-data] PUT: table not ready:", selectError.message);
+      res.status(503).json({
+        error: "Database not initialized",
+        hint: "Run supabase-migrations.sql in your Supabase SQL Editor to create the required tables.",
+        dbNotReady: true,
+      });
+      return;
+    }
 
-    if (existing.rows.length === 0) {
-      const ins = await pool.query(
-        `INSERT INTO resume_data (data) VALUES ($1) RETURNING updated_at`,
-        [dataStr]
-      );
-      updatedAt = ins.rows[0].updated_at;
+    let updatedAt: string = now;
+
+    if (existing && existing.length > 0) {
+      const { data: updated, error } = await supabase
+        .from("resume_data")
+        .update({ data: dataStr, updated_at: now })
+        .eq("id", existing[0].id)
+        .select("updated_at")
+        .single();
+      if (error) throw error;
+      updatedAt = updated?.updated_at ?? now;
     } else {
-      const upd = await pool.query(
-        `UPDATE resume_data SET data = $1, updated_at = NOW() WHERE id = $2 RETURNING updated_at`,
-        [dataStr, existing.rows[0].id]
-      );
-      updatedAt = upd.rows[0].updated_at;
+      const { data: inserted, error } = await supabase
+        .from("resume_data")
+        .insert({ data: dataStr, updated_at: now })
+        .select("updated_at")
+        .single();
+      if (error) throw error;
+      updatedAt = inserted?.updated_at ?? now;
     }
 
     res.json({ success: true, updatedAt });

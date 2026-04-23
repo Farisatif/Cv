@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getExperience } from "@/data/resume";
+import { getExperience } from "@/lib/resumeUtils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useResumeData } from "@/context/ResumeDataContext";
 import { translations } from "@/data/translations";
