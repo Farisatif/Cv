@@ -9,6 +9,7 @@ import { useGitHubStats } from "@/hooks/useGitHubStats";
 import { useGetVisitorCount, useTrackVisit, getGetVisitorCountQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMagnetic, useParallax } from "@/hooks/useInteractions";
+import FallingSpheres from "@/components/FallingSpheres";
 
 // ── Animated counter ──────────────────────────────────────────────────────
 function StatPill({ value, label }: { value: number; label: string }) {
@@ -215,6 +216,9 @@ export default function HeroSection() {
       <div ref={orb2Ref} className="nebula-orb w-[500px] h-[500px] bottom-[-80px] right-[-100px] opacity-0 dark:opacity-100 print:hidden"
         style={{ background: "radial-gradient(circle, hsl(192 100% 62% / 0.06) 0%, transparent 70%)", animationDelay: "4s" }} />
       <div className="aurora print:hidden" aria-hidden />
+
+      {/* Falling spheres physics scene — sits behind the content (z-0) */}
+      <FallingSpheres className="z-[1] opacity-90" count={18} />
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/65 pointer-events-none print:hidden" />
 
