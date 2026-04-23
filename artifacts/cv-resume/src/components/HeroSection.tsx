@@ -9,6 +9,7 @@ import { useGitHubStats } from "@/hooks/useGitHubStats";
 import { useGetVisitorCount, useTrackVisit, getGetVisitorCountQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMagnetic, useParallax } from "@/hooks/useInteractions";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import FallingSpheres from "@/components/FallingSpheres";
 
 // ── Animated counter ──────────────────────────────────────────────────────
@@ -90,6 +91,10 @@ export default function HeroSection() {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const typeText = useTypewriter(personal.taglines, 72, 32, 2200);
+
+  // Scroll animation hooks
+  const contentRef = useScrollAnimation({ threshold: 0.2, triggerOnce: true });
+  const profileCardRef = useScrollAnimation({ threshold: 0.2, triggerOnce: true });
 
   const ctaRef     = useMagnetic<HTMLButtonElement>(0.22);
   const orb1Ref    = useParallax<HTMLDivElement>(0.05);
