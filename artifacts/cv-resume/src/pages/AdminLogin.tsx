@@ -150,12 +150,12 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
                 <div
                   aria-hidden="true"
                   className="absolute inset-0 rounded-2xl blur-xl opacity-30"
-                  style={{ background: "hsl(174 68% 40%)", transform: "scale(1.4)" }}
+                  style={{ background: "hsl(212 100% 67%)", transform: "scale(1.4)" }}
                 />
                 <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
                   style={{
-                    background: "linear-gradient(135deg, hsl(174 68% 34%), hsl(174 72% 44%))",
-                    boxShadow: "0 4px 18px hsl(174 68% 38% / 0.30), inset 0 1px 0 rgba(255,255,255,0.15)"
+                    background: "linear-gradient(135deg, hsl(212 100% 52%), hsl(212 100% 67%))",
+                    boxShadow: "0 4px 18px hsl(212 100% 67% / 0.28), inset 0 1px 0 rgba(255,255,255,0.15)"
                   }}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

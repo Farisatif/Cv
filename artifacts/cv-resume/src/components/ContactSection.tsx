@@ -32,7 +32,7 @@ export default function ContactSection() {
       href: `mailto:${personal.email}`,
       actionLabel: t.contact.sendEmail,
       onAction: copyEmail,
-      color: "hsl(174 88% 52%)",
+      color: "hsl(212 100% 67%)",
     },
     {
       label: t.contact.whatsapp,
@@ -94,7 +94,7 @@ export default function ContactSection() {
         <div className={`lg:col-span-2 ${isRTL ? "lg:order-2" : "lg:order-1"}`}>
           <div className="premium-card glow-border rounded-2xl p-6 h-full flex flex-col justify-between gap-6">
             <div>
-              <div className="w-11 h-11 rounded-xl bg-muted dark:bg-[hsl(174_88%_52%/0.07)] border border-border dark:border-[hsl(174_88%_52%/0.18)] flex items-center justify-center mb-5 text-xl">
+              <div className="w-11 h-11 rounded-xl bg-muted dark:bg-[hsl(212_100%_67%/0.07)] border border-border dark:border-[hsl(212_100%_67%/0.15)] flex items-center justify-center mb-5 text-xl">
                 👋
               </div>
               <h3 className={`font-bold text-base mb-2 tracking-tight ${isRTL ? "text-right" : ""}`}>
@@ -135,7 +135,7 @@ export default function ContactSection() {
             {contactLinks.map((link, i) => (
               <div
                 key={link.label}
-                className={`px-5 py-4 flex items-center gap-4 hover:bg-muted/20 dark:hover:bg-[hsl(174_88%_52%/0.03)] transition-all group ${isRTL ? "flex-row-reverse" : ""}`}
+                className={`px-5 py-4 flex items-center gap-4 hover:bg-muted/20 dark:hover:bg-[hsl(212_100%_67%/0.04)] transition-all group ${isRTL ? "flex-row-reverse" : ""}`}
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div
@@ -167,7 +167,7 @@ export default function ContactSection() {
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                         copied
                           ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
-                          : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(174_88%_52%/0.35)]"
+                          : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(212_100%_67%/0.32)]"
                       }`}
                     >
                       {copied ? (
@@ -184,7 +184,7 @@ export default function ContactSection() {
                     href={link.href}
                     target={link.href.startsWith("mailto") ? undefined : "_blank"}
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(174_88%_52%/0.3)] transition-all duration-200 flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground dark:hover:border-[hsl(212_100%_67%/0.28)] transition-all duration-200 flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
                   >
                     {link.actionLabel}
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

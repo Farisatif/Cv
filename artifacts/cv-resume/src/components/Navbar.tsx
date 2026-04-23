@@ -32,7 +32,7 @@ function ScrollProgress() {
         left: 0,
         right: 0,
         height: "2px",
-        background: "linear-gradient(90deg, hsl(174 88% 52%), hsl(199 94% 58%), hsl(155 80% 50%))",
+        background: "linear-gradient(90deg, hsl(212 100% 67%), hsl(199 88% 62%), hsl(155 77% 58%))",
         transformOrigin: "left",
         transform: "scaleX(0)",
         willChange: "transform",
@@ -164,7 +164,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
             className={`flex items-center gap-2.5 group flex-shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           >
-            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 dark:group-hover:ring-[hsl(174_88%_52%/0.35)] transition-all flex-shrink-0">
+            <div className="w-7 h-7 rounded-full border border-border overflow-hidden group-hover:ring-2 group-hover:ring-foreground/20 dark:group-hover:ring-[hsl(212_100%_67%/0.28)] transition-all flex-shrink-0">
               <img src="/Fares.jpg" alt={personalName} className="w-full h-full object-cover object-top" />
             </div>
             <span className="text-sm font-semibold hidden sm:block tracking-tight">
@@ -184,7 +184,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                     onClick={(e) => { e.preventDefault(); scrollTo(item.href); }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? "bg-foreground text-background dark:bg-[hsl(174_88%_52%)] dark:text-[hsl(215_55%_3%)] dark:shadow-[0_0_16px_hsl(174_88%_52%/0.35)]"
+                        ? "bg-foreground text-background dark:bg-[hsl(212_100%_67%)] dark:text-[hsl(216_28%_7%)] dark:shadow-[0_0_16px_hsl(212_100%_67%/0.28)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
@@ -229,7 +229,7 @@ export default function Navbar({ mood, onSetMood }: NavbarProps) {
                       onClick={() => { onSetMood(opt.value); setMoodOpen(false); }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-all ${isRTL ? "flex-row-reverse text-right" : ""} ${
                         mood === opt.value
-                          ? "text-foreground bg-muted dark:bg-[hsl(174_88%_52%/0.10)] dark:text-[hsl(174_80%_68%)]"
+                          ? "text-foreground bg-muted dark:bg-[hsl(212_100%_67%/0.10)] dark:text-[hsl(212_100%_80%)]"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       }`}
                     >

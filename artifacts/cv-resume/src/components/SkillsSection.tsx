@@ -7,7 +7,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 // ── Color palette ──────────────────────────────────────────────────────────
 const PALETTE = [
-  { h: 174, s: 88, l: 52 },
+  { h: 212, s: 100, l: 67 },
   { h: 199, s: 92, l: 56 },
   { h: 38,  s: 96, l: 58 },
   { h: 155, s: 80, l: 46 },
@@ -20,7 +20,7 @@ const PALETTE = [
 const LEVEL_LABELS = [
   { min: 0,  max: 39,  en: "Learning",     ar: "متعلم",  hsl: "220 15% 55%" },
   { min: 40, max: 64,  en: "Intermediate", ar: "متوسط",  hsl: "199 88% 56%" },
-  { min: 65, max: 84,  en: "Advanced",     ar: "متقدم",  hsl: "174 80% 50%" },
+  { min: 65, max: 84,  en: "Advanced",     ar: "متقدم",  hsl: "212 100% 67%" },
   { min: 85, max: 100, en: "Expert",       ar: "خبير",   hsl: "160 82% 42%" },
 ];
 function getLabel(n: number) {

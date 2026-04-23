@@ -9,7 +9,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 const COMPANY_THEMES: Record<string, { bg: string; text: string; border: string }> = {
   Vercel:     { bg: "hsl(0 0% 6%)",            text: "hsl(0 0% 96%)",       border: "hsl(0 0% 18%)" },
   Kitsys:     { bg: "hsl(217 91% 52% / 0.12)", text: "hsl(217 80% 60%)",   border: "hsl(217 80% 60% / 0.22)" },
-  GitHub:     { bg: "hsl(174 88% 52% / 0.10)", text: "hsl(174 80% 65%)",   border: "hsl(174 88% 52% / 0.20)" },
+  GitHub:     { bg: "hsl(212 100% 67% / 0.10)", text: "hsl(212 100% 78%)",   border: "hsl(212 100% 67% / 0.20)" },
 };
 const DEFAULT_THEME = { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))", border: "hsl(var(--border))" };
 
@@ -83,7 +83,7 @@ export default function ExperienceSection() {
                   className={`absolute hidden sm:block top-[22px] transition-all duration-300 ${isRTL ? "right-[13px]" : "left-[13px]"}`}
                 >
                   {isOpen ? (
-                    <div className="w-[14px] h-[14px] rounded-full border-2 border-foreground bg-foreground timeline-dot-active dark:border-[hsl(174_88%_52%)] dark:bg-[hsl(174_88%_52%)] shadow-sm" />
+                    <div className="w-[14px] h-[14px] rounded-full border-2 border-foreground bg-foreground timeline-dot-active dark:border-[hsl(212_100%_67%)] dark:bg-[hsl(212_100%_67%)] shadow-sm" />
                   ) : (
                     <div className="w-[10px] h-[10px] rounded-full border-2 border-border bg-background hover:border-foreground/40 transition-colors duration-200 mt-[2px]" />
                   )}
@@ -104,7 +104,7 @@ export default function ExperienceSection() {
                         {/* Company + period */}
                         <div className={`flex items-center gap-2 flex-wrap mb-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
                           <span className="font-bold text-[15px] tracking-tight">{exp.company}</span>
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted dark:bg-[hsl(174_88%_52%/0.08)] text-muted-foreground dark:text-[hsl(174_80%_66%)] font-mono border border-transparent dark:border-[hsl(174_88%_52%/0.12)]">
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted dark:bg-[hsl(212_100%_67%/0.08)] text-muted-foreground dark:text-[hsl(212_100%_78%)] font-mono border border-transparent dark:border-[hsl(212_100%_67%/0.10)]">
                             {exp.period}
                           </span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground font-medium">
@@ -127,7 +127,7 @@ export default function ExperienceSection() {
 
                       {/* Chevron */}
                       <div className={`text-muted-foreground transition-all duration-300 flex-shrink-0 mt-1 ${
-                        isOpen ? "rotate-90 text-foreground dark:text-[hsl(174_88%_52%)]" : "group-hover:text-foreground"
+                        isOpen ? "rotate-90 text-foreground dark:text-[hsl(212_100%_70%)]" : "group-hover:text-foreground"
                       }`}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="9 18 15 12 9 6"/>
@@ -165,11 +165,11 @@ export default function ExperienceSection() {
                             <li key={hi} className={`flex items-start gap-3 text-sm ${isRTL ? "flex-row-reverse" : ""}`}>
                               <span className={`mt-[2px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${
                                 hi === 0
-                                  ? "bg-foreground/10 dark:bg-[hsl(174_88%_52%/0.14)]"
-                                  : "bg-foreground/6 dark:bg-[hsl(174_88%_52%/0.07)]"
+                                  ? "bg-foreground/10 dark:bg-[hsl(212_100%_67%/0.12)]"
+                                  : "bg-foreground/6 dark:bg-[hsl(212_100%_67%/0.06)]"
                               }`}>
                                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                                  className="dark:text-[hsl(174_80%_66%)] text-foreground/65">
+                                  className="dark:text-[hsl(212_100%_78%)] text-foreground/65">
                                   <polyline points="20 6 9 17 4 12"/>
                                 </svg>
                               </span>

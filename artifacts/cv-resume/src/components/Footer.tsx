@@ -36,7 +36,7 @@ export default function Footer() {
           {/* Brand / persona */}
           <div className={isRTL ? "sm:col-span-1 sm:order-3" : ""}>
             <div className={`flex items-center gap-3 mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <div className="w-9 h-9 rounded-full border-2 border-border overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-foreground/20 dark:hover:ring-[hsl(174_88%_52%/0.35)] transition-all">
+              <div className="w-9 h-9 rounded-full border-2 border-border overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-foreground/20 dark:hover:ring-[hsl(212_100%_67%/0.28)] transition-all">
                 <img src="/Fares.jpg" alt={personal.name} className="w-full h-full object-cover object-top" />
               </div>
               <div>
@@ -61,7 +61,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <button
                     onClick={() => scrollTo(link.href)}
-                    className="text-sm text-muted-foreground hover:text-foreground dark:hover:text-[hsl(174_80%_68%)] transition-colors duration-150"
+                    className="text-sm text-muted-foreground hover:text-foreground dark:hover:text-[hsl(212_100%_80%)] transition-colors duration-150"
                   >
                     {lang === "ar" ? link.ar : link.en}
                   </button>
@@ -82,7 +82,7 @@ export default function Footer() {
                 { href: `mailto:${personal.email}`,     label: personal.email },
               ].map(({ href, label }) => (
                 <a key={href} href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground dark:hover:text-[hsl(174_80%_68%)] transition-colors flex items-center gap-1.5 group"
+                  className="text-sm text-muted-foreground hover:text-foreground dark:hover:text-[hsl(212_100%_80%)] transition-colors flex items-center gap-1.5 group"
                   dir="ltr" style={{ justifyContent: isRTL ? "flex-end" : "flex-start" }}>
                   {label}
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -102,17 +102,17 @@ export default function Footer() {
             <span className="opacity-30">·</span>
             <span className={`flex items-center gap-1 ${isRTL ? "flex-row-reverse" : ""}`}>
               {t.footer.builtWith}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-foreground/35 dark:text-[hsl(174_88%_52%/0.65)]">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-foreground/35 dark:text-[hsl(212_100%_67%/0.60)]">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
-              <span className="font-mono dark:text-[hsl(174_80%_65%/0.7)]">React + Tailwind</span>
+              <span className="font-mono dark:text-[hsl(212_100%_78%/0.65)]">React + Tailwind</span>
             </span>
           </div>
 
           <div className={`flex items-center gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="text-xs text-muted-foreground hover:text-foreground dark:hover:text-[hsl(174_80%_68%)] transition-colors flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:text-foreground dark:hover:text-[hsl(212_100%_80%)] transition-colors flex items-center gap-1"
             >
               {t.footer.backToTop}
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -45,8 +45,8 @@ const IMPACT_ITEMS = [
     ),
     value: 1386, suffix: "+",
     label_en: "Git Commits",   label_ar: "commit جيت",
-    accent: "hsl(174 88% 52%)",
-    accentDark: "hsl(174 88% 52%)",
+    accent: "hsl(212 100% 67%)",
+    accentDark: "hsl(212 100% 67%)",
   },
   {
     icon: (

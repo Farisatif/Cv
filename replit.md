@@ -21,7 +21,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### cv-resume (Interactive CV/Resume)
 - **Type**: react-vite, preview at `/`
 - **Directory**: `artifacts/cv-resume/`
-- **Description**: An interactive CV/resume site with a teal/emerald "Signal" aesthetic, bilingual EN/AR support, and 3 mood themes (Cosmic, Night, Light).
+- **Description**: An interactive CV/resume site with a GitHub-inspired design system (GitHub Blue accent `hsl(212 100% 67%)`), bilingual EN/AR support, and 2 mood themes (Dark, Light).
+- **Color system**: Fully GitHub Blue — NO teal/174 hue anywhere. Dark mode uses `#0d1117` bg + `#58a6ff` accent. Light mode uses `#f6f8fa` bg + `#0969da` accent.
 - **Data**: All CV content lives in `src/data/resume.json` — edit this to update any information.
   - Bilingual structure: `en` and `ar` sub-objects for each translatable field.
   - Skills have `category_en` and `category_ar`.
@@ -35,28 +36,30 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
   - PDF download (pure jsPDF): full sections, bilingual, skill bars, pagination
   - Premium design system: `cosmic-card`, `premium-card`, `highlight-card`, `btn-primary`, `btn-secondary`, `cosmic-input`, `section-label`
   - Space Grotesk + Inter + Noto Sans Arabic typography
+  - Animated floating tech/Arabic word chips on loading screen
   - Animated particle background on hero with twinkling + constellation lines
   - Achievement chips on hero (years coding, commits, repos)
   - Typewriter effect for role titles (bilingual)
   - Animated stat counters (count-up on scroll)
   - Skills grid: animated scroll-triggered cards with stagger delay, per-skill color-coded progress bars, category filter tabs, level stats legend
   - Interactive language bar with draggable dividers
-  - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated); scroll-driven emerald circular glow
+  - Real GitHub contribution graph for Farisatif (fetched via API, falls back to generated)
   - Real GitHub stats (followers, repos, stars) in contribution section
   - Scroll-reveal animations on all sections with stagger children
   - Accordion experience timeline with company initials avatars + duration badges
   - Project cards (first featured full-width) with language dot + star/fork counts
-  - New AchievementsSection with 6 highlight cards + accent colors (id: `achievements`)
-  - 3 site moods: Cosmic (deep navy + teal/emerald glow), Night (pitch-black, data-mood="dark"), Light (clean white)
-  - Sticky navbar with active section tracking + "Highlights" nav item
+  - AchievementsSection with highlight cards + accent colors (id: `achievements`)
+  - 2 site moods: Dark (GitHub dark: `data-mood="dark"`) and Light (GitHub light: `data-mood="light"`)
+  - Sticky navbar with active section tracking + active item highlighted in GitHub blue
   - Multi-section footer with quick links + connect section
   - Guestbook backed by PostgreSQL (comments + likes + char counter + trust signals)
   - Live visitor counter (session-deduplicated)
   - Admin panel with premium field styling (cosmic-input)
-  - Admin panel at `/cv-resume/admin` with password "Zoom100*"
+  - Admin panel at `/admin` with password "Zoom100*"
     - Add/edit/delete: skills, experience, projects, education, personal info
     - Changes stored to localStorage; accessible via ⚙ gear icon in footer
   - Arabic/RTL formatting fixes: images, SVGs, and numbers stay LTR inside RTL layout
+- **SEO**: Full meta tags in `index.html` (title, description, keywords, og:*, twitter:card)
 
 ### mockup-sandbox (Canvas / Design Sandbox)
 - **Type**: design, preview at `/__mockup`

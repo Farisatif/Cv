@@ -374,7 +374,7 @@ export default function FloatingLanguageParticles() {
 
         ctx.save();
         ctx.globalAlpha  = finalAlpha;
-        ctx.fillStyle    = isDark ? "hsl(174,72%,62%)" : "hsl(174,65%,32%)";
+        ctx.fillStyle    = isDark ? "hsl(212,100%,70%)" : "hsl(212,93%,44%)";
         ctx.font         = `300 ${line.size}px 'JetBrains Mono','Fira Code',monospace`;
         ctx.textAlign    = "left";
         ctx.textBaseline = "middle";
