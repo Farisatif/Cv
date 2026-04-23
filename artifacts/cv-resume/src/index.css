@@ -73,82 +73,41 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   DARK (shared base)
+   DARK — GitHub Dark base (overridden by [data-mood="dark"])
 ═══════════════════════════════════════════════════ */
 .dark {
-  --background: 215 55% 3.5%;
-  --foreground: 195 18% 94%;
-  --border: 210 42% 10%;
-  --input: 212 38% 8%;
-  --ring: 174 88% 50%;
+  --background: 216 28% 7%;
+  --foreground: 213 27% 84%;
+  --border: 215 16% 20%;
+  --input: 215 22% 12%;
+  --ring: 212 100% 67%;
 
-  --card: 215 50% 5%;
-  --card-foreground: 195 18% 94%;
+  --card: 215 28% 10%;
+  --card-foreground: 213 27% 84%;
 
-  --primary: 174 88% 52%;
-  --primary-foreground: 215 55% 3%;
+  --primary: 212 100% 67%;
+  --primary-foreground: 216 28% 7%;
 
-  --secondary: 212 42% 7%;
-  --secondary-foreground: 195 16% 88%;
+  --secondary: 215 22% 9%;
+  --secondary-foreground: 213 20% 72%;
 
-  --muted: 212 40% 6%;
-  --muted-foreground: 205 16% 52%;
+  --muted: 215 22% 8%;
+  --muted-foreground: 213 18% 52%;
 
-  --accent: 174 52% 10%;
-  --accent-foreground: 195 18% 94%;
+  --accent: 215 25% 14%;
+  --accent-foreground: 213 27% 84%;
 
-  --glow-primary: 174 88% 52%;
-  --glow-secondary: 199 94% 58%;
-  --glow-blue: 218 100% 67%;
+  --glow-primary: 212 100% 67%;
+  --glow-secondary: 155 77% 58%;
+  --glow-blue: 212 100% 67%;
   --glow-amber: 38 96% 62%;
 
-  --card-shadow: 0 1px 4px hsl(215 55% 1% / 0.55), 0 8px 36px hsl(215 55% 1% / 0.35);
-  --card-shadow-hover: 0 0 0 1px hsl(174 88% 52% / 0.14), 0 20px 65px hsl(174 70% 22% / 0.24);
+  --card-shadow: 0 0 0 1px hsl(215 16% 17%), 0 2px 10px hsl(216 28% 3% / 0.50);
+  --card-shadow-hover: 0 0 0 2px hsl(212 100% 67% / 0.18), 0 8px 28px hsl(216 28% 3% / 0.65);
 }
 
 /* ═══════════════════════════════════════════════════
-   COSMIC MODE — "Pro Spectrum" (enhanced dark base)
-   Deep midnight navy, electric teal, rich shadows
-═══════════════════════════════════════════════════ */
-html[data-mood="cosmic"] {
-  --background: 218 90% 2.5%;
-  --foreground: 195 18% 95%;
-  --border: 210 55% 9%;
-  --input: 212 52% 7%;
-  --ring: 174 88% 50%;
-
-  --card: 218 80% 4%;
-  --card-foreground: 195 18% 95%;
-
-  --primary: 174 88% 52%;
-  --primary-foreground: 218 90% 2.5%;
-
-  --secondary: 212 55% 6%;
-  --secondary-foreground: 195 16% 90%;
-
-  --muted: 212 50% 5%;
-  --muted-foreground: 205 18% 50%;
-
-  --accent: 174 60% 9%;
-  --accent-foreground: 195 18% 95%;
-
-  --glow-primary: 174 88% 52%;
-  --glow-secondary: 199 94% 58%;
-  --glow-blue: 218 100% 67%;
-  --glow-amber: 38 96% 62%;
-
-  --card-shadow:
-    0 1px 0 hsl(174 88% 52% / 0.06),
-    0 4px 20px hsl(218 90% 1% / 0.65),
-    0 12px 50px hsl(218 90% 1% / 0.42);
-  --card-shadow-hover:
-    0 0 0 1px hsl(174 88% 52% / 0.22),
-    0 8px 32px hsl(174 75% 22% / 0.28),
-    0 20px 72px hsl(218 90% 1% / 0.55);
-}
-
-/* ═══════════════════════════════════════════════════
-   DARK MODE — "Syntax" (GitHub-inspired)
+   DARK MODE — GitHub Dark
    #0d1117 canvas, charcoal cards, GitHub blue accent
 ═══════════════════════════════════════════════════ */
 html[data-mood="dark"] {
@@ -1142,152 +1101,6 @@ html[data-mood="dark"] {
   border-color: hsl(174 88% 52% / 0.20);
   box-shadow: var(--card-shadow-hover);
 }
-
-/* ══════════════════════════════════════════════════════════════════
-   MOOD: COSMIC — "Pro Spectrum"
-   Deep midnight canvas · Electric teal · Coordinated glow shadows
-══════════════════════════════════════════════════════════════════ */
-
-[data-mood="cosmic"] body {
-  background-color: hsl(218 90% 2.5%) !important;
-  background-image:
-    radial-gradient(ellipse 90% 55% at 50% -12%, hsl(174 88% 52% / 0.10) 0%, transparent 56%),
-    radial-gradient(ellipse 65% 45% at 84% 100%,  hsl(199 94% 58% / 0.07) 0%, transparent 52%),
-    radial-gradient(ellipse 45% 38% at 2% 62%,    hsl(218 100% 65% / 0.042) 0%, transparent 48%),
-    radial-gradient(ellipse 30% 25% at 94% 16%,   hsl(38 96% 62% / 0.030) 0%, transparent 42%) !important;
-}
-
-[data-mood="cosmic"] .nav-blur {
-  background-color: hsl(218 80% 3.5% / 0.92) !important;
-  border-bottom-color: hsl(210 55% 9%) !important;
-}
-
-[data-mood="cosmic"] .glow-text {
-  text-shadow: 0 0 30px hsl(174 88% 52% / 0.50), 0 0 80px hsl(174 88% 52% / 0.18);
-}
-
-[data-mood="cosmic"] .nebula-orb { opacity: 1 !important; display: block !important; }
-
-[data-mood="cosmic"] .glow-border {
-  border-color: hsl(174 88% 52% / 0.22) !important;
-  box-shadow: 0 0 0 1px hsl(174 88% 52% / 0.05), inset 0 0 40px hsl(174 88% 52% / 0.018) !important;
-  animation: border-glow-pulse 4.5s ease-in-out infinite !important;
-}
-
-[data-mood="cosmic"] .glow-divider {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    hsl(174 88% 52% / 0.28) 30%,
-    hsl(199 94% 58% / 0.14) 65%,
-    transparent 100%) !important;
-}
-
-[data-mood="cosmic"] .section-label {
-  color: hsl(174 80% 58%);
-  text-shadow: 0 0 18px hsl(174 88% 52% / 0.38);
-}
-
-[data-mood="cosmic"] .section-bridge::before {
-  background: linear-gradient(90deg,
-    transparent, hsl(174 88% 52% / 0.12) 25%, hsl(199 94% 58% / 0.08) 75%, transparent) !important;
-  opacity: 1;
-}
-
-[data-mood="cosmic"] .cosmic-card {
-  background: hsl(218 80% 4%);
-  border-color: hsl(210 55% 9%);
-}
-[data-mood="cosmic"] .cosmic-card:hover {
-  border-color: hsl(174 88% 52% / 0.28);
-  box-shadow:
-    0 0 0 1px hsl(174 88% 52% / 0.10),
-    0 8px 32px hsl(174 70% 20% / 0.24),
-    0 22px 64px hsl(218 90% 1% / 0.52);
-  transform: translateY(-4px);
-}
-
-[data-mood="cosmic"] .premium-card { background: hsl(218 80% 4%); border-color: hsl(210 55% 9%); }
-[data-mood="cosmic"] .premium-card:hover {
-  border-color: hsl(174 88% 52% / 0.28);
-  box-shadow: var(--card-shadow-hover);
-}
-
-[data-mood="cosmic"] .skill-card { background: hsl(218 80% 4%); border-color: hsl(210 55% 9%); }
-[data-mood="cosmic"] .skill-card:hover {
-  border-color: hsl(174 88% 52% / 0.24);
-  box-shadow: var(--card-shadow-hover);
-  transform: translateY(-4px);
-}
-
-[data-mood="cosmic"] .highlight-card { background: hsl(218 80% 4%); border-color: hsl(210 55% 9%); }
-[data-mood="cosmic"] .highlight-card:hover {
-  border-color: hsl(174 88% 52% / 0.24);
-  box-shadow: var(--card-shadow-hover);
-}
-
-[data-mood="cosmic"] .timeline-dot-active {
-  box-shadow:
-    0 0 0 4px hsl(174 88% 52% / 0.14),
-    0 0 22px hsl(174 88% 52% / 0.52),
-    0 0 52px hsl(174 88% 52% / 0.18);
-}
-
-[data-mood="cosmic"] .btn-primary {
-  background: hsl(174 88% 52%);
-  color: hsl(218 90% 2.5%);
-  box-shadow: 0 4px 18px hsl(174 88% 52% / 0.30);
-}
-[data-mood="cosmic"] .btn-primary:hover {
-  opacity: 1;
-  box-shadow: 0 6px 34px hsl(174 88% 52% / 0.50);
-  transform: translateY(-2px);
-}
-
-[data-mood="cosmic"] .tag-filter:hover { border-color: hsl(174 88% 52% / 0.40); color: hsl(195 18% 90%); }
-[data-mood="cosmic"] .tag-filter.active {
-  border-color: hsl(174 88% 52%);
-  color: hsl(218 90% 2.5%);
-  background: hsl(174 88% 52%);
-  box-shadow: 0 0 22px hsl(174 88% 52% / 0.36);
-}
-
-[data-mood="cosmic"] .achievement-badge {
-  background: hsl(174 88% 52% / 0.07);
-  border-color: hsl(174 88% 52% / 0.22);
-  color: hsl(174 82% 70%);
-}
-[data-mood="cosmic"] .achievement-badge:hover {
-  background: hsl(174 88% 52% / 0.14);
-  box-shadow: 0 0 18px hsl(174 88% 52% / 0.20);
-}
-
-[data-mood="cosmic"] .mood-btn.active {
-  background: hsl(174 88% 52% / 0.12);
-  border-color: hsl(174 88% 52% / 0.32);
-  color: hsl(174 80% 70%);
-  box-shadow: 0 0 12px hsl(174 88% 52% / 0.20);
-}
-
-[data-mood="cosmic"] .text-gradient {
-  background: linear-gradient(135deg, hsl(195 18% 96%), hsl(174 88% 62%), hsl(199 94% 72%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-[data-mood="cosmic"] .fab-top {
-  background: hsl(218 80% 4%);
-  border-color: hsl(210 55% 10%);
-  box-shadow: 0 4px 20px hsl(218 90% 1% / 0.62), 0 0 0 1px hsl(174 88% 52% / 0.07);
-}
-[data-mood="cosmic"] .fab-top:hover {
-  border-color: hsl(174 88% 52% / 0.40);
-  color: hsl(174 80% 68%);
-  box-shadow: 0 6px 30px hsl(174 88% 52% / 0.20);
-}
-
-[data-mood="cosmic"] ::-webkit-scrollbar-thumb { background: hsl(174 55% 28% / 0.50); }
-[data-mood="cosmic"] ::-webkit-scrollbar-thumb:hover { background: hsl(174 70% 45% / 0.62); }
 
 /* ══════════════════════════════════════════════════════════════════
    MOOD: DARK — "Syntax" (GitHub-inspired)

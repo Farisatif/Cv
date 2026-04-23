@@ -75,14 +75,14 @@ const LEVEL_STYLES: Record<DepthLevel, LevelStyle> = {
 
 const LEVEL_COLORS = {
   dark: {
-    FAR:  { h: 199, s: 85, l: 68 },
-    MID:  { h: 174, s: 82, l: 62 },
-    NEAR: { h: 155, s: 78, l: 60 },
+    FAR:  { h: 213, s: 72, l: 66 },
+    MID:  { h: 199, s: 68, l: 60 },
+    NEAR: { h: 155, s: 65, l: 56 },
   },
   light: {
-    FAR:  { h: 199, s: 60, l: 44 },
-    MID:  { h: 174, s: 65, l: 36 },
-    NEAR: { h: 155, s: 62, l: 32 },
+    FAR:  { h: 213, s: 50, l: 46 },
+    MID:  { h: 199, s: 52, l: 38 },
+    NEAR: { h: 155, s: 52, l: 34 },
   },
 } as const;
 

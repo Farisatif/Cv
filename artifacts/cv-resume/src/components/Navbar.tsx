@@ -45,20 +45,9 @@ function ScrollProgress() {
 
 const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_ar: string }[] = [
   {
-    value: "cosmic",
-    label: "Cosmic",
-    label_ar: "كوني",
-    icon: (
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/>
-        <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" opacity="0.9"/>
-      </svg>
-    ),
-  },
-  {
     value: "dark",
-    label: "Night",
-    label_ar: "ليل",
+    label: "Dark",
+    label_ar: "داكن",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -68,7 +57,7 @@ const MOOD_OPTIONS: { value: Mood; icon: React.ReactNode; label: string; label_a
   {
     value: "light",
     label: "Light",
-    label_ar: "نهار",
+    label_ar: "فاتح",
     icon: (
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="5"/>

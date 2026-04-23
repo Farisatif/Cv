@@ -365,79 +365,103 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Right: Profile card — larger photo, premium design */}
+          {/* Right: Profile card — premium exclusive design */}
           <div
             className="w-full sm:w-80 lg:w-72 flex-shrink-0 print:hidden"
             style={{ animation: "fade-up 0.7s cubic-bezier(0.16,1,0.3,1) 0.08s both" }}
           >
-            <div className="cosmic-card rounded-2xl overflow-hidden glow-border">
+            {/* Outer decorative ring — more exclusive than regular cards */}
+            <div className="relative p-[1px] rounded-[20px]"
+              style={{
+                background: "linear-gradient(135deg, hsl(var(--glow-primary)/0.35) 0%, transparent 40%, hsl(var(--glow-secondary)/0.20) 100%)",
+                boxShadow: "0 0 0 1px hsl(var(--border))",
+              }}>
+              {/* Corner accent dots */}
+              <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full opacity-60"
+                style={{ background: "hsl(var(--glow-primary))" }} />
+              <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full opacity-40"
+                style={{ background: "hsl(var(--glow-secondary))" }} />
+              <div className="absolute bottom-3 left-3 w-1 h-1 rounded-full opacity-30"
+                style={{ background: "hsl(var(--glow-primary))" }} />
+              <div className="absolute bottom-3 right-3 w-1 h-1 rounded-full opacity-25"
+                style={{ background: "hsl(var(--glow-secondary))" }} />
 
-              {/* Profile photo — large and prominent */}
-              <div className="relative">
-                <div className="aspect-[4/3] overflow-hidden bg-muted dark:bg-[hsl(237_30%_6%)] relative">
-                  <img
-                    src="/Fares2.jpg"
-                    alt={personal.name}
-                    className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105"
-                  />
-                  {/* Soft gradient overlay at bottom */}
-                  <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
-                </div>
+              <div className="cosmic-card rounded-[19px] overflow-hidden">
 
-                {/* Name badge overlay */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card/90 dark:bg-[hsl(237_30%_4.5%/0.92)] backdrop-blur-md border border-border/60 shadow-lg">
-                    <div>
-                      <div className="text-sm font-bold tracking-tight leading-tight">{personal.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono leading-tight">{resumeData.personal.github.replace("github.com/", "@")}</div>
-                    </div>
-                    {!ghLoading && ghStats && (
-                      <div className="ml-auto flex-shrink-0" title="Live GitHub data">
-                        <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground/60">
-                          <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
-                          </svg>
-                          live
-                        </span>
+                {/* Profile photo — large and prominent */}
+                <div className="relative">
+                  {/* Exclusive top accent bar */}
+                  <div className="absolute top-0 inset-x-0 h-[2px] z-10"
+                    style={{ background: "linear-gradient(90deg, hsl(var(--glow-primary)/0.8), hsl(var(--glow-secondary)/0.5), transparent)" }} />
+
+                  <div className="aspect-[4/3] overflow-hidden bg-muted relative">
+                    <img
+                      src="/Fares2.jpg"
+                      alt={personal.name}
+                      className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105"
+                    />
+                    {/* Gradient overlay at bottom */}
+                    <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-card via-card/60 to-transparent pointer-events-none" />
+                    {/* Subtle side vignette */}
+                    <div className="absolute inset-0 pointer-events-none"
+                      style={{ background: "linear-gradient(to right, hsl(var(--card)/0.08), transparent 30%, transparent 70%, hsl(var(--card)/0.08))" }} />
+                  </div>
+
+                  {/* Name badge overlay */}
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card/92 backdrop-blur-md border border-border/50 shadow-lg w-full">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-bold tracking-tight leading-tight truncate">{personal.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono leading-tight truncate">{resumeData.personal.github.replace("github.com/", "@")}</div>
                       </div>
-                    )}
+                      {!ghLoading && ghStats && (
+                        <div className="flex-shrink-0" title="Live GitHub data">
+                          <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground/60">
+                            <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+                            </svg>
+                            live
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Location row */}
-              <div className={`px-4 pt-3 pb-2 flex items-center gap-1.5 text-xs text-muted-foreground border-b border-border/50 ${isRTL ? "flex-row-reverse" : ""}`}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
-                {personal.location}
-                {ghLoading && (
-                  <svg className="animate-spin ml-auto opacity-40" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                {/* Location row */}
+                <div className={`px-4 pt-3 pb-2 flex items-center gap-1.5 text-xs text-muted-foreground border-b border-border/50 ${isRTL ? "flex-row-reverse" : ""}`}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
                   </svg>
-                )}
-              </div>
+                  {personal.location}
+                  {ghLoading && (
+                    <svg className="animate-spin ml-auto opacity-40" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                  )}
+                </div>
 
-              {/* Stats grid */}
-              <div className="grid grid-cols-4 divide-x divide-border/60 py-2">
-                <StatPill value={resumeData.personal.stats.commits} label={t.stats.commits} />
-                <div className={ghLoading ? "opacity-50" : ""}>
-                  <StatPill value={liveRepos} label={t.stats.repos} />
+                {/* Stats grid */}
+                <div className="grid grid-cols-4 divide-x divide-border/60 py-2">
+                  <StatPill value={resumeData.personal.stats.commits} label={t.stats.commits} />
+                  <div className={ghLoading ? "opacity-50" : ""}>
+                    <StatPill value={liveRepos} label={t.stats.repos} />
+                  </div>
+                  <div className={ghLoading ? "opacity-50" : ""}>
+                    <StatPill value={liveFollowers} label={t.stats.followers} />
+                  </div>
+                  <div className={ghLoading ? "opacity-50" : ""}>
+                    <StatPill value={liveStars} label={t.stats.stars} />
+                  </div>
                 </div>
-                <div className={ghLoading ? "opacity-50" : ""}>
-                  <StatPill value={liveFollowers} label={t.stats.followers} />
-                </div>
-                <div className={ghLoading ? "opacity-50" : ""}>
-                  <StatPill value={liveStars} label={t.stats.stars} />
-                </div>
-              </div>
 
-              {/* Footer */}
-              <div className="px-4 py-2.5 border-t border-border/50 text-[10px] text-muted-foreground font-mono text-center">
-                {t.hero.since} {resumeData.personal.stats.since}
-                <span className="mx-1.5 opacity-35">·</span>
-                {yearsOfCoding} {t.hero.yearsCoding}
+                {/* Footer */}
+                <div className="px-4 py-2.5 border-t border-border/50 text-[10px] text-muted-foreground font-mono text-center">
+                  {t.hero.since} {resumeData.personal.stats.since}
+                  <span className="mx-1.5 opacity-35">·</span>
+                  {yearsOfCoding} {t.hero.yearsCoding}
+                </div>
               </div>
             </div>
           </div>

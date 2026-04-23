@@ -171,7 +171,7 @@ export default function LanguagesSection() {
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                    style={{ background: color.bar, boxShadow: `0 0 6px ${color.bar}` }}
+                    style={{ background: color.bar, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.25)` }}
                   />
                   <div className={`min-w-0 ${isRTL ? "text-right" : ""}`}>
                     <div className="text-xs font-semibold truncate">{language.name}</div>

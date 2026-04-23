@@ -69,7 +69,7 @@ const SECTIONS = {
 } as const;
 // ────────────────────────────────────────────────────────────────────
 
-export type Mood = "cosmic" | "dark" | "light";
+export type Mood = "dark" | "light";
 
 function SectionDivider() {
   return (
@@ -87,13 +87,12 @@ function CVApp() {
   const [mood, setMood] = useState<Mood>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("cv-mood") as Mood | null;
-      if (stored) return stored;
-      
+      if (stored === "dark" || stored === "light") return stored;
       // Detect system preference
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       return prefersDark ? "dark" : "light";
     }
-    return "cosmic";
+    return "dark";
   });
 
   const [adminView, setAdminView] = useState<"cv" | "login" | "panel">(() => {
@@ -136,19 +135,10 @@ function CVApp() {
   // Apply mood to document
   useEffect(() => {
     const html = document.documentElement;
-    
-    // Remove all mood classes first
     html.classList.remove("dark");
-    
-    // Apply mood-specific classes
     if (mood === "dark") {
       html.classList.add("dark");
-    } else if (mood === "light") {
-      html.classList.remove("dark");
-    } else if (mood === "cosmic") {
-      html.classList.add("dark");
     }
-    
     html.setAttribute("data-mood", mood);
   }, [mood]);
 
