@@ -17,6 +17,7 @@ import ContactSection from "@/components/ContactSection";
 import CommentsSection from "@/components/CommentsSection";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
+import ScrollProgress from "@/components/ScrollProgress";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 
@@ -172,6 +173,9 @@ function CVApp() {
       >
         {/* Fixed background particle layer — behind all content */}
         <FloatingLanguageParticles />
+
+        {/* Top scroll-progress bar */}
+        <ScrollProgress />
 
         <Navbar
           mood={mood}

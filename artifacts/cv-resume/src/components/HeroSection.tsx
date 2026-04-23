@@ -246,12 +246,16 @@ export default function HeroSection() {
               <VisitorBadge label={t.hero.visitors} />
             </div>
 
-            {/* Name */}
+            {/* Name — word-by-word reveal for premium agency feel */}
             <h1
-              className={`text-5xl sm:text-6xl lg:text-[5.25rem] font-extrabold tracking-tighter leading-[0.93] mb-4 glow-text ${isRTL ? "text-right" : ""}`}
-              style={{ animation: "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s both" }}
+              className={`text-5xl sm:text-6xl lg:text-[5.25rem] font-extrabold tracking-tighter leading-[0.93] mb-4 glow-text reveal-words ${isRTL ? "text-right" : ""}`}
+              key={personal.name}
             >
-              {personal.name}
+              {personal.name.split(/\s+/).map((w, i) => (
+                <span key={`${w}-${i}`} className="word">
+                  <span style={{ ["--word-delay" as any]: `${i * 110}ms` }}>{w}</span>
+                </span>
+              ))}
             </h1>
 
             {/* Title / role — strong secondary hierarchy */}
