@@ -11,8 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMagnetic, useParallax } from "@/hooks/useInteractions";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import FallingSpheres from "@/components/FallingSpheres";
-import TitleBackgroundAnimation from "@/components/TitleBackgroundAnimation";
-import type { Mood } from "@/App";
 
 // ── Animated counter ──────────────────────────────────────────────────────
 function StatPill({ value, label }: { value: number; label: string }) {
@@ -79,11 +77,7 @@ function VisitorBadge({ label }: { label: string }) {
   );
 }
 
-interface HeroSectionProps {
-  mood?: Mood;
-}
-
-export default function HeroSection({ mood = "dark" }: HeroSectionProps) {
+export default function HeroSection() {
   const { lang, isRTL } = useLanguage();
   const { data: resumeData } = useResumeData();
   const { stats: ghStats, loading: ghLoading } = useGitHubStats();
@@ -216,15 +210,10 @@ export default function HeroSection({ mood = "dark" }: HeroSectionProps) {
   const yearsOfCoding = new Date().getFullYear() - resumeData.personal.stats.since;
 
   return (
-    <section id="about" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden print:min-h-0 print:pt-8">
+    <section id="about" className="relative min-h-screen flex items-center overflow-hidden print:min-h-0 print:pt-8">
       {/* Background layers */}
       <div className="absolute inset-0 grid-pattern opacity-30 print:hidden" />
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none print:hidden" />
-
-      {/* Title Background Animation */}
-      <div className="absolute top-0 left-0 right-0 -z-10 print:hidden">
-        <TitleBackgroundAnimation mood={mood} />
-      </div>
 
       {/* Nebula orbs */}
       <div ref={orb1Ref} className="nebula-orb w-[700px] h-[700px] top-[-200px] left-[-160px] opacity-0 dark:opacity-100 print:hidden"

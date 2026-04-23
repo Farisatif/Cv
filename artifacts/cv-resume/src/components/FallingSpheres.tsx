@@ -63,36 +63,31 @@ export default function FallingSpheres({ className = "", count = 14 }: Props) {
       document.documentElement.classList.contains("dark") ||
       document.documentElement.dataset.mood === "dark";
 
-    /** Premium palette for pure black background — vibrant and elegant. */
+    /** Restrained, sophisticated palette — closer to a brand system than a toy. */
     function pickColor(dark: boolean) {
+      // Mostly neutral / cool; one warm accent (amber) appears rarely
       const swatches = dark
         ? [
-            { h: 210, s: 100, l: 50 }, // bright cyan
-            { h: 280, s: 100, l: 50 }, // vibrant purple
-            { h: 210, s: 90, l: 48 },  // deep blue
-            { h: 40,  s: 100, l: 60 }, // golden amber
-            { h: 185, s: 85, l: 55 },  // teal
-            { h: 300, s: 80, l: 55 },  // magenta
-            { h: 200, s: 75, l: 50 },  // ocean blue
+            { h: 212, s: 80, l: 58 }, // brand blue
+            { h: 199, s: 70, l: 56 }, // cyan-blue
+            { h: 218, s: 30, l: 70 }, // soft slate
+            { h: 220, s: 8,  l: 80 }, // near white
+            { h: 38,  s: 88, l: 60 }, // amber accent (rare)
           ]
         : [
-            { h: 215, s: 70, l: 45 },
-            { h: 280, s: 85, l: 45 },
-            { h: 215, s: 60, l: 42 },
-            { h: 40,  s: 95, l: 55 },
-            { h: 185, s: 75, l: 50 },
-            { h: 300, s: 75, l: 48 },
-            { h: 200, s: 65, l: 45 },
+            { h: 212, s: 75, l: 52 },
+            { h: 199, s: 65, l: 50 },
+            { h: 218, s: 18, l: 62 },
+            { h: 220, s: 6,  l: 76 },
+            { h: 38,  s: 85, l: 55 },
           ];
-      // weighted distribution for elegant mix
+      // weighted: neutrals/blues 92%, amber accent 8%
       const r = Math.random();
-      const idx = r < 0.20 ? 0
-                : r < 0.35 ? 1
-                : r < 0.50 ? 2
-                : r < 0.65 ? 3
-                : r < 0.78 ? 4
-                : r < 0.88 ? 5
-                : 6;
+      const idx = r < 0.32 ? 0
+                : r < 0.55 ? 1
+                : r < 0.78 ? 2
+                : r < 0.92 ? 3
+                : 4;
       return swatches[idx];
     }
 
